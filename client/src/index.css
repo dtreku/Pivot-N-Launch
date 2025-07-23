@@ -1,0 +1,334 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(348, 83%, 47%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(20, 14.3%, 4.1%);
+  --radius: 0.5rem;
+  
+  /* Custom PBL Toolkit Colors */
+  --crimson: hsl(348, 83%, 47%);
+  --professional-blue: hsl(221, 83%, 32%);
+  --gold-amber: hsl(45, 93%, 47%);
+  --light-gray: hsl(210, 20%, 98%);
+  --medium-gray: hsl(217, 10%, 47%);
+  --dark-gray: hsl(217, 32%, 22%);
+  --anti-overload-bg: hsl(210, 20%, 98%);
+  --focus-highlight: hsl(348, 83%, 47%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(348, 83%, 47%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+  
+  /* Dark mode custom colors */
+  --crimson: hsl(348, 83%, 47%);
+  --professional-blue: hsl(221, 83%, 42%);
+  --gold-amber: hsl(45, 93%, 57%);
+  --light-gray: hsl(240, 10%, 3.9%);
+  --medium-gray: hsl(240, 5%, 64.9%);
+  --dark-gray: hsl(0, 0%, 98%);
+  --anti-overload-bg: hsl(240, 10%, 3.9%);
+  --focus-highlight: hsl(348, 83%, 47%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+
+  /* Anti-overload design principles */
+  .anti-overload-container {
+    @apply max-w-7xl mx-auto px-6 py-8;
+    background-color: var(--anti-overload-bg);
+  }
+
+  .focus-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .focus-card:hover {
+    @apply shadow-md;
+    border-color: var(--focus-highlight);
+  }
+
+  .methodology-step {
+    @apply border border-gray-200 rounded-lg p-4 transition-all duration-200;
+  }
+
+  .methodology-step.active {
+    border-color: var(--crimson);
+    background-color: hsl(348, 83%, 97%);
+  }
+
+  .pbl-button-primary {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors;
+    background-color: var(--crimson);
+  }
+
+  .pbl-button-primary:hover {
+    @apply bg-red-700;
+  }
+
+  .pbl-button-secondary {
+    @apply border border-blue-800 text-blue-800 px-4 py-2 rounded-lg font-medium transition-colors;
+    border-color: var(--professional-blue);
+    color: var(--professional-blue);
+  }
+
+  .pbl-button-secondary:hover {
+    @apply bg-blue-800 text-white;
+    background-color: var(--professional-blue);
+  }
+
+  /* Template cards */
+  .template-card {
+    @apply border border-gray-200 rounded-lg p-4 cursor-pointer transition-all duration-200;
+  }
+
+  .template-card:hover {
+    border-color: var(--crimson);
+    transform: translateY(-1px);
+    @apply shadow-md;
+  }
+
+  .template-card.blockchain {
+    @apply hover:border-red-600;
+  }
+
+  .template-card.data-science {
+    @apply hover:border-blue-800;
+  }
+
+  .template-card.fintech {
+    @apply hover:border-yellow-500;
+  }
+
+  .template-card.business {
+    @apply hover:border-green-500;
+  }
+
+  /* Faculty profile styling */
+  .faculty-profile {
+    @apply flex items-center space-x-3;
+  }
+
+  .faculty-avatar {
+    @apply w-10 h-10 rounded-full object-cover border-2 border-gray-200;
+  }
+
+  /* Collaboration cards */
+  .collaboration-card {
+    @apply flex items-start space-x-3 p-3 rounded-lg;
+  }
+
+  .collaboration-card.suggestion {
+    background-color: hsl(221, 83%, 95%);
+  }
+
+  .collaboration-card.reflection {
+    background-color: hsl(45, 93%, 95%);
+  }
+
+  .collaboration-card.feedback {
+    background-color: hsl(142, 71%, 95%);
+  }
+
+  /* Stats cards */
+  .stats-card {
+    @apply bg-white rounded-xl shadow-sm p-6 border border-gray-200;
+  }
+
+  .stats-icon {
+    @apply p-3 rounded-lg;
+  }
+
+  .stats-icon.crimson {
+    background-color: hsl(348, 83%, 95%);
+    color: var(--crimson);
+  }
+
+  .stats-icon.blue {
+    background-color: hsl(221, 83%, 95%);
+    color: var(--professional-blue);
+  }
+
+  .stats-icon.amber {
+    background-color: hsl(45, 93%, 95%);
+    color: var(--gold-amber);
+  }
+
+  .stats-icon.green {
+    background-color: hsl(142, 71%, 95%);
+    color: hsl(142, 71%, 35%);
+  }
+
+  /* Anti-overload banner */
+  .anti-overload-banner {
+    @apply mt-8 rounded-xl shadow-lg p-8 text-white;
+    background: linear-gradient(135deg, var(--crimson) 0%, var(--professional-blue) 100%);
+  }
+
+  /* Navigation improvements */
+  .nav-link {
+    @apply flex items-center px-4 py-3 rounded-lg transition-colors duration-150;
+  }
+
+  .nav-link:hover {
+    @apply bg-gray-100;
+  }
+
+  .nav-link.active {
+    @apply bg-gray-100 font-medium;
+    color: var(--crimson);
+  }
+
+  .nav-icon {
+    @apply mr-3 w-5 h-5;
+  }
+
+  .nav-icon.active {
+    color: var(--crimson);
+  }
+
+  /* Form improvements for anti-overload */
+  .pbl-form-group {
+    @apply space-y-2 mb-4;
+  }
+
+  .pbl-label {
+    @apply text-sm font-medium text-gray-700 block;
+  }
+
+  .pbl-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-opacity-50 focus:border-transparent;
+    focus:ring-color: var(--crimson);
+  }
+
+  .pbl-textarea {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-opacity-50 focus:border-transparent;
+    focus:ring-color: var(--crimson);
+    min-height: 100px;
+  }
+
+  /* Progress indicators */
+  .progress-bar {
+    @apply w-full bg-gray-200 rounded-full h-2;
+  }
+
+  .progress-fill {
+    @apply h-2 rounded-full transition-all duration-300;
+  }
+
+  .progress-fill.crimson {
+    background-color: var(--crimson);
+  }
+
+  .progress-fill.blue {
+    background-color: var(--professional-blue);
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    .anti-overload-container {
+      @apply px-4;
+    }
+    
+    .focus-card {
+      @apply p-4;
+    }
+    
+    .anti-overload-banner {
+      @apply p-6;
+    }
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+
+  .loading-skeleton.dark {
+    @apply bg-gray-700;
+  }
+
+  /* Integration status indicators */
+  .integration-status {
+    @apply w-3 h-3 rounded-full;
+  }
+
+  .integration-status.connected {
+    @apply bg-green-500;
+  }
+
+  .integration-status.disconnected {
+    @apply bg-red-500;
+  }
+
+  .integration-status.available {
+    @apply bg-yellow-500;
+  }
+}
+
+/* Print-friendly styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .focus-card {
+    @apply shadow-none border border-gray-300;
+  }
+  
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .anti-overload-banner {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+  }
+}
