@@ -1,4 +1,4 @@
-# PBL Toolkit - Pivot-and-Launch Project-Based Learning Platform
+# PBL Pedagogy Tool - Pivot-and-Launch Project-Based Learning Platform
 
 ## Overview
 
@@ -17,6 +17,7 @@ Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and 
 - Changed discipline focus from Business Information Systems to Fintech, Information Systems, and Data Science
 - Generated HTML and Markdown presentation formats for colleague presentations
 - Emphasized anti-overload design principles and Pivot-and-Launch methodology
+- Renamed platform from "Pivot-and-Launch PBL Dashboard" to "Pivot-and-Launch PBL Pedagogy Tool"
 
 ## System Architecture
 

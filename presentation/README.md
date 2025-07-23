@@ -1,4 +1,4 @@
-# PBL Toolkit Presentation Materials
+# PBL Pedagogy Tool Presentation Materials
 
 ## Files Included
 
@@ -8,7 +8,7 @@
 
 ## Presentation Overview
 
-The presentation covers the Pivot-and-Launch PBL Toolkit project with the following key sections:
+The presentation covers the Pivot-and-Launch PBL Pedagogy Tool project with the following key sections:
 
 ### Slide Topics
 - **Title & Introduction** - Project overview and presenter information

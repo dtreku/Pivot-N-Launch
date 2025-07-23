@@ -14,7 +14,7 @@ import {
 
 const navigation = [
   {
-    name: "Dashboard",
+    name: "Pedagogy Tool",
     href: "/dashboard",
     icon: Home,
     description: "Overview and quick actions",
