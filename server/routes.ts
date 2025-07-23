@@ -404,12 +404,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const defaultFaculty = await storage.createFaculty({
         name: "Prof. Daniel Treku",
         email: "daniel.treku@university.edu",
-        title: "Professor of Business Information Systems",
+        title: "Professor of Fintech, Information Systems and Data Science",
         department: "Information Systems and Fintech",
         institution: "University",
         photoUrl: "/api/faculty-photo", // This would be handled by a separate file upload endpoint
         bio: "Information systems and fintech professor and collaborative faculty in the data science program",
-        expertise: ["Blockchain", "Fintech", "Data Science", "Business Information Systems", "AI Applications"],
+        expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations"],
       });
 
       // Create default project templates
