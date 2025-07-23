@@ -56,8 +56,8 @@ const INTEGRATIONS: Array<{
   {
     id: "notebooklm",
     name: "Google NotebookLM",
-    description: "AI-powered research assistant for institutional knowledge curation",
-    category: "ai",
+    description: "Knowledge-powered research assistant for institutional knowledge curation",
+    category: "knowledge",
     status: "connected",
     icon: Brain,
     color: "blue",
@@ -76,8 +76,8 @@ const INTEGRATIONS: Array<{
   {
     id: "copilot",
     name: "Microsoft Copilot",
-    description: "AI assistant for brainstorming projects and generating content",
-    category: "ai",
+    description: "Knowledge assistant for brainstorming projects and generating content",
+    category: "knowledge",
     status: "available",
     icon: Zap,
     color: "purple",
@@ -228,7 +228,7 @@ export default function Integrations() {
 
   const categories = [
     { value: "all", label: "All Integrations", icon: Plug },
-    { value: "ai", label: "AI Tools", icon: Brain },
+    { value: "knowledge", label: "Knowledge Tools", icon: Brain },
     { value: "survey", label: "Survey Platforms", icon: BarChart3 },
     { value: "lms", label: "Learning Management", icon: FileText },
     { value: "cloud", label: "Cloud Services", icon: Cloud },
@@ -242,7 +242,7 @@ export default function Integrations() {
           Integrations
         </h1>
         <p className="text-gray-600 text-lg">
-          Connect AI tools, survey platforms, and educational services to enhance your PBL toolkit
+          Connect knowledge tools, survey platforms, and educational services to enhance your PBL toolkit
         </p>
       </div>
 
@@ -262,7 +262,7 @@ export default function Integrations() {
               </div>
               <div>
                 <p className="font-medium text-gray-800">NotebookLM Enterprise</p>
-                <p className="text-sm text-gray-600">AI Research Assistant</p>
+                <p className="text-sm text-gray-600">Knowledge Research Assistant</p>
               </div>
               <Check className="w-5 h-5 text-green-600" />
             </div>

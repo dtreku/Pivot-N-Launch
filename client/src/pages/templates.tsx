@@ -283,7 +283,7 @@ export default function Templates() {
 
           <Card className="focus-card p-0 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
             <CardHeader>
-              <CardTitle className="text-blue-800">AI-Powered Data Analysis</CardTitle>
+              <CardTitle className="text-blue-800">Knowledge-Driven Data Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-blue-700 mb-4">

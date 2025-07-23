@@ -7,6 +7,7 @@ This is a full-stack web application that provides a comprehensive toolkit for i
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and Data Science.
 
 ## System Architecture
 
