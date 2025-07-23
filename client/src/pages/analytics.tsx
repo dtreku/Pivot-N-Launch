@@ -33,7 +33,7 @@ const TIME_RANGES = [
 ];
 
 const EVENT_TYPES = [
-  { value: "", label: "All Events" },
+  { value: "all", label: "All Events" },
   { value: "project_created", label: "Project Created" },
   { value: "project_updated", label: "Project Updated" },
   { value: "objective_converted", label: "Objective Converted" },
@@ -43,14 +43,14 @@ const EVENT_TYPES = [
 
 export default function Analytics() {
   const [timeRange, setTimeRange] = useState("30d");
-  const [eventType, setEventType] = useState("");
+  const [eventType, setEventType] = useState("all");
 
   const { data: faculty } = useDefaultFaculty();
   const { data: dashboardStats } = useDashboardStats(faculty?.id);
 
   const { data: analyticsEvents = [], isLoading } = useQuery({
     queryKey: ["/api/analytics/faculty", faculty?.id, eventType],
-    queryFn: () => analyticsApi.getByFaculty(faculty!.id, eventType || undefined),
+    queryFn: () => analyticsApi.getByFaculty(faculty!.id, eventType === "all" ? undefined : eventType),
     enabled: !!faculty?.id,
   });
 

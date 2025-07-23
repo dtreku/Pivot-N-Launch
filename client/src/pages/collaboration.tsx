@@ -28,7 +28,7 @@ import {
 import type { ContributionFilter } from "@/types";
 
 const CONTRIBUTION_TYPES = [
-  { value: "", label: "All Types" },
+  { value: "all", label: "All Types" },
   { value: "suggestion", label: "Project Suggestions" },
   { value: "reflection", label: "Critical Reflections" },
   { value: "feedback", label: "Feedback" },
@@ -36,7 +36,7 @@ const CONTRIBUTION_TYPES = [
 ];
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Status" },
+  { value: "all", label: "All Status" },
   { value: "pending", label: "Pending Review" },
   { value: "approved", label: "Approved" },
   { value: "implemented", label: "Implemented" },
@@ -247,7 +247,7 @@ export default function Collaboration() {
                   <SelectValue placeholder="All Projects" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Projects</SelectItem>
+                  <SelectItem value="all">All Projects</SelectItem>
                   {projects.map(project => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.title}

@@ -101,7 +101,7 @@ export default function MethodologyWizard() {
                 value={formData.discipline}
                 onChange={(e) => setFormData({ ...formData, discipline: e.target.value })}
               >
-                <option value="">Select your discipline...</option>
+                <option value="select">Select your discipline...</option>
                 <option value="blockchain">Blockchain Technology</option>
                 <option value="data-science">Data Science</option>
                 <option value="fintech">Financial Technology</option>
@@ -292,6 +292,21 @@ export default function MethodologyWizard() {
         <p className="text-gray-600 text-lg">
           Guided setup for implementing strategic pedagogy in your courses
         </p>
+      </div>
+
+      {/* Pedagogical Strategy Description */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
+        <div className="flex items-start space-x-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+            <WandSparkles className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">About the Pivot-and-Launch Strategy</h3>
+            <p className="text-blue-800 leading-relaxed">
+              The "Pivot-and-Launch" pedagogical strategy is an innovative approach to project-based learning (PBL) that combines the strengths of core knowledge and application to enhance teaching and learning. The strategy is specifically designed to address the challenges posed by information overload and the rapid evolution of fields like data science, business, and AI. By strengthening foundational knowledge and applying it to diverse contexts through PBL, students will develop a deep understanding of the material and the ability to adapt to changing professional landscapes.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Progress Bar */}

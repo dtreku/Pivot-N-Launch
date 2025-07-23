@@ -12,7 +12,7 @@ import { Search, Filter, Plus, FileText, Download } from "lucide-react";
 import type { TemplateFilters } from "@/types";
 
 const DISCIPLINES = [
-  { value: "", label: "All Disciplines" },
+  { value: "all", label: "All Disciplines" },
   { value: "blockchain", label: "Blockchain Technology" },
   { value: "data-science", label: "Data Science" },
   { value: "fintech", label: "Financial Technology" },
@@ -21,7 +21,7 @@ const DISCIPLINES = [
 ];
 
 const CATEGORIES = [
-  { value: "", label: "All Categories" },
+  { value: "all", label: "All Categories" },
   { value: "development", label: "Development" },
   { value: "analysis", label: "Analysis" },
   { value: "innovation", label: "Innovation" },
@@ -29,7 +29,7 @@ const CATEGORIES = [
 ];
 
 const DIFFICULTY_LEVELS = [
-  { value: "", label: "All Levels" },
+  { value: "all", label: "All Levels" },
   { value: "beginner", label: "Beginner" },
   { value: "intermediate", label: "Intermediate" },
   { value: "advanced", label: "Advanced" },
@@ -37,9 +37,9 @@ const DIFFICULTY_LEVELS = [
 
 export default function Templates() {
   const [filters, setFilters] = useState<TemplateFilters>({
-    discipline: "",
-    category: "",
-    difficulty: "",
+    discipline: "all",
+    category: "all",
+    difficulty: "all",
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
@@ -53,8 +53,8 @@ export default function Templates() {
       template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       template.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCategory = !filters.category || template.category === filters.category;
-    const matchesDifficulty = !filters.difficulty || template.difficultyLevel === filters.difficulty;
+    const matchesCategory = filters.category === "all" || !filters.category || template.category === filters.category;
+    const matchesDifficulty = filters.difficulty === "all" || !filters.difficulty || template.difficultyLevel === filters.difficulty;
     
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
@@ -64,7 +64,7 @@ export default function Templates() {
   };
 
   const clearFilters = () => {
-    setFilters({ discipline: "", category: "", difficulty: "" });
+    setFilters({ discipline: "all", category: "all", difficulty: "all" });
     setSearchQuery("");
   };
 
