@@ -27,7 +27,7 @@ export default function FacultyProfile() {
         </Avatar>
         <div>
           <p className="text-sm font-medium text-gray-800">Prof. Daniel Treku</p>
-          <p className="text-xs text-gray-500">Business Information Systems</p>
+          <p className="text-xs text-gray-500">Fintech, Information Systems and Data Science</p>
         </div>
       </div>
     );
