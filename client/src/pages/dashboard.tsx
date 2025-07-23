@@ -27,7 +27,7 @@ export default function Dashboard() {
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Pivot-and-Launch PBL Dashboard
+          Pivot-and-Launch PBL Pedagogy Tool
         </h1>
         <p className="text-gray-600 text-lg">
           Transform information overload into focused, deep learning experiences

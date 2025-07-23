@@ -1,4 +1,4 @@
-# Pivot-and-Launch PBL Toolkit
+# Pivot-and-Launch PBL Pedagogy Tool
 ## Combating Educational Information Overload Through Strategic Pedagogy
 
 ---

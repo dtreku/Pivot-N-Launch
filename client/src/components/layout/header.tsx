@@ -18,7 +18,7 @@ export default function Header() {
                 <Lightbulb className="text-white w-5 h-5" />
               </div>
               <h1 className="ml-3 text-xl font-bold text-gray-800">
-                Pivot-and-Launch PBL Toolkit
+                Pivot-and-Launch PBL Pedagogy Tool
               </h1>
             </div>
           </div>
