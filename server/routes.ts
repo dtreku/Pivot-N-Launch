@@ -12,6 +12,10 @@ import {
   insertAnalyticsEventSchema
 } from "@shared/schema";
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Faculty routes
   app.get("/api/faculty/:id", async (req, res) => {
@@ -25,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(faculty);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch faculty", error: error.message });
+      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
     }
   });
 
@@ -40,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(faculty);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch faculty", error: error.message });
+      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
     }
   });
 
@@ -53,7 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create faculty", error: error.message });
+      res.status(500).json({ message: "Failed to create faculty", error: getErrorMessage(error) });
     }
   });
 
@@ -72,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update faculty", error: error.message });
+      res.status(500).json({ message: "Failed to update faculty", error: getErrorMessage(error) });
     }
   });
 
@@ -83,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projects = await storage.getProjectsByFaculty(facultyId);
       res.json(projects);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch projects", error: error.message });
+      res.status(500).json({ message: "Failed to fetch projects", error: getErrorMessage(error) });
     }
   });
 
@@ -98,7 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(project);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch project", error: error.message });
+      res.status(500).json({ message: "Failed to fetch project", error: getErrorMessage(error) });
     }
   });
 
@@ -119,7 +123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid project data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create project", error: error.message });
+      res.status(500).json({ message: "Failed to create project", error: getErrorMessage(error) });
     }
   });
 
@@ -145,7 +149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid project data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update project", error: error.message });
+      res.status(500).json({ message: "Failed to update project", error: getErrorMessage(error) });
     }
   });
 
@@ -160,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Project deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete project", error: error.message });
+      res.status(500).json({ message: "Failed to delete project", error: getErrorMessage(error) });
     }
   });
 
@@ -178,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(templates);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch templates", error: error.message });
+      res.status(500).json({ message: "Failed to fetch templates", error: getErrorMessage(error) });
     }
   });
 
@@ -193,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(template);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch template", error: error.message });
+      res.status(500).json({ message: "Failed to fetch template", error: getErrorMessage(error) });
     }
   });
 
@@ -204,7 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contributions = await storage.getStudentContributionsByProject(projectId);
       res.json(contributions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch contributions", error: error.message });
+      res.status(500).json({ message: "Failed to fetch contributions", error: getErrorMessage(error) });
     }
   });
 
@@ -217,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid contribution data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create contribution", error: error.message });
+      res.status(500).json({ message: "Failed to create contribution", error: getErrorMessage(error) });
     }
   });
 
@@ -238,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(contribution);
     } catch (error) {
-      res.status(500).json({ message: "Failed to update contribution status", error: error.message });
+      res.status(500).json({ message: "Failed to update contribution status", error: getErrorMessage(error) });
     }
   });
 
@@ -249,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entries = await storage.getKnowledgeBaseByFaculty(facultyId);
       res.json(entries);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch knowledge base", error: error.message });
+      res.status(500).json({ message: "Failed to fetch knowledge base", error: getErrorMessage(error) });
     }
   });
 
@@ -262,7 +266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid knowledge base data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create knowledge base entry", error: error.message });
+      res.status(500).json({ message: "Failed to create knowledge base entry", error: getErrorMessage(error) });
     }
   });
 
@@ -278,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = await storage.searchKnowledgeBase(facultyId, query);
       res.json(results);
     } catch (error) {
-      res.status(500).json({ message: "Failed to search knowledge base", error: error.message });
+      res.status(500).json({ message: "Failed to search knowledge base", error: getErrorMessage(error) });
     }
   });
 
@@ -293,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ message: "Knowledge base entry deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete knowledge base entry", error: error.message });
+      res.status(500).json({ message: "Failed to delete knowledge base entry", error: getErrorMessage(error) });
     }
   });
 
@@ -304,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const conversions = await storage.getObjectiveConversionsByFaculty(facultyId);
       res.json(conversions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch objective conversions", error: error.message });
+      res.status(500).json({ message: "Failed to fetch objective conversions", error: getErrorMessage(error) });
     }
   });
 
@@ -325,7 +329,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid conversion data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create objective conversion", error: error.message });
+      res.status(500).json({ message: "Failed to create objective conversion", error: getErrorMessage(error) });
     }
   });
 
@@ -339,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid survey response data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create survey response", error: error.message });
+      res.status(500).json({ message: "Failed to create survey response", error: getErrorMessage(error) });
     }
   });
 
@@ -349,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const responses = await storage.getSurveyResponsesByProject(projectId);
       res.json(responses);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch survey responses", error: error.message });
+      res.status(500).json({ message: "Failed to fetch survey responses", error: getErrorMessage(error) });
     }
   });
 
@@ -363,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid analytics data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create analytics event", error: error.message });
+      res.status(500).json({ message: "Failed to create analytics event", error: getErrorMessage(error) });
     }
   });
 
@@ -378,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       res.json(events);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch analytics", error: error.message });
+      res.status(500).json({ message: "Failed to fetch analytics", error: getErrorMessage(error) });
     }
   });
 
@@ -389,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stats = await storage.getDashboardStats(facultyId);
       res.json(stats);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch dashboard stats", error: error.message });
+      res.status(500).json({ message: "Failed to fetch dashboard stats", error: getErrorMessage(error) });
     }
   });
 
@@ -482,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         templatesCreated: templates.length,
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to seed database", error: error.message });
+      res.status(500).json({ message: "Failed to seed database", error: getErrorMessage(error) });
     }
   });
 

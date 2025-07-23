@@ -94,10 +94,7 @@ export class DatabaseStorage implements IStorage {
   async createFaculty(insertFaculty: InsertFaculty): Promise<Faculty> {
     const [result] = await db
       .insert(faculty)
-      .values({
-        ...insertFaculty,
-        updatedAt: new Date(),
-      })
+      .values(insertFaculty)
       .returning();
     return result;
   }
@@ -105,10 +102,7 @@ export class DatabaseStorage implements IStorage {
   async updateFaculty(id: number, updateData: Partial<InsertFaculty>): Promise<Faculty | undefined> {
     const [result] = await db
       .update(faculty)
-      .set({
-        ...updateData,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(faculty.id, id))
       .returning();
     return result || undefined;
@@ -131,10 +125,7 @@ export class DatabaseStorage implements IStorage {
   async createProject(project: InsertProject): Promise<Project> {
     const [result] = await db
       .insert(projects)
-      .values({
-        ...project,
-        updatedAt: new Date(),
-      })
+      .values(project)
       .returning();
     return result;
   }
@@ -142,10 +133,7 @@ export class DatabaseStorage implements IStorage {
   async updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined> {
     const [result] = await db
       .update(projects)
-      .set({
-        ...project,
-        updatedAt: new Date(),
-      })
+      .set(project)
       .where(eq(projects.id, id))
       .returning();
     return result || undefined;
@@ -153,7 +141,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: number): Promise<boolean> {
     const result = await db.delete(projects).where(eq(projects.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Project template methods
@@ -227,10 +215,7 @@ export class DatabaseStorage implements IStorage {
   async createKnowledgeBaseEntry(entry: InsertKnowledgeBase): Promise<KnowledgeBase> {
     const [result] = await db
       .insert(knowledgeBase)
-      .values({
-        ...entry,
-        updatedAt: new Date(),
-      })
+      .values(entry)
       .returning();
     return result;
   }
@@ -248,7 +233,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteKnowledgeBaseEntry(id: number): Promise<boolean> {
     const result = await db.delete(knowledgeBase).where(eq(knowledgeBase.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Objective conversion methods
