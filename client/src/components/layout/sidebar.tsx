@@ -10,6 +10,8 @@ import {
   Plug,
   RefreshCw,
   Users,
+  Anchor,
+  Brain,
 } from "lucide-react";
 
 const navigation = [
@@ -49,6 +51,12 @@ const navigation = [
     icon: Database,
     description: "Institutional content library",
   },
+  {
+    name: "Pivot Assets",
+    href: "/pivot-assets",
+    icon: Anchor,
+    description: "Core knowledge anchors and retrieval practice",
+  },
 ];
 
 const tools = [
@@ -59,10 +67,16 @@ const tools = [
     description: "Usage and effectiveness metrics",
   },
   {
+    name: "Cognitive Load Analytics",
+    href: "/cognitive-load-analytics",
+    icon: Brain,
+    description: "Research-based learning optimization",
+  },
+  {
     name: "Integrations",
     href: "/integrations",
     icon: Plug,
-    description: "AI tools and survey platforms",
+    description: "Knowledge tools and survey platforms",
   },
 ];
 

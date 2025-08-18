@@ -64,6 +64,90 @@ export const studentContributions = pgTable("student_contributions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Pivot Cards table - Core knowledge anchors based on research
+export const pivotCards = pgTable("pivot_cards", {
+  id: serial("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  discipline: varchar("discipline", { length: 100 }).notNull(),
+  definition: text("definition").notNull(),
+  constraints: text("constraints"),
+  minimalExample: text("minimal_example"),
+  counterExample: text("counter_example"),
+  misconceptions: jsonb("misconceptions").$type<string[]>().default([]),
+  retrievalCount: integer("retrieval_count").default(0),
+  masteryLevel: real("mastery_level").default(0),
+  cognitiveLoadRating: real("cognitive_load_rating"), // Based on Paas scale
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Worked Examples table - Guided exemplars with self-explanation
+export const workedExamples = pgTable("worked_examples", {
+  id: serial("id").primaryKey(),
+  pivotCardId: integer("pivot_card_id").references(() => pivotCards.id).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  steps: jsonb("steps").$type<string[]>().notNull(),
+  selfExplanationPrompts: jsonb("self_explanation_prompts").$type<string[]>().default([]),
+  completionProblem: text("completion_problem"),
+  intrinsicLoadLevel: varchar("intrinsic_load_level", { length: 50 }).default("moderate"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Retrieval Activities table - Spaced repetition system
+export const retrievalActivities = pgTable("retrieval_activities", {
+  id: serial("id").primaryKey(),
+  pivotCardId: integer("pivot_card_id").references(() => pivotCards.id).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // 'flashcard', 'concept-check', 'application'
+  question: text("question").notNull(),
+  answer: text("answer"),
+  options: jsonb("options").$type<string[]>(),
+  correctAnswer: integer("correct_answer"),
+  difficulty: varchar("difficulty", { length: 50 }).default("basic"),
+  lastShown: timestamp("last_shown"),
+  nextDue: timestamp("next_due"),
+  successRate: real("success_rate").default(0),
+  avgResponseTime: real("avg_response_time"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Launch Contexts table - Progressive transfer contexts
+export const launchContexts = pgTable("launch_contexts", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  transferLevel: varchar("transfer_level", { length: 50 }).notNull(), // 'near', 'moderate', 'far'
+  contextDimensions: jsonb("context_dimensions").$type<{
+    stakeholders?: string[];
+    dataRegime?: string;
+    constraints?: string[];
+    riskLevel?: string;
+    regulatoryContext?: string;
+  }>(),
+  scaffoldingLevel: varchar("scaffolding_level", { length: 50 }).default("high"),
+  cognitiveLoadTarget: real("cognitive_load_target").default(6), // 1-9 Paas scale
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Cognitive Load Measurements table - Research tracking
+export const cognitiveLoadMeasurements = pgTable("cognitive_load_measurements", {
+  id: serial("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id),
+  projectId: integer("project_id").references(() => projects.id),
+  pivotCardId: integer("pivot_card_id").references(() => pivotCards.id),
+  studentIdentifier: varchar("student_identifier", { length: 255 }), // Anonymous
+  mentalEffort: integer("mental_effort"), // Paas 1-9 scale
+  intrinsicLoad: integer("intrinsic_load"), // Leppink scale
+  extraneousLoad: integer("extraneous_load"), // Leppink scale
+  germaneLoad: integer("germane_load"), // Leppink scale
+  technostressLevel: integer("technostress_level"), // 1-7 scale
+  interruptionCount: integer("interruption_count"),
+  timeToRefocus: real("time_to_refocus"), // Minutes
+  overloadIndicators: jsonb("overload_indicators").$type<string[]>().default([]),
+  measurementContext: varchar("measurement_context", { length: 100 }), // 'pivot', 'launch', 'assessment'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Knowledge base documents table
 export const knowledgeBase = pgTable("knowledge_base", {
   id: serial("id").primaryKey(),
