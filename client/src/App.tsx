@@ -12,6 +12,8 @@ import Collaboration from "@/pages/collaboration";
 import KnowledgeBase from "@/pages/knowledge-base";
 import Analytics from "@/pages/analytics";
 import Integrations from "@/pages/integrations";
+import PivotAssets from "@/pages/pivot-assets";
+import CognitiveLoadAnalytics from "@/pages/cognitive-load-analytics";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 
@@ -32,6 +34,8 @@ function Router() {
             <Route path="/knowledge-base" component={KnowledgeBase} />
             <Route path="/analytics" component={Analytics} />
             <Route path="/integrations" component={Integrations} />
+            <Route path="/pivot-assets" component={PivotAssets} />
+            <Route path="/cognitive-load-analytics" component={CognitiveLoadAnalytics} />
             <Route component={NotFound} />
           </Switch>
         </main>

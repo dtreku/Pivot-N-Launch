@@ -12,12 +12,16 @@ Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and 
 ## Recent Changes
 
 ### January 23, 2025
-- Fixed critical SelectItem component errors by replacing empty string values
-- Added comprehensive pedagogical strategy description to Methodology Wizard page
-- Created professional HTML slide deck presentation with 12 slides and navigation
-- Developed detailed speaker notes with timing and engagement strategies
-- Enhanced platform stability and user experience
-- Updated presentation materials to showcase platform capabilities and benefits
+- **Research Integration:** Reshaped platform based on comprehensive PNL research report
+- **Pivot Assets Module:** Created research-based core knowledge anchoring system
+- **Cognitive Load Analytics:** Implemented Paas/Leppink measurement framework for learning optimization
+- **Enhanced Schema:** Added tables for pivot cards, worked examples, retrieval activities, and cognitive load tracking
+- **Transfer-Focused Design:** Implemented progressive context variation (near → moderate → far transfer)
+- **Information Overload Mitigation:** Added attention budgeting and triage systems
+- **Load-Aware Materials:** Applied cognitive load theory principles throughout platform
+- **Spaced Retrieval System:** Integrated evidence-based retention practices
+- **Research Documentation:** Created comprehensive implementation guide linking theory to practice
+- Fixed critical SelectItem component errors and enhanced platform stability
 
 ## System Architecture
 
