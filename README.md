@@ -1,4 +1,4 @@
-# PBL Pedagogy Tool - Pivot-and-Launch Project-Based Learning Platform
+# Pivot-N-Launch PBL Pedagogy Tool - Project-Based Learning Platform
 
 A comprehensive toolkit for implementing project-based learning using the research-validated Pivot-and-Launch methodology. This platform helps educators create, manage, and optimize educational projects while preventing information overload through curated, focused content delivery.
 
