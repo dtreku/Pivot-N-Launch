@@ -12,6 +12,7 @@ import {
   Users,
   Anchor,
   Brain,
+  Upload,
 } from "lucide-react";
 
 const navigation = [
@@ -56,6 +57,12 @@ const navigation = [
     href: "/pivot-assets",
     icon: Anchor,
     description: "Core knowledge anchors and retrieval practice",
+  },
+  {
+    name: "Document Manager",
+    href: "/documents",
+    icon: Upload,
+    description: "Upload and share materials for on-demand access",
   },
 ];
 

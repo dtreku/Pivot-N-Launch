@@ -16,16 +16,28 @@ const DISCIPLINES = [
   { value: "blockchain", label: "Blockchain Technology" },
   { value: "data-science", label: "Data Science" },
   { value: "fintech", label: "Financial Technology" },
-  { value: "business", label: "Business Strategy" },
   { value: "information-systems", label: "Information Systems" },
+  { value: "biochemistry", label: "Biochemistry" },
+  { value: "chemistry", label: "Chemistry" },
+  { value: "biology", label: "Biology" },
+  { value: "literature", label: "Literature & Language Arts" },
+  { value: "history", label: "History" },
+  { value: "philosophy", label: "Philosophy" },
+  { value: "visual-arts", label: "Visual Arts" },
+  { value: "mathematics", label: "Mathematics" },
+  { value: "business", label: "Business Strategy" },
 ];
 
 const CATEGORIES = [
   { value: "all", label: "All Categories" },
   { value: "development", label: "Development" },
   { value: "analysis", label: "Analysis" },
+  { value: "research", label: "Research" },
+  { value: "creative", label: "Creative & Design" },
+  { value: "laboratory", label: "Laboratory & Experimental" },
   { value: "innovation", label: "Innovation" },
   { value: "strategy", label: "Strategy" },
+  { value: "interdisciplinary", label: "Interdisciplinary" },
 ];
 
 const DIFFICULTY_LEVELS = [

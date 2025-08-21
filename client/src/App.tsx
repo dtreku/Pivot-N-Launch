@@ -14,6 +14,7 @@ import Analytics from "@/pages/analytics";
 import Integrations from "@/pages/integrations";
 import PivotAssets from "@/pages/pivot-assets";
 import CognitiveLoadAnalytics from "@/pages/cognitive-load-analytics";
+import DocumentManager from "@/pages/document-manager";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 
@@ -36,6 +37,9 @@ function Router() {
             <Route path="/integrations" component={Integrations} />
             <Route path="/pivot-assets" component={PivotAssets} />
             <Route path="/cognitive-load-analytics" component={CognitiveLoadAnalytics} />
+            <Route path="/documents">
+              {() => <DocumentManager facultyId={1} />}
+            </Route>
             <Route component={NotFound} />
           </Switch>
         </main>
