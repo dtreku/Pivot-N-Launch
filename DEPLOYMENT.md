@@ -28,7 +28,7 @@ This guide walks you through deploying the Pivot-and-Launch Project-Based Learni
    ```
 3. Add GitHub remote and push:
    ```bash
-   git remote add origin https://github.com/yourusername/pbl-pedagogy-tool.git
+   git remote add origin https://github.com/yourusername/Pivot-N-Launch-PBL-Pedagogy-Tool.git
    git branch -M main
    git push -u origin main
    ```
