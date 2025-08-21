@@ -21,50 +21,42 @@ import type {
 // Faculty API
 export const facultyApi = {
   get: async (id: number): Promise<Faculty> => {
-    const res = await apiRequest("GET", `/api/faculty/${id}`);
-    return res.json();
+    return await apiRequest(`/api/faculty/${id}`, "GET");
   },
 
   getByEmail: async (email: string): Promise<Faculty> => {
-    const res = await apiRequest("GET", `/api/faculty/email/${email}`);
-    return res.json();
+    return await apiRequest(`/api/faculty/email/${email}`, "GET");
   },
 
   create: async (faculty: InsertFaculty): Promise<Faculty> => {
-    const res = await apiRequest("POST", "/api/faculty", faculty);
-    return res.json();
+    return await apiRequest("/api/faculty", "POST", faculty);
   },
 
   update: async (id: number, faculty: Partial<InsertFaculty>): Promise<Faculty> => {
-    const res = await apiRequest("PUT", `/api/faculty/${id}`, faculty);
-    return res.json();
+    return await apiRequest(`/api/faculty/${id}`, "PUT", faculty);
   },
 };
 
 // Project API
 export const projectApi = {
   get: async (id: number): Promise<Project> => {
-    const res = await apiRequest("GET", `/api/projects/${id}`);
-    return res.json();
+    return await apiRequest(`/api/projects/${id}`, "GET");
   },
 
   getByFaculty: async (facultyId: number): Promise<Project[]> => {
-    const res = await apiRequest("GET", `/api/projects/faculty/${facultyId}`);
-    return res.json();
+    return await apiRequest(`/api/projects/faculty/${facultyId}`, "GET");
   },
 
   create: async (project: InsertProject): Promise<Project> => {
-    const res = await apiRequest("POST", "/api/projects", project);
-    return res.json();
+    return await apiRequest("/api/projects", "POST", project);
   },
 
   update: async (id: number, project: Partial<InsertProject>): Promise<Project> => {
-    const res = await apiRequest("PUT", `/api/projects/${id}`, project);
-    return res.json();
+    return await apiRequest(`/api/projects/${id}`, "PUT", project);
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiRequest("DELETE", `/api/projects/${id}`);
+    await apiRequest(`/api/projects/${id}`, "DELETE");
   },
 };
 
@@ -72,110 +64,94 @@ export const projectApi = {
 export const templateApi = {
   getAll: async (discipline?: string): Promise<ProjectTemplate[]> => {
     const url = discipline ? `/api/templates?discipline=${discipline}` : "/api/templates";
-    const res = await apiRequest("GET", url);
-    return res.json();
+    return await apiRequest(url, "GET");
   },
 
   get: async (id: number): Promise<ProjectTemplate> => {
-    const res = await apiRequest("GET", `/api/templates/${id}`);
-    return res.json();
+    return await apiRequest(`/api/templates/${id}`, "GET");
   },
 };
 
 // Student contribution API
 export const contributionApi = {
   getByProject: async (projectId: number): Promise<StudentContribution[]> => {
-    const res = await apiRequest("GET", `/api/contributions/project/${projectId}`);
-    return res.json();
+    return await apiRequest(`/api/contributions/project/${projectId}`, "GET");
   },
 
   create: async (contribution: InsertStudentContribution): Promise<StudentContribution> => {
-    const res = await apiRequest("POST", "/api/contributions", contribution);
-    return res.json();
+    return await apiRequest("/api/contributions", "POST", contribution);
   },
 
   updateStatus: async (id: number, status: string): Promise<StudentContribution> => {
-    const res = await apiRequest("PUT", `/api/contributions/${id}/status`, { status });
-    return res.json();
+    return await apiRequest(`/api/contributions/${id}/status`, "PUT", { status });
   },
 };
 
 // Knowledge base API
 export const knowledgeBaseApi = {
   getByFaculty: async (facultyId: number): Promise<KnowledgeBase[]> => {
-    const res = await apiRequest("GET", `/api/knowledge-base/faculty/${facultyId}`);
-    return res.json();
+    return await apiRequest(`/api/knowledge-base/faculty/${facultyId}`, "GET");
   },
 
   create: async (entry: InsertKnowledgeBase): Promise<KnowledgeBase> => {
-    const res = await apiRequest("POST", "/api/knowledge-base", entry);
-    return res.json();
+    return await apiRequest("/api/knowledge-base", "POST", entry);
   },
 
   search: async (facultyId: number, query: string): Promise<KnowledgeBase[]> => {
-    const res = await apiRequest("GET", `/api/knowledge-base/search/${facultyId}?query=${encodeURIComponent(query)}`);
-    return res.json();
+    return await apiRequest(`/api/knowledge-base/search/${facultyId}?query=${encodeURIComponent(query)}`, "GET");
   },
 
   delete: async (id: number): Promise<void> => {
-    await apiRequest("DELETE", `/api/knowledge-base/${id}`);
+    await apiRequest(`/api/knowledge-base/${id}`, "DELETE");
   },
 };
 
 // Objective conversion API
 export const objectiveConversionApi = {
   getByFaculty: async (facultyId: number): Promise<ObjectiveConversion[]> => {
-    const res = await apiRequest("GET", `/api/objective-conversions/faculty/${facultyId}`);
-    return res.json();
+    return await apiRequest(`/api/objective-conversions/faculty/${facultyId}`, "GET");
   },
 
   create: async (conversion: InsertObjectiveConversion): Promise<ObjectiveConversion> => {
-    const res = await apiRequest("POST", "/api/objective-conversions", conversion);
-    return res.json();
+    return await apiRequest("/api/objective-conversions", "POST", conversion);
   },
 };
 
 // Survey response API
 export const surveyApi = {
   createResponse: async (response: InsertSurveyResponse): Promise<SurveyResponse> => {
-    const res = await apiRequest("POST", "/api/survey-responses", response);
-    return res.json();
+    return await apiRequest("/api/survey-responses", "POST", response);
   },
 
   getByProject: async (projectId: number): Promise<SurveyResponse[]> => {
-    const res = await apiRequest("GET", `/api/survey-responses/project/${projectId}`);
-    return res.json();
+    return await apiRequest(`/api/survey-responses/project/${projectId}`, "GET");
   },
 };
 
 // Analytics API
 export const analyticsApi = {
   createEvent: async (event: InsertAnalyticsEvent): Promise<AnalyticsEvent> => {
-    const res = await apiRequest("POST", "/api/analytics", event);
-    return res.json();
+    return await apiRequest("/api/analytics", "POST", event);
   },
 
   getByFaculty: async (facultyId: number, eventType?: string): Promise<AnalyticsEvent[]> => {
     const url = eventType 
       ? `/api/analytics/faculty/${facultyId}?eventType=${eventType}`
       : `/api/analytics/faculty/${facultyId}`;
-    const res = await apiRequest("GET", url);
-    return res.json();
+    return await apiRequest(url, "GET");
   },
 };
 
 // Dashboard API
 export const dashboardApi = {
   getStats: async (facultyId: number): Promise<DashboardStats> => {
-    const res = await apiRequest("GET", `/api/dashboard/stats/${facultyId}`);
-    return res.json();
+    return await apiRequest(`/api/dashboard/stats/${facultyId}`, "GET");
   },
 };
 
 // Seed API (for development)
 export const seedApi = {
   seed: async (): Promise<{ message: string; faculty: Faculty; templatesCreated: number }> => {
-    const res = await apiRequest("POST", "/api/seed");
-    return res.json();
+    return await apiRequest("/api/seed", "POST");
   },
 };

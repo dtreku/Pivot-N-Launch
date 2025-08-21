@@ -8,6 +8,9 @@ import {
   surveyResponses, 
   analyticsEvents,
   documentUploads,
+  teams,
+  sessions,
+  userStats,
   type Faculty,
   type InsertFaculty,
   type Project,
@@ -25,7 +28,12 @@ import {
   type AnalyticsEvent,
   type InsertAnalyticsEvent,
   type DocumentUpload,
-  type InsertDocumentUpload
+  type InsertDocumentUpload,
+  type Team,
+  type InsertTeam,
+  type Session,
+  type UserStats,
+  type InsertUserStats
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql } from "drizzle-orm";
@@ -88,6 +96,30 @@ export interface IStorage {
   updateDocumentUpload(id: number, upload: Partial<InsertDocumentUpload>): Promise<DocumentUpload | undefined>;
   deleteDocumentUpload(id: number): Promise<boolean>;
   incrementDownloadCount(id: number): Promise<void>;
+
+  // Authentication methods
+  validateCredentials(email: string, password: string): Promise<Faculty | null>;
+  createSession(facultyId: number): Promise<Session>;
+  getSession(sessionId: string): Promise<Session | undefined>;
+  deleteSession(sessionId: string): Promise<boolean>;
+  updateLastLogin(facultyId: number): Promise<void>;
+
+  // Team management methods
+  getTeamsByAdmin(adminId: number): Promise<Team[]>;
+  createTeam(team: InsertTeam): Promise<Team>;
+  getTeam(id: number): Promise<Team | undefined>;
+  updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team | undefined>;
+  deleteTeam(id: number): Promise<boolean>;
+  getTeamMembers(teamId: number): Promise<Faculty[]>;
+  addTeamMember(teamId: number, facultyId: number): Promise<void>;
+  removeTeamMember(teamId: number, facultyId: number): Promise<void>;
+
+  // User statistics methods
+  getUserStats(facultyId: number): Promise<UserStats | undefined>;
+  createUserStats(stats: InsertUserStats): Promise<UserStats>;
+  updateUserStats(facultyId: number, stats: Partial<UserStats>): Promise<UserStats | undefined>;
+  incrementLoginCount(facultyId: number): Promise<void>;
+  updateActivityTime(facultyId: number, minutesSpent: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -399,6 +431,161 @@ export class DatabaseStorage implements IStorage {
       .update(documentUploads)
       .set({ downloadCount: sql`download_count + 1` })
       .where(eq(documentUploads.id, id));
+  }
+
+  // Authentication methods
+  async validateCredentials(email: string, password: string): Promise<Faculty | null> {
+    const bcrypt = await import('bcryptjs');
+    const [user] = await db.select().from(faculty).where(eq(faculty.email, email));
+    
+    if (!user || !user.passwordHash) {
+      return null;
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    return isValid ? user : null;
+  }
+
+  async createSession(facultyId: number): Promise<Session> {
+    const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    const [result] = await db
+      .insert(sessions)
+      .values({
+        id: sessionId,
+        facultyId,
+        expiresAt,
+      })
+      .returning();
+
+    return result;
+  }
+
+  async getSession(sessionId: string): Promise<Session | undefined> {
+    const [result] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
+    
+    // Check if session is expired
+    if (result && result.expiresAt < new Date()) {
+      await this.deleteSession(sessionId);
+      return undefined;
+    }
+
+    return result || undefined;
+  }
+
+  async deleteSession(sessionId: string): Promise<boolean> {
+    const result = await db.delete(sessions).where(eq(sessions.id, sessionId));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async updateLastLogin(facultyId: number): Promise<void> {
+    await db
+      .update(faculty)
+      .set({ lastLoginAt: new Date() })
+      .where(eq(faculty.id, facultyId));
+  }
+
+  // Team management methods
+  async getTeamsByAdmin(adminId: number): Promise<Team[]> {
+    return await db
+      .select()
+      .from(teams)
+      .where(eq(teams.adminId, adminId))
+      .orderBy(desc(teams.createdAt));
+  }
+
+  async createTeam(team: InsertTeam): Promise<Team> {
+    const [result] = await db
+      .insert(teams)
+      .values(team)
+      .returning();
+    return result;
+  }
+
+  async getTeam(id: number): Promise<Team | undefined> {
+    const [result] = await db.select().from(teams).where(eq(teams.id, id));
+    return result || undefined;
+  }
+
+  async updateTeam(id: number, team: Partial<InsertTeam>): Promise<Team | undefined> {
+    const [result] = await db
+      .update(teams)
+      .set(team)
+      .where(eq(teams.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteTeam(id: number): Promise<boolean> {
+    const result = await db.delete(teams).where(eq(teams.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getTeamMembers(teamId: number): Promise<Faculty[]> {
+    return await db
+      .select()
+      .from(faculty)
+      .where(eq(faculty.teamId, teamId));
+  }
+
+  async addTeamMember(teamId: number, facultyId: number): Promise<void> {
+    await db
+      .update(faculty)
+      .set({ teamId })
+      .where(eq(faculty.id, facultyId));
+  }
+
+  async removeTeamMember(teamId: number, facultyId: number): Promise<void> {
+    await db
+      .update(faculty)
+      .set({ teamId: null })
+      .where(and(eq(faculty.id, facultyId), eq(faculty.teamId, teamId)));
+  }
+
+  // User statistics methods
+  async getUserStats(facultyId: number): Promise<UserStats | undefined> {
+    const [result] = await db.select().from(userStats).where(eq(userStats.facultyId, facultyId));
+    return result || undefined;
+  }
+
+  async createUserStats(stats: InsertUserStats): Promise<UserStats> {
+    const [result] = await db
+      .insert(userStats)
+      .values(stats)
+      .returning();
+    return result;
+  }
+
+  async updateUserStats(facultyId: number, stats: Partial<UserStats>): Promise<UserStats | undefined> {
+    const [result] = await db
+      .update(userStats)
+      .set(stats)
+      .where(eq(userStats.facultyId, facultyId))
+      .returning();
+    return result || undefined;
+  }
+
+  async incrementLoginCount(facultyId: number): Promise<void> {
+    await db
+      .update(userStats)
+      .set({ 
+        loginCount: sql`login_count + 1`,
+        lastActiveAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(userStats.facultyId, facultyId));
+  }
+
+  async updateActivityTime(facultyId: number, minutesSpent: number): Promise<void> {
+    await db
+      .update(userStats)
+      .set({ 
+        totalTimeSpent: sql`total_time_spent + ${minutesSpent}`,
+        lastActiveAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(userStats.facultyId, facultyId));
   }
 }
 
