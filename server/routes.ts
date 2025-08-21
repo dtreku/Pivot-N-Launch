@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { 
   insertFacultySchema,
   insertProjectSchema,
@@ -10,9 +11,41 @@ import {
   insertObjectiveConversionSchema,
   insertSurveyResponseSchema,
   insertAnalyticsEventSchema,
-  insertDocumentUploadSchema
+  insertDocumentUploadSchema,
+  insertTeamSchema
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+
+// Middleware to check authentication
+async function requireAuth(req: any, res: any, next: any) {
+  const sessionId = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!sessionId) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  const session = await storage.getSession(sessionId);
+  if (!session) {
+    return res.status(401).json({ message: "Invalid or expired session" });
+  }
+
+  const faculty = await storage.getFaculty(session.facultyId);
+  if (!faculty || !faculty.isActive) {
+    return res.status(401).json({ message: "Faculty account inactive" });
+  }
+
+  req.user = faculty;
+  req.session = session;
+  next();
+}
+
+// Middleware to check super admin access
+async function requireSuperAdmin(req: any, res: any, next: any) {
+  if (req.user?.role !== 'super_admin') {
+    return res.status(403).json({ message: "Super admin access required" });
+  }
+  next();
+}
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
@@ -79,6 +112,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      const faculty = await storage.validateCredentials(email, password);
+      if (!faculty) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if (!faculty.isActive) {
+        return res.status(401).json({ message: "Account is inactive" });
+      }
+
+      // Create session
+      const session = await storage.createSession(faculty.id);
+      
+      // Update login stats
+      await storage.updateLastLogin(faculty.id);
+      await storage.incrementLoginCount(faculty.id);
+
+      res.json({
+        sessionId: session.id,
+        faculty: {
+          id: faculty.id,
+          name: faculty.name,
+          email: faculty.email,
+          role: faculty.role,
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution,
+        },
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Login failed", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/auth/logout", requireAuth, async (req: any, res) => {
+    try {
+      await storage.deleteSession(req.session.id);
+      res.json({ message: "Logged out successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Logout failed", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/auth/me", requireAuth, async (req: any, res) => {
+    try {
+      const stats = await storage.getUserStats(req.user.id);
+      res.json({
+        faculty: {
+          id: req.user.id,
+          name: req.user.name,
+          email: req.user.email,
+          role: req.user.role,
+          title: req.user.title,
+          department: req.user.department,
+          institution: req.user.institution,
+          teamId: req.user.teamId,
+        },
+        stats,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch user data", error: getErrorMessage(error) });
+    }
+  });
+
+  // Super admin routes for instructor management
+  app.post("/api/admin/instructors", requireAuth, requireSuperAdmin, async (req, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role,
+        title,
+        department,
+        institution,
+        isActive: true,
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+
+      // Create initial user stats
+      await storage.createUserStats({
+        facultyId: faculty.id,
+        loginCount: 0,
+        projectsCreated: 0,
+        templatesUsed: 0,
+        totalTimeSpent: 0,
+        lastActiveAt: new Date(),
+      });
+
+      res.status(201).json({
+        id: faculty.id,
+        name: faculty.name,
+        email: faculty.email,
+        role: faculty.role,
+        title: faculty.title,
+        department: faculty.department,
+        institution: faculty.institution,
+        isActive: faculty.isActive,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create instructor", error: getErrorMessage(error) });
+    }
+  });
+
+  // Team management routes
+  app.get("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teams = await storage.getTeamsByAdmin(req.user.id);
+      res.json(teams);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch teams", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const validatedData = insertTeamSchema.parse({
+        ...req.body,
+        adminId: req.user.id,
+      });
+      const team = await storage.createTeam(validatedData);
+      res.status(201).json(team);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create team", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/teams/:id/members", requireAuth, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch team members", error: getErrorMessage(error) });
     }
   });
 
@@ -402,16 +599,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Seed initial data route (for development)
   app.post("/api/seed", async (req, res) => {
     try {
-      // Create default faculty (Prof. Daniel Treku)
-      const defaultFaculty = await storage.createFaculty({
+      // Create super admin (Prof. Daniel Treku)
+      const passwordHash = await bcrypt.hash("admin123", 10); // Default password for setup
+      
+      const superAdmin = await storage.createFaculty({
         name: "Prof. Daniel Treku",
-        email: "daniel.treku@university.edu",
+        email: "dtreku@wpi.edu",
+        passwordHash,
+        role: "super_admin",
+        isActive: true,
         title: "Professor of Fintech, Information Systems and Data Science",
         department: "Information Systems and Fintech",
-        institution: "University",
-        photoUrl: "/api/faculty-photo", // This would be handled by a separate file upload endpoint
-        bio: "Information systems and fintech professor and collaborative faculty in the data science program",
-        expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations"],
+        institution: "Worcester Polytechnic Institute",
+        photoUrl: "/api/faculty-photo",
+        bio: "Information systems and fintech professor and collaborative faculty in the data science program. Expert in Pivot-and-Launch pedagogy and cognitive load management.",
+        expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations", "Project-Based Learning"],
+      });
+
+      // Create initial user stats for super admin
+      await storage.createUserStats({
+        facultyId: superAdmin.id,
+        loginCount: 0,
+        projectsCreated: 0,
+        templatesUsed: 0,
+        totalTimeSpent: 0,
+        lastActiveAt: new Date(),
       });
 
       // Create default project templates
@@ -559,8 +771,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ 
         message: "Database seeded successfully",
-        faculty: defaultFaculty,
+        superAdmin: {
+          id: superAdmin.id,
+          name: superAdmin.name,
+          email: superAdmin.email,
+          role: superAdmin.role,
+          institution: superAdmin.institution,
+        },
         templatesCreated: templates.length,
+        loginCredentials: {
+          email: "dtreku@wpi.edu",
+          password: "admin123"
+        }
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to seed database", error: getErrorMessage(error) });

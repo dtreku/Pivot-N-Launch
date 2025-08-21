@@ -3,17 +3,22 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Faculty table
+// Faculty table - Enhanced with authentication
 export const faculty = pgTable("faculty", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: varchar("password_hash", { length: 255 }),
+  role: varchar("role", { length: 50 }).default("instructor").notNull(), // 'super_admin', 'admin', 'instructor'
+  isActive: boolean("is_active").default(true).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   department: varchar("department", { length: 255 }).notNull(),
   institution: varchar("institution", { length: 255 }).notNull(),
   photoUrl: text("photo_url"),
   bio: text("bio"),
   expertise: jsonb("expertise").$type<string[]>().default([]),
+  teamId: integer("team_id"), // For team management
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -325,6 +330,50 @@ export const insertDocumentUploadSchema = createInsertSchema(documentUploads).om
   updatedAt: true,
 });
 
+// Teams table for instructor team management
+export const teams = pgTable("teams", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  adminId: integer("admin_id").references(() => faculty.id).notNull(),
+  institutionId: varchar("institution_id", { length: 255 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Sessions table for authentication
+export const sessions = pgTable("sessions", {
+  id: varchar("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User statistics tracking
+export const userStats = pgTable("user_stats", {
+  id: serial("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
+  loginCount: integer("login_count").default(0).notNull(),
+  projectsCreated: integer("projects_created").default(0).notNull(),
+  templatesUsed: integer("templates_used").default(0).notNull(),
+  lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
+  totalTimeSpent: integer("total_time_spent").default(0).notNull(), // in minutes
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Insert schemas
+export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserStatsSchema = createInsertSchema(userStats).omit({
+  id: true,
+  updatedAt: true,
+});
+
 // Types
 export type Faculty = typeof faculty.$inferSelect;
 export type InsertFaculty = z.infer<typeof insertFacultySchema>;
@@ -352,3 +401,11 @@ export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;
 
 export type DocumentUpload = typeof documentUploads.$inferSelect;
 export type InsertDocumentUpload = z.infer<typeof insertDocumentUploadSchema>;
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
+
+export type Session = typeof sessions.$inferSelect;
+
+export type UserStats = typeof userStats.$inferSelect;
+export type InsertUserStats = z.infer<typeof insertUserStatsSchema>;
