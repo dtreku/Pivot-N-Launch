@@ -102,11 +102,38 @@ export default function MethodologyWizard() {
                 onChange={(e) => setFormData({ ...formData, discipline: e.target.value })}
               >
                 <option value="select">Select your discipline...</option>
-                <option value="blockchain">Blockchain Technology</option>
-                <option value="data-science">Data Science</option>
-                <option value="fintech">Financial Technology</option>
-                <option value="business">Business Strategy</option>
-                <option value="information-systems">Information Systems</option>
+                <optgroup label="Technology & Engineering">
+                  <option value="blockchain">Blockchain Technology</option>
+                  <option value="data-science">Data Science</option>
+                  <option value="fintech">Financial Technology</option>
+                  <option value="information-systems">Information Systems</option>
+                </optgroup>
+                <optgroup label="Physical Sciences">
+                  <option value="biochemistry">Biochemistry</option>
+                  <option value="chemistry">Chemistry</option>
+                  <option value="physics">Physics</option>
+                  <option value="biology">Biology</option>
+                  <option value="environmental-science">Environmental Science</option>
+                </optgroup>
+                <optgroup label="Humanities & Social Sciences">
+                  <option value="literature">Literature & Language Arts</option>
+                  <option value="history">History</option>
+                  <option value="philosophy">Philosophy</option>
+                  <option value="psychology">Psychology</option>
+                  <option value="anthropology">Anthropology</option>
+                </optgroup>
+                <optgroup label="Arts & Design">
+                  <option value="visual-arts">Visual Arts</option>
+                  <option value="digital-media">Digital Media</option>
+                  <option value="graphic-design">Graphic Design</option>
+                  <option value="architecture">Architecture</option>
+                </optgroup>
+                <optgroup label="Business & Mathematics">
+                  <option value="business">Business Strategy</option>
+                  <option value="mathematics">Mathematics</option>
+                  <option value="statistics">Statistics</option>
+                  <option value="economics">Economics</option>
+                </optgroup>
                 <option value="other">Other</option>
               </select>
             </div>

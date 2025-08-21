@@ -9,8 +9,10 @@ import {
   insertKnowledgeBaseSchema,
   insertObjectiveConversionSchema,
   insertSurveyResponseSchema,
-  insertAnalyticsEventSchema
+  insertAnalyticsEventSchema,
+  insertDocumentUploadSchema
 } from "@shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
@@ -474,6 +476,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
           estimatedDuration: "4-8 weeks",
           difficultyLevel: "beginner",
         },
+        {
+          name: "Biochemistry Lab Investigation",
+          description: "Protein analysis and enzyme kinetics research projects",
+          discipline: "Biochemistry",
+          category: "Laboratory",
+          template: {
+            phases: ["Literature Review", "Experimental Design", "Data Collection", "Analysis", "Research Report"],
+            deliverables: ["Research Proposal", "Lab Protocols", "Data Analysis", "Scientific Paper"],
+            tools: ["Spectrophotometry", "Chromatography", "Statistical Software", "Lab Notebooks"],
+          },
+          icon: "fas fa-flask",
+          color: "#059669",
+          estimatedDuration: "10-14 weeks",
+          difficultyLevel: "advanced",
+        },
+        {
+          name: "Literary Analysis & Cultural Context",
+          description: "Comparative literature analysis with historical and cultural perspectives",
+          discipline: "Literature",
+          category: "Research",
+          template: {
+            phases: ["Text Selection", "Contextual Research", "Critical Analysis", "Comparative Study", "Thesis Writing"],
+            deliverables: ["Annotated Bibliography", "Critical Essays", "Comparative Analysis", "Research Thesis"],
+            tools: ["Digital Archives", "Citation Management", "Text Analysis Software", "Presentation Tools"],
+          },
+          icon: "fas fa-book-open",
+          color: "#7C3AED",
+          estimatedDuration: "8-12 weeks",
+          difficultyLevel: "intermediate",
+        },
+        {
+          name: "Historical Research Project",
+          description: "Primary source investigation and historical narrative construction",
+          discipline: "History",
+          category: "Research",
+          template: {
+            phases: ["Topic Selection", "Source Collection", "Source Analysis", "Narrative Construction", "Presentation"],
+            deliverables: ["Research Proposal", "Primary Source Portfolio", "Historical Analysis", "Digital Exhibition"],
+            tools: ["Digital Archives", "Timeline Software", "GIS Mapping", "Multimedia Tools"],
+          },
+          icon: "fas fa-scroll",
+          color: "#B45309",
+          estimatedDuration: "6-10 weeks",
+          difficultyLevel: "intermediate",
+        },
+        {
+          name: "Visual Arts & Design Thinking",
+          description: "Creative problem-solving through artistic expression and design principles",
+          discipline: "Visual Arts",
+          category: "Creative",
+          template: {
+            phases: ["Inspiration Gathering", "Concept Development", "Prototyping", "Refinement", "Exhibition"],
+            deliverables: ["Mood Board", "Concept Sketches", "Final Artwork", "Artist Statement", "Portfolio"],
+            tools: ["Digital Art Software", "3D Modeling", "Photography", "Presentation Platforms"],
+          },
+          icon: "fas fa-palette",
+          color: "#EC4899",
+          estimatedDuration: "6-8 weeks",
+          difficultyLevel: "beginner",
+        },
+        {
+          name: "Mathematical Modeling & Real-World Applications",
+          description: "Applied mathematics projects solving practical problems",
+          discipline: "Mathematics",
+          category: "Analysis",
+          template: {
+            phases: ["Problem Identification", "Model Development", "Mathematical Analysis", "Validation", "Application"],
+            deliverables: ["Problem Statement", "Mathematical Model", "Analysis Report", "Software Implementation"],
+            tools: ["MATLAB", "Python", "Wolfram Alpha", "Graphing Software"],
+          },
+          icon: "fas fa-square-root-alt",
+          color: "#1F2937",
+          estimatedDuration: "8-10 weeks",
+          difficultyLevel: "advanced",
+        },
       ];
 
       for (const template of templates) {
@@ -487,6 +564,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to seed database", error: getErrorMessage(error) });
+    }
+  });
+
+  // Document upload routes
+  app.get("/api/documents/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const documents = await storage.getDocumentUploadsByFaculty(facultyId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/documents/upload-url", async (req, res) => {
+    try {
+      const { fileName } = req.body;
+      if (!fileName) {
+        return res.status(400).json({ message: "fileName is required" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL(fileName);
+      res.json({ uploadURL });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate upload URL", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const validatedData = insertDocumentUploadSchema.parse(req.body);
+      const document = await storage.createDocumentUpload(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create document record", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Update download count in database if this is a tracked document
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.path);
+      // Note: In a full implementation, you'd want to track which documents correspond to which object paths
+      
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteDocumentUpload(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document", error: getErrorMessage(error) });
     }
   });
 

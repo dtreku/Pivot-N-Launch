@@ -194,12 +194,30 @@ export const analyticsEvents = pgTable("analytics_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Document uploads table for manual document sharing
+export const documentUploads = pgTable("document_uploads", {
+  id: serial("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size").notNull(),
+  mimeType: varchar("mime_type", { length: 100 }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).default("manual"),
+  isPublic: boolean("is_public").default(false),
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const facultyRelations = relations(faculty, ({ many }) => ({
   projects: many(projects),
   knowledgeBase: many(knowledgeBase),
   objectiveConversions: many(objectiveConversions),
   analyticsEvents: many(analyticsEvents),
+  documentUploads: many(documentUploads),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -250,6 +268,13 @@ export const analyticsEventsRelations = relations(analyticsEvents, ({ one }) => 
   }),
 }));
 
+export const documentUploadsRelations = relations(documentUploads, ({ one }) => ({
+  faculty: one(faculty, {
+    fields: [documentUploads.facultyId],
+    references: [faculty.id],
+  }),
+}));
+
 // Insert schemas
 export const insertFacultySchema = createInsertSchema(faculty).omit({
   id: true,
@@ -294,6 +319,12 @@ export const insertAnalyticsEventSchema = createInsertSchema(analyticsEvents).om
   createdAt: true,
 });
 
+export const insertDocumentUploadSchema = createInsertSchema(documentUploads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Faculty = typeof faculty.$inferSelect;
 export type InsertFaculty = z.infer<typeof insertFacultySchema>;
@@ -318,3 +349,6 @@ export type InsertSurveyResponse = z.infer<typeof insertSurveyResponseSchema>;
 
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type InsertAnalyticsEvent = z.infer<typeof insertAnalyticsEventSchema>;
+
+export type DocumentUpload = typeof documentUploads.$inferSelect;
+export type InsertDocumentUpload = z.infer<typeof insertDocumentUploadSchema>;

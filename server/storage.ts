@@ -7,6 +7,7 @@ import {
   objectiveConversions, 
   surveyResponses, 
   analyticsEvents,
+  documentUploads,
   type Faculty,
   type InsertFaculty,
   type Project,
@@ -22,7 +23,9 @@ import {
   type SurveyResponse,
   type InsertSurveyResponse,
   type AnalyticsEvent,
-  type InsertAnalyticsEvent
+  type InsertAnalyticsEvent,
+  type DocumentUpload,
+  type InsertDocumentUpload
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql } from "drizzle-orm";
@@ -77,6 +80,14 @@ export interface IStorage {
     completionRate: number;
     avgRating: number;
   }>;
+
+  // Document upload methods
+  getDocumentUploadsByFaculty(facultyId: number): Promise<DocumentUpload[]>;
+  createDocumentUpload(upload: InsertDocumentUpload): Promise<DocumentUpload>;
+  getDocumentUpload(id: number): Promise<DocumentUpload | undefined>;
+  updateDocumentUpload(id: number, upload: Partial<InsertDocumentUpload>): Promise<DocumentUpload | undefined>;
+  deleteDocumentUpload(id: number): Promise<boolean>;
+  incrementDownloadCount(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -345,6 +356,49 @@ export class DatabaseStorage implements IStorage {
       completionRate: Math.round(completionRate),
       avgRating: Number(avgRatingResult.avg?.toFixed(1)) || 0,
     };
+  }
+
+  // Document upload methods
+  async getDocumentUploadsByFaculty(facultyId: number): Promise<DocumentUpload[]> {
+    return await db
+      .select()
+      .from(documentUploads)
+      .where(eq(documentUploads.facultyId, facultyId))
+      .orderBy(desc(documentUploads.createdAt));
+  }
+
+  async createDocumentUpload(upload: InsertDocumentUpload): Promise<DocumentUpload> {
+    const [result] = await db
+      .insert(documentUploads)
+      .values(upload)
+      .returning();
+    return result;
+  }
+
+  async getDocumentUpload(id: number): Promise<DocumentUpload | undefined> {
+    const [result] = await db.select().from(documentUploads).where(eq(documentUploads.id, id));
+    return result || undefined;
+  }
+
+  async updateDocumentUpload(id: number, upload: Partial<InsertDocumentUpload>): Promise<DocumentUpload | undefined> {
+    const [result] = await db
+      .update(documentUploads)
+      .set(upload)
+      .where(eq(documentUploads.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteDocumentUpload(id: number): Promise<boolean> {
+    const result = await db.delete(documentUploads).where(eq(documentUploads.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async incrementDownloadCount(id: number): Promise<void> {
+    await db
+      .update(documentUploads)
+      .set({ downloadCount: sql`download_count + 1` })
+      .where(eq(documentUploads.id, id));
   }
 }
 
