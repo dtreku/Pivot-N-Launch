@@ -75,17 +75,21 @@ For technical issues or access problems, contact the super admin at `dtreku@wpi.
 
 ## License
 
-This work is licensed under the [Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+**Educational Use License** - Copyright (c) 2025 Daniel Treku (dtreku@wpi.edu)
 
-Copyright (c) 2025 Daniel Treku (dtreku@wpi.edu)
+This software is licensed for educational use only. All rights reserved.
 
-**You are free to:**
-- Use this tool for educational purposes
-- Share and redistribute for non-commercial educational use
+**Permitted Uses:**
+- Use in accredited educational institutions
+- Non-commercial educational activities
+- Academic research and educational content creation
+- Sharing with educators for non-commercial purposes
 
-**You cannot:**
-- Use this tool commercially
-- Modify or create derivative works
-- Distribute modified versions
+**Prohibited:**
+- Commercial use or distribution
+- Modifications or derivative works
+- Use in commercial educational products
 
-For commercial licensing inquiries, contact: dtreku@wpi.edu
+**Attribution Required:** Must credit Daniel Treku in all uses.
+
+For commercial licensing: dtreku@wpi.edu
