@@ -9,7 +9,8 @@ export const faculty = pgTable("faculty", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }),
-  role: varchar("role", { length: 50 }).default("instructor").notNull(), // 'super_admin', 'admin', 'instructor'
+  role: varchar("role", { length: 50 }).default("instructor").notNull(), // 'super_admin', 'admin', 'instructor', 'student'
+  status: varchar("status", { length: 50 }).default("pending").notNull(), // 'pending', 'approved', 'rejected', 'inactive'
   isActive: boolean("is_active").default(true).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   department: varchar("department", { length: 255 }).notNull(),
@@ -19,6 +20,8 @@ export const faculty = pgTable("faculty", {
   expertise: jsonb("expertise").$type<string[]>().default([]),
   teamId: integer("team_id"), // For team management
   lastLoginAt: timestamp("last_login_at"),
+  approvedBy: integer("approved_by").references(() => faculty.id),
+  approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

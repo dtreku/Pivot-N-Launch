@@ -44,6 +44,11 @@ export interface IStorage {
   getFacultyByEmail(email: string): Promise<Faculty | undefined>;
   createFaculty(faculty: InsertFaculty): Promise<Faculty>;
   updateFaculty(id: number, faculty: Partial<InsertFaculty>): Promise<Faculty | undefined>;
+  getAllFaculty(): Promise<Faculty[]>;
+  getPendingFaculty(): Promise<Faculty[]>;
+  approveFaculty(id: number, approvedBy: number): Promise<Faculty | undefined>;
+  rejectFaculty(id: number): Promise<Faculty | undefined>;
+  setFacultyStatus(id: number, status: string): Promise<Faculty | undefined>;
 
   // Project methods
   getProject(id: number): Promise<Project | undefined>;
@@ -145,7 +150,60 @@ export class DatabaseStorage implements IStorage {
   async updateFaculty(id: number, updateData: Partial<InsertFaculty>): Promise<Faculty | undefined> {
     const [result] = await db
       .update(faculty)
-      .set(updateData)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(faculty.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async getAllFaculty(): Promise<Faculty[]> {
+    return await db
+      .select()
+      .from(faculty)
+      .orderBy(desc(faculty.createdAt));
+  }
+
+  async getPendingFaculty(): Promise<Faculty[]> {
+    return await db
+      .select()
+      .from(faculty)
+      .where(eq(faculty.status, "pending"))
+      .orderBy(desc(faculty.createdAt));
+  }
+
+  async approveFaculty(id: number, approvedBy: number): Promise<Faculty | undefined> {
+    const [result] = await db
+      .update(faculty)
+      .set({ 
+        status: "approved",
+        approvedBy,
+        approvedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(faculty.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async rejectFaculty(id: number): Promise<Faculty | undefined> {
+    const [result] = await db
+      .update(faculty)
+      .set({ 
+        status: "rejected",
+        updatedAt: new Date()
+      })
+      .where(eq(faculty.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async setFacultyStatus(id: number, status: string): Promise<Faculty | undefined> {
+    const [result] = await db
+      .update(faculty)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
       .where(eq(faculty.id, id))
       .returning();
     return result || undefined;
