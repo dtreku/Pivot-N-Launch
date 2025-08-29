@@ -21,12 +21,12 @@ let routesInitialized = false;
 const initializeRoutes = async () => {
   if (!routesInitialized) {
     try {
-      // Import the CommonJS build
-      const serverModule = require("../../dist/index.js");
-      const registerRoutes = serverModule.registerRoutes || serverModule.default?.registerRoutes;
+      // Import the serverless routes build
+      const routesModule = require("../../dist/routes.js");
+      const registerRoutes = routesModule.registerRoutes || routesModule.default?.registerRoutes;
       
       if (!registerRoutes) {
-        throw new Error("registerRoutes function not found in server module");
+        throw new Error("registerRoutes function not found in routes module");
       }
       
       await registerRoutes(app);
@@ -34,7 +34,6 @@ const initializeRoutes = async () => {
       console.log("Routes registered successfully");
     } catch (err) {
       console.error("Error registering routes:", err);
-      console.error("Available exports:", Object.keys(require("../../dist/index.js")));
       throw err;
     }
   }
