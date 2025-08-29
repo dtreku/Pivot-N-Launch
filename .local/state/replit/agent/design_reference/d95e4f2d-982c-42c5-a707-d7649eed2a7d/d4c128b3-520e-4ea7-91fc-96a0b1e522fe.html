@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pivot-and-Launch PBL Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crimson: '#DC143C',
+                        'professional-blue': '#1E3A8A',
+                        'gold-amber': '#F59E0B',
+                        'light-gray': '#F8F9FA',
+                        'medium-gray': '#6B7280',
+                        'dark-gray': '#374151'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-light-gray min-h-screen">
+    <!-- @COMPONENT: NavigationHeader -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 bg-crimson rounded-lg flex items-center justify-center">
+                            <i class="fas fa-lightbulb text-white text-lg"></i>
+                        </div>
+                        <h1 class="ml-3 text-xl font-bold text-dark-gray">Pivot-and-Launch PBL Toolkit</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="bg-professional-blue text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export Toolkit
+                    </button>
+                    <!-- Faculty profile display with uploaded photo -->
+                    <div class="flex items-center space-x-3">
+                        <img src="data:image/jpeg;base64,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" alt="Prof. Daniel Treku" class="w-10 h-10 rounded-full object-cover" data-mock="true">
+                        <div>
+                            <p class="text-sm font-medium text-dark-gray" data-bind="faculty.name">Prof. Daniel Treku</p>
+                            <p class="text-xs text-medium-gray" data-bind="faculty.title">Business Information Systems</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: NavigationHeader -->
+
+    <div class="flex h-screen">
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="w-64 bg-white shadow-lg border-r border-gray-200 overflow-y-auto">
+            <nav class="p-4 space-y-2">
+                <div class="mb-6">
+                    <h2 class="text-sm font-semibold text-medium-gray uppercase tracking-wide">Main Features</h2>
+                </div>
+                
+                <a href="#dashboard" class="flex items-center px-4 py-3 text-dark-gray bg-gray-100 rounded-lg font-medium">
+                    <i class="fas fa-tachometer-alt mr-3 text-crimson"></i>
+                    Dashboard
+                </a>
+                
+                <a href="#methodology-wizard" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-magic mr-3"></i>
+                    Methodology Wizard
+                </a>
+                
+                <a href="#objectives-converter" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-exchange-alt mr-3"></i>
+                    Objectives Converter
+                </a>
+                
+                <a href="#templates" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-file-alt mr-3"></i>
+                    Project Templates
+                </a>
+                
+                <a href="#collaboration" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-users mr-3"></i>
+                    Student Collaboration
+                </a>
+                
+                <a href="#knowledge-base" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                    <i class="fas fa-database mr-3"></i>
+                    Knowledge Base
+                </a>
+                
+                <div class="pt-4 border-t border-gray-200 mt-4">
+                    <h3 class="text-sm font-semibold text-medium-gray uppercase tracking-wide mb-2">Tools</h3>
+                    
+                    <a href="#analytics" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Analytics
+                    </a>
+                    
+                    <a href="#integrations" class="flex items-center px-4 py-3 text-medium-gray hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-plug mr-3"></i>
+                        Integrations
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <main class="flex-1 overflow-y-auto bg-light-gray">
+            <div class="max-w-7xl mx-auto px-6 py-8">
+                <!-- Header Section -->
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-dark-gray mb-2">Pivot-and-Launch PBL Dashboard</h1>
+                    <p class="text-medium-gray text-lg">Transform information overload into focused, deep learning experiences</p>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-crimson bg-opacity-10 rounded-lg">
+                                <i class="fas fa-project-diagram text-crimson text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-dark-gray" data-mock="true">12</p>
+                                <p class="text-medium-gray text-sm">Active Projects</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-professional-blue bg-opacity-10 rounded-lg">
+                                <i class="fas fa-users text-professional-blue text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-dark-gray" data-mock="true">147</p>
+                                <p class="text-medium-gray text-sm">Students Engaged</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-gold-amber bg-opacity-10 rounded-lg">
+                                <i class="fas fa-chart-line text-gold-amber text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-dark-gray" data-mock="true">85%</p>
+                                <p class="text-medium-gray text-sm">Completion Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                        <div class="flex items-center">
+                            <div class="p-3 bg-green-500 bg-opacity-10 rounded-lg">
+                                <i class="fas fa-lightbulb text-green-500 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-2xl font-bold text-dark-gray" data-mock="true">4.8</p>
+                                <p class="text-medium-gray text-sm">Avg. Rating</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-8">
+                        <!-- @COMPONENT: MethodologyWizard -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h2 class="text-xl font-semibold text-dark-gray">Methodology Wizard</h2>
+                                <button class="bg-crimson text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-magic mr-2"></i>Start Wizard
+                                </button>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h3 class="font-medium text-dark-gray mb-2">Step 1: Define Core Concepts (Pivot)</h3>
+                                    <p class="text-medium-gray text-sm mb-3">Strengthen foundational knowledge in your subject area</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-crimson h-2 rounded-full w-3/4"></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h3 class="font-medium text-dark-gray mb-2">Step 2: Extend Application (Launch)</h3>
+                                    <p class="text-medium-gray text-sm mb-3">Apply knowledge to new and diverse contexts</p>
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-professional-blue h-2 rounded-full w-1/2"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: MethodologyWizard -->
+
+                        <!-- @COMPONENT: ObjectivesConverter -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-xl font-semibold text-dark-gray mb-4">Learning Objectives Converter</h2>
+                            <p class="text-medium-gray mb-6">Transform traditional learning objectives into Pivot-and-Launch project frameworks</p>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 rounded-lg p-4">
+                                    <h3 class="font-medium text-dark-gray mb-2">Traditional Objective</h3>
+                                    <p class="text-sm text-medium-gray italic" data-mock="true">"Learn the basics of solidity syntax"</p>
+                                </div>
+                                
+                                <div class="flex justify-center">
+                                    <i class="fas fa-arrow-down text-gold-amber text-2xl"></i>
+                                </div>
+                                
+                                <div class="bg-crimson bg-opacity-5 border border-crimson border-opacity-20 rounded-lg p-4">
+                                    <h3 class="font-medium text-crimson mb-2">PBL Project Framework</h3>
+                                    <p class="text-sm text-dark-gray" data-mock="true">"Build a decentralized voting system smart contract that demonstrates core Solidity concepts through real-world application"</p>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full mt-4 bg-professional-blue text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-exchange-alt mr-2"></i>Convert My Objectives
+                            </button>
+                        </div>
+                        <!-- @END_COMPONENT: ObjectivesConverter -->
+
+                        <!-- @COMPONENT: ProjectTemplates -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-xl font-semibold text-dark-gray mb-4">Featured Project Templates</h2>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-crimson transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-crimson rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-cubes text-white text-sm"></i>
+                                        </div>
+                                        <h3 class="font-medium text-dark-gray">Blockchain Applications</h3>
+                                    </div>
+                                    <p class="text-sm text-medium-gray mb-3" data-mock="true">Smart contract development with real-world use cases</p>
+                                    <div class="flex items-center text-xs text-medium-gray">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span data-mock="true">8-12 weeks</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-professional-blue transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-professional-blue rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-chart-bar text-white text-sm"></i>
+                                        </div>
+                                        <h3 class="font-medium text-dark-gray">Data Science</h3>
+                                    </div>
+                                    <p class="text-sm text-medium-gray mb-3" data-mock="true">Real-world data analysis and machine learning projects</p>
+                                    <div class="flex items-center text-xs text-medium-gray">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span data-mock="true">6-10 weeks</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-gold-amber transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-gold-amber rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-money-bill-wave text-white text-sm"></i>
+                                        </div>
+                                        <h3 class="font-medium text-dark-gray">Fintech Solutions</h3>
+                                    </div>
+                                    <p class="text-sm text-medium-gray mb-3" data-mock="true">Financial technology innovation projects</p>
+                                    <div class="flex items-center text-xs text-medium-gray">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span data-mock="true">10-14 weeks</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="border border-gray-200 rounded-lg p-4 hover:border-green-500 transition-colors cursor-pointer">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-briefcase text-white text-sm"></i>
+                                        </div>
+                                        <h3 class="font-medium text-dark-gray">Business Strategy</h3>
+                                    </div>
+                                    <p class="text-sm text-medium-gray mb-3" data-mock="true">Strategic planning and implementation projects</p>
+                                    <div class="flex items-center text-xs text-medium-gray">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span data-mock="true">4-8 weeks</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full mt-6 border border-professional-blue text-professional-blue py-3 rounded-lg hover:bg-professional-blue hover:text-white transition-colors">
+                                <i class="fas fa-plus mr-2"></i>View All Templates
+                            </button>
+                        </div>
+                        <!-- @END_COMPONENT: ProjectTemplates -->
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-8">
+                        <!-- @COMPONENT: QuickActions -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-xl font-semibold text-dark-gray mb-4">Quick Actions</h2>
+                            
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center justify-between p-3 bg-crimson bg-opacity-5 border border-crimson border-opacity-20 rounded-lg hover:bg-crimson hover:text-white transition-colors group">
+                                    <span class="font-medium text-crimson group-hover:text-white">Create New Project</span>
+                                    <i class="fas fa-plus text-crimson group-hover:text-white"></i>
+                                </button>
+                                
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <span class="font-medium text-dark-gray">Upload Course Materials</span>
+                                    <i class="fas fa-upload text-medium-gray"></i>
+                                </button>
+                                
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <span class="font-medium text-dark-gray">Generate Presentation</span>
+                                    <i class="fas fa-presentation text-medium-gray"></i>
+                                </button>
+                                
+                                <button class="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                    <span class="font-medium text-dark-gray">View Student Feedback</span>
+                                    <i class="fas fa-comments text-medium-gray"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: QuickActions -->
+
+                        <!-- @COMPONENT: StudentCollaboration -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-xl font-semibold text-dark-gray mb-4">Student Collaboration</h2>
+                            
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3 p-3 bg-professional-blue bg-opacity-5 rounded-lg">
+                                    <div class="w-8 h-8 bg-professional-blue rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium" data-mock="true">JD</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-dark-gray" data-mock="true">John Doe</p>
+                                        <p class="text-xs text-medium-gray" data-mock="true">Suggested: Blockchain voting system with mobile interface</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-gold-amber bg-opacity-5 rounded-lg">
+                                    <div class="w-8 h-8 bg-gold-amber rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium" data-mock="true">AS</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-dark-gray" data-mock="true">Alice Smith</p>
+                                        <p class="text-xs text-medium-gray" data-mock="true">Critical reflection: Need more real-world data examples</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-3 p-3 bg-green-500 bg-opacity-5 rounded-lg">
+                                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                        <span class="text-white text-sm font-medium" data-mock="true">MB</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-dark-gray" data-mock="true">Mike Brown</p>
+                                        <p class="text-xs text-medium-gray" data-mock="true">Project idea: Fintech app for student budgeting</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full mt-4 border border-medium-gray text-medium-gray py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                                <i class="fas fa-eye mr-2"></i>View All Contributions
+                            </button>
+                        </div>
+                        <!-- @END_COMPONENT: StudentCollaboration -->
+
+                        <!-- @COMPONENT: IntegrationsCard -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                            <h2 class="text-xl font-semibold text-dark-gray mb-4">AI Integrations</h2>
+                            
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fab fa-google text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-dark-gray text-sm">NotebookLM</p>
+                                            <p class="text-xs text-medium-gray">Connected</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fab fa-microsoft text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-dark-gray text-sm">Copilot</p>
+                                            <p class="text-xs text-medium-gray">Available</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-professional-blue text-sm hover:underline">Connect</button>
+                                </div>
+                                
+                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
+                                            <i class="fas fa-poll text-white text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-medium text-dark-gray text-sm">Qualtrics</p>
+                                            <p class="text-xs text-medium-gray">Connected</p>
+                                        </div>
+                                    </div>
+                                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: IntegrationsCard -->
+                    </div>
+                </div>
+
+                <!-- @COMPONENT: AntiOverloadFeatures -->
+                <div class="mt-8 bg-gradient-to-r from-crimson to-professional-blue rounded-xl shadow-lg p-8 text-white">
+                    <div class="max-w-4xl">
+                        <h2 class="text-2xl font-bold mb-4">Anti-Overload Methodology</h2>
+                        <p class="text-lg opacity-90 mb-6">Our tool implements built-in safeguards against information overload through curated, focused content delivery that mirrors the core Pivot-and-Launch principles.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                <i class="fas fa-filter text-2xl mb-3"></i>
+                                <h3 class="font-semibold mb-2">Content Filtering</h3>
+                                <p class="text-sm opacity-80">Intelligent curation prevents information overwhelm</p>
+                            </div>
+                            
+                            <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                <i class="fas fa-crosshairs text-2xl mb-3"></i>
+                                <h3 class="font-semibold mb-2">Focus Tools</h3>
+                                <p class="text-sm opacity-80">Guided workflows maintain learning clarity</p>
+                            </div>
+                            
+                            <div class="bg-white bg-opacity-10 rounded-lg p-4">
+                                <i class="fas fa-graduation-cap text-2xl mb-3"></i>
+                                <h3 class="font-semibold mb-2">Deep Learning</h3>
+                                <p class="text-sm opacity-80">Emphasis on understanding core principles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_COMPONENT: AntiOverloadFeatures -->
+            </div>
+        </main>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+
+    <!-- @COMPONENT: FloatingActionButton -->
+    <div class="fixed bottom-6 right-6">
+        <button class="bg-crimson text-white p-4 rounded-full shadow-lg hover:bg-red-700 transition-colors" data-implementation="Opens help/support chat">
+            <i class="fas fa-question text-xl"></i>
+        </button>
+    </div>
+    <!-- @END_COMPONENT: FloatingActionButton -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        
+        // Simple interaction handlers for demonstration
+        (function() {
+            // Handle wizard steps
+            const wizardSteps = document.querySelectorAll('[data-step]');
+            
+            // Handle template selection
+            const templateCards = document.querySelectorAll('.cursor-pointer');
+            templateCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // TODO: Navigate to template customization
+                    console.log('Template selected:', this.querySelector('h3').textContent);
+                });
+            });
+            
+            // Handle quick actions
+            const quickActionButtons = document.querySelectorAll('button[class*="quick-action"]');
+            quickActionButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // TODO: Implement specific actions
+                    console.log('Quick action triggered');
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

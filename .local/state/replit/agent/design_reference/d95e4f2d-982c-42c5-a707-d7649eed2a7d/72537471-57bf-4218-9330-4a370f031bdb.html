@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pivot & Launch PBL Toolkit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crimson: '#DC143C',
+                        'professional-blue': '#1E3A8A',
+                        amber: '#F59E0B',
+                        charcoal: '#333333'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/heroicons@2.0.16/24/outline/index.js" type="module"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.16/outline.min.css">
+</head>
+<body class="font-inter bg-gray-50 text-charcoal">
+    <!-- @COMPONENT: HeaderNavigation [logo, main navigation, user profile] -->
+    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Section -->
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-crimson rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-charcoal">Pivot & Launch</h1>
+                        <p class="text-sm text-gray-500">PBL Toolkit</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="#dashboard" class="text-crimson border-b-2 border-crimson pb-4 px-1 text-sm font-medium">Dashboard</a>
+                    <a href="#wizard" class="text-gray-500 hover:text-charcoal pb-4 px-1 text-sm font-medium">Methodology</a>
+                    <a href="#projects" class="text-gray-500 hover:text-charcoal pb-4 px-1 text-sm font-medium">Projects</a>
+                    <a href="#knowledge" class="text-gray-500 hover:text-charcoal pb-4 px-1 text-sm font-medium">Knowledge Base</a>
+                    <a href="#collaborate" class="text-gray-500 hover:text-charcoal pb-4 px-1 text-sm font-medium">Collaborate</a>
+                </nav>
+
+                <!-- User Profile -->
+                <div class="flex items-center space-x-4">
+                    <button class="text-gray-400 hover:text-gray-500">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-5a7.5 7.5 0 1 0-15 0v5"></path>
+                        </svg>
+                    </button>
+                    <!-- Profile image placeholder -->
+                    <div class="w-8 h-8 bg-professional-blue rounded-full flex items-center justify-center">
+                        <span class="text-white text-sm font-medium" data-bind="user.initials">JD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: HeaderNavigation -->
+
+    <!-- @COMPONENT: MainContent [dashboard overview, quick actions, progress widgets] -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-charcoal mb-2" data-bind="greeting">Welcome back, <span data-bind="user.firstName">Professor Johnson</span></h2>
+            <p class="text-gray-600">Transform information overload into purposeful, deep learning experiences with the Pivot-and-Launch methodology.</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- @MAP: quickActions.map(action => ( -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer" data-event="click:handleQuickAction">
+                <div class="w-12 h-12 bg-crimson bg-opacity-10 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-crimson" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2zM15 11H7a2 2 0 000 4h8a2 2 0 000-4z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-charcoal mb-2" data-mock="true">Start New Course</h3>
+                <p class="text-gray-600 text-sm" data-mock="true">Use the guided wizard to implement Pivot-and-Launch methodology</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div class="w-12 h-12 bg-professional-blue bg-opacity-10 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-professional-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-charcoal mb-2" data-mock="true">Browse Projects</h3>
+                <p class="text-gray-600 text-sm" data-mock="true">Explore discipline-specific project templates and case studies</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div class="w-12 h-12 bg-amber bg-opacity-10 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-charcoal mb-2" data-mock="true">Upload Content</h3>
+                <p class="text-gray-600 text-sm" data-mock="true">Add institutional resources to your private knowledge base</p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
+                <div class="w-12 h-12 bg-green-500 bg-opacity-10 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-charcoal mb-2" data-mock="true">Student Portal</h3>
+                <p class="text-gray-600 text-sm" data-mock="true">Collaborate with students and gather project contributions</p>
+            </div>
+            <!-- @END_MAP )) -->
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Active Courses -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-charcoal">Active Courses</h3>
+                        <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:viewAllCourses">View All</button>
+                    </div>
+
+                    <!-- Course Cards -->
+                    <!-- @MAP: activeCourses.map(course => ( -->
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-professional-blue bg-opacity-10 text-professional-blue" data-mock="true">Data Science</span>
+                                        <span class="text-gray-500 text-sm" data-bind="course.semester" data-mock="true">Spring 2025</span>
+                                    </div>
+                                    <h4 class="text-lg font-medium text-charcoal mb-1" data-bind="course.title" data-mock="true">Applied Machine Learning</h4>
+                                    <p class="text-gray-600 text-sm mb-3" data-bind="course.description" data-mock="true">Students develop ML models for real-world business problems using the Pivot-and-Launch methodology.</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span data-bind="course.students" data-mock="true">24 students</span>
+                                        <span data-bind="course.projects" data-mock="true">3 active projects</span>
+                                        <span data-bind="course.lastUpdated" data-mock="true">Updated 2 hours ago</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-12 h-2 bg-green-500 rounded-full" data-implementation="Progress bar should reflect actual course completion"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-500" data-mock="true">75%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber bg-opacity-10 text-amber-700" data-mock="true">Fintech</span>
+                                        <span class="text-gray-500 text-sm" data-mock="true">Spring 2025</span>
+                                    </div>
+                                    <h4 class="text-lg font-medium text-charcoal mb-1" data-mock="true">Blockchain Applications</h4>
+                                    <p class="text-gray-600 text-sm mb-3" data-mock="true">Explore cryptocurrency, smart contracts, and DeFi through hands-on project development.</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span data-mock="true">18 students</span>
+                                        <span data-mock="true">2 active projects</span>
+                                        <span data-mock="true">Updated 1 day ago</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-8 h-2 bg-amber rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-500" data-mock="true">50%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-crimson bg-opacity-10 text-crimson" data-mock="true">Business</span>
+                                        <span class="text-gray-500 text-sm" data-mock="true">Spring 2025</span>
+                                    </div>
+                                    <h4 class="text-lg font-medium text-charcoal mb-1" data-mock="true">Digital Innovation Strategy</h4>
+                                    <p class="text-gray-600 text-sm mb-3" data-mock="true">Students analyze digital transformation cases and develop implementation strategies.</p>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                        <span data-mock="true">32 students</span>
+                                        <span data-mock="true">4 active projects</span>
+                                        <span data-mock="true">Updated 3 hours ago</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full">
+                                        <div class="w-6 h-2 bg-crimson rounded-full"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-500" data-mock="true">25%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+            </div>
+
+            <!-- Sidebar Content -->
+            <div class="space-y-6">
+                <!-- Progress Overview -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-charcoal mb-4">Implementation Progress</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Methodology Setup</span>
+                            <span class="text-sm font-medium text-green-600" data-mock="true">Complete</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Course Templates</span>
+                            <span class="text-sm font-medium text-amber-600" data-mock="true">3 of 5</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Student Engagement</span>
+                            <span class="text-sm font-medium text-professional-blue" data-mock="true">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Knowledge Base</span>
+                            <span class="text-sm font-medium text-gray-500" data-mock="true">12 documents</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-charcoal mb-4">Recent Activity</h3>
+                    <div class="space-y-3">
+                        <!-- @MAP: recentActivity.map(activity => ( -->
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-charcoal" data-mock="true">
+                                    <span class="font-medium">Sarah Chen</span> submitted project proposal for ML Trading Bot
+                                </p>
+                                <p class="text-xs text-gray-500" data-mock="true">2 hours ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-professional-blue rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-charcoal" data-mock="true">
+                                    New project template added to <span class="font-medium">Blockchain Applications</span>
+                                </p>
+                                <p class="text-xs text-gray-500" data-mock="true">1 day ago</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3">
+                            <div class="w-2 h-2 bg-amber rounded-full mt-2 flex-shrink-0"></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm text-charcoal" data-mock="true">
+                                    <span class="font-medium">James Rodriguez</span> completed Pivot phase assessment
+                                </p>
+                                <p class="text-xs text-gray-500" data-mock="true">2 days ago</p>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Anti-Overload Reminder -->
+                <div class="bg-gradient-to-r from-crimson to-red-600 rounded-xl p-6 text-white">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-6 h-6 text-white flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="font-semibold mb-2">Focus Principle Reminder</h4>
+                            <p class="text-sm text-red-100">Remember: "If you are everywhere, nobody sees you." Focus on core concepts before launching into applications.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Tools Section -->
+        <div class="mt-12">
+            <h3 class="text-2xl font-bold text-charcoal mb-6">Featured Tools & Resources</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Methodology Wizard -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Modern classroom setting with technology integration for educational collaboration -->
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=240" alt="Students collaborating in modern classroom with technology" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-lg font-semibold text-charcoal mb-2">Methodology Wizard</h4>
+                        <p class="text-gray-600 text-sm mb-4">Step-by-step guidance to implement Pivot-and-Launch in your courses with interactive questionnaires and personalized recommendations.</p>
+                        <button class="w-full bg-crimson text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium" data-event="click:startWizard">Start Wizard</button>
+                    </div>
+                </div>
+
+                <!-- Project Library -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Digital library interface showing organized educational resources and templates -->
+                    <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=240" alt="Organized digital library with educational resources" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-lg font-semibold text-charcoal mb-2">Project Library</h4>
+                        <p class="text-gray-600 text-sm mb-4">Browse 200+ pre-built project templates for blockchain, fintech, data science, and business applications.</p>
+                        <button class="w-full bg-professional-blue text-white py-2 px-4 rounded-lg hover:bg-blue-800 transition-colors font-medium" data-event="click:browseProjects">Browse Projects</button>
+                    </div>
+                </div>
+
+                <!-- Knowledge Base -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <!-- Secure cloud storage visualization with document management -->
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=240" alt="Secure cloud storage and document management system" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <h4 class="text-lg font-semibold text-charcoal mb-2">Private Knowledge Base</h4>
+                        <p class="text-gray-600 text-sm mb-4">Upload and organize your institutional content with AI-powered suggestions and secure vector database storage.</p>
+                        <button class="w-full bg-amber text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition-colors font-medium" data-event="click:accessKnowledgeBase">Access Knowledge Base</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- @END_COMPONENT: MainContent -->
+
+    <!-- @COMPONENT: Footer [links, contact info, version] -->
+    <footer class="bg-white border-t border-gray-200 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="font-semibold text-charcoal mb-4">Pivot & Launch</h4>
+                    <p class="text-sm text-gray-600">Transforming higher education through focused, application-driven pedagogy.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-charcoal mb-4">Resources</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-crimson">Methodology Guide</a></li>
+                        <li><a href="#" class="hover:text-crimson">Project Templates</a></li>
+                        <li><a href="#" class="hover:text-crimson">Assessment Rubrics</a></li>
+                        <li><a href="#" class="hover:text-crimson">Training Materials</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-charcoal mb-4">Integrations</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-crimson">NotebookLM Enterprise</a></li>
+                        <li><a href="#" class="hover:text-crimson">Microsoft Copilot</a></li>
+                        <li><a href="#" class="hover:text-crimson">Canvas LMS</a></li>
+                        <li><a href="#" class="hover:text-crimson">Blackboard</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-charcoal mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-gray-600">
+                        <li><a href="#" class="hover:text-crimson">Documentation</a></li>
+                        <li><a href="#" class="hover:text-crimson">Community Forum</a></li>
+                        <li><a href="#" class="hover:text-crimson">Training Workshops</a></li>
+                        <li><a href="#" class="hover:text-crimson">Contact Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="mt-8 pt-8 border-t border-gray-200">
+                <div class="flex items-center justify-between">
+                    <p class="text-sm text-gray-600">© 2025 Pivot & Launch PBL Toolkit. All rights reserved.</p>
+                    <p class="text-sm text-gray-500">Version 1.0.0</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <!-- @STATE: isWizardOpen:boolean = false -->
+    <!-- @STATE: activeTab:string = 'dashboard' -->
+    <!-- @STATE: userCourses:array = [] -->
+
+    <!-- @FUNCTIONALITY: The methodology wizard should guide users through a series of questions to customize their PBL approach -->
+    <!-- @FUNCTIONALITY: Knowledge base should support file uploads and provide AI-powered content suggestions -->
+    <!-- @FUNCTIONALITY: Student collaboration portal should integrate with existing LMS systems -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Navigation state management
+            const navLinks = document.querySelectorAll('nav a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Remove active class from all links
+                    navLinks.forEach(l => {
+                        l.classList.remove('text-crimson', 'border-b-2', 'border-crimson');
+                        l.classList.add('text-gray-500');
+                    });
+                    // Add active class to clicked link
+                    this.classList.remove('text-gray-500');
+                    this.classList.add('text-crimson', 'border-b-2', 'border-crimson');
+                });
+            });
+
+            // Quick action handlers
+            const quickActionCards = document.querySelectorAll('[data-event="click:handleQuickAction"]');
+            quickActionCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    console.log('Quick action clicked:', this.querySelector('h3').textContent);
+                    // TODO: Navigate to appropriate section or open modal
+                });
+            });
+
+            // Button event handlers
+            document.querySelectorAll('[data-event]').forEach(element => {
+                const eventData = element.getAttribute('data-event').split(':');
+                const eventType = eventData[0];
+                const handler = eventData[1];
+                
+                element.addEventListener(eventType, function() {
+                    console.log(`${handler} triggered`);
+                    // TODO: Implement specific handler logic
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

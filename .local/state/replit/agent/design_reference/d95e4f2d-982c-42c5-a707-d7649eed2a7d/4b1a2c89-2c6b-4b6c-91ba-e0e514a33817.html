@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pivot & Launch PBL Toolkit - Transform Your Curriculum</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        crimson: {
+                            500: '#DC143C',
+                            600: '#B91C3C',
+                            700: '#991B1B'
+                        },
+                        academic: {
+                            blue: '#1E40AF',
+                            gold: '#F59E0B'
+                        }
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-inter">
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-crimson-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-lightbulb text-white text-sm"></i>
+                        </div>
+                        <h1 class="text-xl font-bold text-gray-900">Pivot & Launch</h1>
+                        <span class="text-sm text-gray-500 hidden sm:inline">PBL Toolkit</span>
+                    </div>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="#dashboard" class="text-gray-700 hover:text-crimson-500 font-medium">Dashboard</a>
+                    <a href="#projects" class="text-gray-700 hover:text-crimson-500 font-medium">Projects</a>
+                    <a href="#resources" class="text-gray-700 hover:text-crimson-500 font-medium">Resources</a>
+                    <a href="#community" class="text-gray-700 hover:text-crimson-500 font-medium">Community</a>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button class="p-2 text-gray-600 hover:text-crimson-500">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="w-8 h-8 bg-academic-blue rounded-full flex items-center justify-center">
+                        <span class="text-white text-sm font-medium">JD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-crimson-500 to-crimson-700 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h1 class="text-4xl lg:text-5xl font-bold mb-6 leading-tight">
+                        Transform Your Curriculum with 
+                        <span class="text-academic-gold">Pivot & Launch</span>
+                    </h1>
+                    <p class="text-xl mb-8 text-crimson-100">
+                        Revolutionary project-based learning methodology for blockchain, fintech, data science, and business education. Strengthen core concepts, then launch into real-world applications.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="bg-white text-crimson-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-rocket mr-2"></i>Start Course Setup
+                        </button>
+                        <button class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-crimson-600 transition-colors">
+                            <i class="fas fa-play mr-2"></i>Watch Demo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <!-- Modern education illustration placeholder -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 bg-academic-gold rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-brain text-white"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Core Concepts (Pivot)</h3>
+                                    <p class="text-crimson-100 text-sm">Strengthen foundational knowledge</p>
+                                </div>
+                            </div>
+                            <div class="border-l-2 border-academic-gold ml-6 pl-6">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-academic-blue rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-project-diagram text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-lg">Real Applications (Launch)</h3>
+                                        <p class="text-crimson-100 text-sm">Apply knowledge in diverse contexts</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Get Started in 3 Simple Steps</h2>
+                <p class="text-lg text-gray-600">Transform your course with our guided setup process</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-crimson-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <span class="text-white font-bold text-xl">1</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900">Define Learning Objectives</h3>
+                    <p class="text-gray-600 mb-6">Use our interactive questionnaire to identify your course's core concepts and learning goals.</p>
+                    <button class="bg-crimson-500 text-white px-6 py-2 rounded-lg hover:bg-crimson-600 transition-colors">
+                        <i class="fas fa-bullseye mr-2"></i>Start Setup
+                    </button>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-academic-blue rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <span class="text-white font-bold text-xl">2</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900">Select Project Templates</h3>
+                    <p class="text-gray-600 mb-6">Browse our curated library of project templates for blockchain, fintech, data science, and business.</p>
+                    <button class="bg-academic-blue text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-layer-group mr-2"></i>Browse Templates
+                    </button>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center group">
+                    <div class="w-16 h-16 bg-academic-gold rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                        <span class="text-white font-bold text-xl">3</span>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900">Launch & Collaborate</h3>
+                    <p class="text-gray-600 mb-6">Deploy projects with students and collect feedback for continuous improvement.</p>
+                    <button class="bg-academic-gold text-white px-6 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                        <i class="fas fa-users mr-2"></i>Engage Students
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Dashboard Interface -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Instructor Dashboard</h2>
+                <p class="text-lg text-gray-600">Manage your courses and track student progress</p>
+            </div>
+
+            <div class="grid lg:grid-cols-4 gap-6">
+                <!-- Sidebar Navigation -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <h3 class="font-semibold text-gray-900 mb-4">Course Management</h3>
+                        <nav class="space-y-2">
+                            <a href="#" class="flex items-center space-x-3 text-crimson-500 bg-crimson-50 px-3 py-2 rounded-lg">
+                                <i class="fas fa-tachometer-alt"></i>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-crimson-500 px-3 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-graduation-cap"></i>
+                                <span>My Courses</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-crimson-500 px-3 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-project-diagram"></i>
+                                <span>Project Templates</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-crimson-500 px-3 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-users"></i>
+                                <span>Student Progress</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-crimson-500 px-3 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-book"></i>
+                                <span>Resource Library</span>
+                            </a>
+                            <a href="#" class="flex items-center space-x-3 text-gray-700 hover:text-crimson-500 px-3 py-2 rounded-lg hover:bg-gray-50">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Analytics</span>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Main Content Area -->
+                <div class="lg:col-span-3 space-y-6">
+                    <!-- Quick Stats -->
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Active Courses</p>
+                                    <p class="text-2xl font-bold text-gray-900">4</p>
+                                </div>
+                                <div class="w-12 h-12 bg-crimson-500 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-graduation-cap text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Total Students</p>
+                                    <p class="text-2xl font-bold text-gray-900">147</p>
+                                </div>
+                                <div class="w-12 h-12 bg-academic-blue rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-users text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Active Projects</p>
+                                    <p class="text-2xl font-bold text-gray-900">12</p>
+                                </div>
+                                <div class="w-12 h-12 bg-academic-gold rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-project-diagram text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Completion Rate</p>
+                                    <p class="text-2xl font-bold text-gray-900">87%</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Course Setup Wizard -->
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-semibold text-gray-900">New Course Setup</h3>
+                            <span class="bg-crimson-100 text-crimson-700 px-3 py-1 rounded-full text-sm font-medium">Step 2 of 4</span>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between text-sm text-gray-500 mb-2">
+                                <span>Course Information</span>
+                                <span>Learning Objectives</span>
+                                <span>Project Selection</span>
+                                <span>Review & Launch</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-crimson-500 h-2 rounded-full" style="width: 50%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Current Step Content -->
+                        <div class="space-y-6">
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900 mb-4">Define Learning Objectives</h4>
+                                <p class="text-gray-600 mb-6">Use our guided questionnaire to identify the core concepts (Pivot) your students need to master.</p>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Course Subject</label>
+                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-crimson-500 focus:border-crimson-500">
+                                        <option>Select Subject Area</option>
+                                        <option selected>Blockchain Applications</option>
+                                        <option>Fintech</option>
+                                        <option>Data Science</option>
+                                        <option>Business Intelligence</option>
+                                        <option>Artificial Intelligence</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Course Level</label>
+                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-crimson-500 focus:border-crimson-500">
+                                        <option>Select Course Level</option>
+                                        <option>Undergraduate</option>
+                                        <option selected>Graduate</option>
+                                        <option>Professional Development</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Primary Learning Objectives</label>
+                                <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-crimson-500 focus:border-crimson-500 h-24" placeholder="Describe the core concepts students should master..." data-mock="true">Students will understand the fundamental principles of blockchain technology, including consensus mechanisms, smart contracts, and decentralized applications. They will be able to analyze use cases and evaluate blockchain solutions for real-world problems.</textarea>
+                            </div>
+
+                            <div class="bg-academic-blue/5 border border-academic-blue/20 rounded-lg p-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-6 h-6 bg-academic-blue rounded-full flex items-center justify-center mt-0.5">
+                                        <i class="fas fa-lightbulb text-white text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-medium text-academic-blue mb-1">AI Suggestion</h5>
+                                        <p class="text-sm text-gray-700">Based on your objectives, consider adding hands-on experience with smart contract development and a capstone project involving real blockchain implementation.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                    <i class="fas fa-arrow-left mr-2"></i>Previous
+                                </button>
+                                <button class="bg-crimson-500 text-white px-6 py-2 rounded-lg hover:bg-crimson-600">
+                                    Next Step<i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity & Quick Actions -->
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Recent Activity -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-check text-green-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">Project "DeFi Analytics" submitted by Sarah Chen</p>
+                                        <p class="text-xs text-gray-500">2 hours ago</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-comment text-blue-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">New student feedback on "Smart Contract Security"</p>
+                                        <p class="text-xs text-gray-500">4 hours ago</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start space-x-3">
+                                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-plus text-purple-600 text-xs"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-gray-900">New project template added: "NFT Marketplace"</p>
+                                        <p class="text-xs text-gray-500">1 day ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                            <div class="space-y-3">
+                                <button class="w-full flex items-center space-x-3 p-3 text-left bg-crimson-50 hover:bg-crimson-100 rounded-lg transition-colors">
+                                    <div class="w-10 h-10 bg-crimson-500 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-plus text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Create New Course</p>
+                                        <p class="text-sm text-gray-600">Start with our guided setup</p>
+                                    </div>
+                                </button>
+
+                                <button class="w-full flex items-center space-x-3 p-3 text-left bg-academic-blue/5 hover:bg-academic-blue/10 rounded-lg transition-colors">
+                                    <div class="w-10 h-10 bg-academic-blue rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-layer-group text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">Browse Templates</p>
+                                        <p class="text-sm text-gray-600">Find project ideas</p>
+                                    </div>
+                                </button>
+
+                                <button class="w-full flex items-center space-x-3 p-3 text-left bg-academic-gold/5 hover:bg-academic-gold/10 rounded-lg transition-colors">
+                                    <div class="w-10 h-10 bg-academic-gold rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-bar text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900">View Analytics</p>
+                                        <p class="text-sm text-gray-600">Track student progress</p>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Project Template Library -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">Project Template Library</h2>
+                    <p class="text-lg text-gray-600">Curated project templates for Pivot & Launch methodology</p>
+                </div>
+                <button class="bg-crimson-500 text-white px-6 py-3 rounded-lg hover:bg-crimson-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Add Template
+                </button>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap gap-2 mb-8">
+                <button class="bg-crimson-500 text-white px-4 py-2 rounded-lg text-sm font-medium">All Templates</button>
+                <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">Blockchain</button>
+                <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">Fintech</button>
+                <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">Data Science</button>
+                <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">AI/ML</button>
+                <button class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200">Business</button>
+            </div>
+
+            <!-- Template Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Template Card 1 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- Crypto trading dashboard visualization background -->
+                    <div class="h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-chart-line text-4xl mb-2"></i>
+                            <p class="font-semibold">DeFi Analytics Platform</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-academic-blue/10 text-academic-blue px-3 py-1 rounded-full text-sm font-medium">Blockchain</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">DeFi Analytics Dashboard</h3>
+                        <p class="text-gray-600 text-sm mb-4">Build a comprehensive analytics platform for decentralized finance protocols. Students learn DeFi concepts while creating real-time data visualizations.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>4-6 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Card 2 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- AI neural network visualization -->
+                    <div class="h-48 bg-gradient-to-br from-green-500 to-teal-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-brain text-4xl mb-2"></i>
+                            <p class="font-semibold">ML Trading Bot</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">AI/ML</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.6</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">ML-Powered Trading Bot</h3>
+                        <p class="text-gray-600 text-sm mb-4">Develop an AI trading bot using machine learning algorithms. Combines financial markets knowledge with practical ML implementation.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>6-8 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Card 3 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- Fintech mobile app interface -->
+                    <div class="h-48 bg-gradient-to-br from-purple-500 to-pink-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-mobile-alt text-4xl mb-2"></i>
+                            <p class="font-semibold">Digital Banking App</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">Fintech</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.9</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Digital Banking Platform</h3>
+                        <p class="text-gray-600 text-sm mb-4">Create a secure digital banking application with modern fintech features. Focus on UX design, security, and regulatory compliance.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>5-7 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Card 4 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- Supply chain visualization -->
+                    <div class="h-48 bg-gradient-to-br from-orange-500 to-red-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-link text-4xl mb-2"></i>
+                            <p class="font-semibold">Supply Chain Tracker</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium">Business</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.7</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Blockchain Supply Chain</h3>
+                        <p class="text-gray-600 text-sm mb-4">Design a blockchain-based supply chain tracking system. Students learn about transparency, traceability, and business process optimization.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>3-5 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Card 5 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- Data visualization dashboard -->
+                    <div class="h-48 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-chart-pie text-4xl mb-2"></i>
+                            <p class="font-semibold">ESG Analytics</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">Data Science</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.5</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">ESG Data Analytics</h3>
+                        <p class="text-gray-600 text-sm mb-4">Analyze Environmental, Social, and Governance data for investment decisions. Combines data science with sustainable finance concepts.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>4-6 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Template Card 6 -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    <!-- NFT marketplace interface -->
+                    <div class="h-48 bg-gradient-to-br from-pink-500 to-purple-600 rounded-t-lg p-4 flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <i class="fas fa-image text-4xl mb-2"></i>
+                            <p class="font-semibold">NFT Marketplace</p>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">Blockchain</span>
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">NFT Marketplace Platform</h3>
+                        <p class="text-gray-600 text-sm mb-4">Build a complete NFT marketplace with minting, trading, and royalty features. Learn smart contracts, web3 integration, and digital asset economics.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span>6-8 weeks</span>
+                            </div>
+                            <button class="text-crimson-500 hover:text-crimson-600 font-medium text-sm">
+                                Use Template <i class="fas fa-arrow-right ml-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <button class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    Load More Templates
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Student Collaboration Section -->
+    <section class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Student Collaboration & Feedback</h2>
+                <p class="text-lg text-gray-600">Engage students in the continuous improvement of your curriculum</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Student Project Contributions -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-gray-900">Student Project Ideas</h3>
+                        <button class="text-crimson-500 hover:text-crimson-600 text-sm font-medium">
+                            View All <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">Decentralized Voting System</h4>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-thumbs-up mr-1"></i>
+                                    <span>23</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">A blockchain-based voting platform ensuring transparency and preventing fraud in elections.</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Submitted by Alex Rodriguez</span>
+                                <button class="bg-crimson-500 text-white px-3 py-1 rounded text-xs hover:bg-crimson-600">
+                                    Consider
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">AI-Powered Personal Finance</h4>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-thumbs-up mr-1"></i>
+                                    <span>18</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">An AI assistant that provides personalized investment advice based on user behavior and market trends.</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Submitted by Maria Chen</span>
+                                <button class="bg-crimson-500 text-white px-3 py-1 rounded text-xs hover:bg-crimson-600">
+                                    Consider
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-medium text-gray-900">Carbon Credit Marketplace</h4>
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-thumbs-up mr-1"></i>
+                                    <span>15</span>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-3">A platform for trading verified carbon credits using blockchain technology for transparency.</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Submitted by David Kim</span>
+                                <button class="bg-academic-blue text-white px-3 py-1 rounded text-xs hover:bg-blue-700">
+                                    Approved
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Feedback Dashboard -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-6">Course Feedback Analytics</h3>
+
+                    <!-- Feedback Metrics -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600">4.7</div>
+                            <div class="text-sm text-gray-600">Overall Rating</div>
+                        </div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600">92%</div>
+                            <div class="text-sm text-gray-600">Engagement Rate</div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Feedback -->
+                    <div>
+                        <h4 class="font-medium text-gray-900 mb-4">Recent Feedback</h4>
+                        <div class="space-y-3">
+                            <div class="border-l-4 border-green-400 pl-4 py-2">
+                                <p class="text-sm text-gray-700">"The blockchain project really helped me understand how smart contracts work in practice."</p>
+                                <p class="text-xs text-gray-500 mt-1">Sarah M. - 2 days ago</p>
+                            </div>
+                            <div class="border-l-4 border-blue-400 pl-4 py-2">
+                                <p class="text-sm text-gray-700">"Would love more hands-on coding exercises in the fintech module."</p>
+                                <p class="text-xs text-gray-500 mt-1">James L. - 3 days ago</p>
+                            </div>
+                            <div class="border-l-4 border-purple-400 pl-4 py-2">
+                                <p class="text-sm text-gray-700">"The AI trading bot project was challenging but very rewarding!"</p>
+                                <p class="text-xs text-gray-500 mt-1">Emma R. - 4 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="w-full mt-6 bg-academic-blue text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-chart-bar mr-2"></i>View Detailed Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resource Library Section -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Curated Resource Library</h2>
+                <p class="text-lg text-gray-600">Essential tools, datasets, and learning materials for modern education</p>
+            </div>
+
+            <div class="grid lg:grid-cols-4 gap-6">
+                <!-- Datasets -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                    <div class="w-12 h-12 bg-academic-blue rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-database text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Datasets</h3>
+                    <p class="text-gray-600 text-sm mb-4">Real-world datasets for hands-on learning experiences</p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Financial market data
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Blockchain transaction data
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            ESG company metrics
+                        </li>
+                    </ul>
+                    <button class="w-full mt-4 bg-academic-blue text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                        Browse Datasets
+                    </button>
+                </div>
+
+                <!-- Software Tools -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                    <div class="w-12 h-12 bg-academic-gold rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-tools text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Software Tools</h3>
+                    <p class="text-gray-600 text-sm mb-4">Industry-standard tools and platforms</p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Solidity IDE
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Python environments
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Trading simulators
+                        </li>
+                    </ul>
+                    <button class="w-full mt-4 bg-academic-gold text-white py-2 rounded-lg hover:bg-yellow-600 transition-colors text-sm">
+                        Access Tools
+                    </button>
+                </div>
+
+                <!-- Case Studies -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                    <div class="w-12 h-12 bg-crimson-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-book-open text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Case Studies</h3>
+                    <p class="text-gray-600 text-sm mb-4">Real business scenarios and success stories</p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            DeFi protocol analysis
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Fintech startup journeys
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            AI implementation stories
+                        </li>
+                    </ul>
+                    <button class="w-full mt-4 bg-crimson-500 text-white py-2 rounded-lg hover:bg-crimson-600 transition-colors text-sm">
+                        Read Cases
+                    </button>
+                </div>
+
+                <!-- Assessment Rubrics -->
+                <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-clipboard-check text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Assessment Rubrics</h3>
+                    <p class="text-gray-600 text-sm mb-4">Standardized evaluation frameworks</p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Project-based rubrics
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Peer evaluation forms
+                        </li>
+                        <li class="flex items-center text-gray-700">
+                            <i class="fas fa-check text-green-500 mr-2 text-xs"></i>
+                            Self-reflection guides
+                        </li>
+                    </ul>
+                    <button class="w-full mt-4 bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors text-sm">
+                        Get Rubrics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-4">
+                        <div class="w-8 h-8 bg-crimson-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-lightbulb text-white text-sm"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">Pivot & Launch</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Transforming education through innovative project-based learning methodologies for the digital age.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Dashboard</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Project Templates</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Resource Library</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Analytics</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Training Videos</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Community Forum</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="#" class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-twitter text-sm"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-linkedin text-sm"></i>
+                        </a>
+                        <a href="#" class="w-8 h-8 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-github text-sm"></i>
+                        </a>
+                    </div>
+                    <p class="text-gray-400 text-sm">
+                        Subscribe to our newsletter for updates and new features.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 flex items-center justify-between">
+                <p class="text-gray-400 text-sm">© 2025 Pivot & Launch. All rights reserved.</p>
+                <div class="flex items-center space-x-4 text-sm text-gray-400">
+                    <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // TODO: Implement real functionality for form submissions, data processing, and user interactions
+        
+        // Simple demo interactions
+        (function() {
+            // Simulate progress in course setup
+            const progressBar = document.querySelector('.bg-crimson-500.h-2');
+            if (progressBar) {
+                let progress = 50;
+                setInterval(() => {
+                    if (progress < 100) {
+                        progress += 1;
+                        progressBar.style.width = progress + '%';
+                    }
+                }, 100);
+            }
+
+            // Add hover effects to template cards
+            const templateCards = document.querySelectorAll('.bg-white.border.border-gray-200.rounded-lg.shadow-sm');
+            templateCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.2s ease';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Simulate real-time notifications
+            const notifications = [
+                "New student feedback received",
+                "Project template updated",
+                "Analytics report ready"
+            ];
+            
+            let notificationIndex = 0;
+            setInterval(() => {
+                console.log(`Notification: ${notifications[notificationIndex]}`);
+                notificationIndex = (notificationIndex + 1) % notifications.length;
+            }, 10000);
+        })();
+    </script>
+</body>
+</html>

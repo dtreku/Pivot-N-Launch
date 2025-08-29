@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pivot-and-Launch PBL Toolkit - Transforming Information Overload into Purposeful Learning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'crimson': '#DC143C',
+                        'navy': '#1E3A8A',
+                        'amber': '#F59E0B',
+                        'gray-50': '#F8F9FA',
+                        'gray-600': '#6C757D',
+                        'gray-800': '#343A40'
+                    },
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="font-inter bg-gray-50">
+    <!-- Navigation Header -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <i class="fas fa-lightbulb text-2xl text-amber mr-3"></i>
+                        <h1 class="text-xl font-bold text-gray-800">Pivot-and-Launch</h1>
+                        <span class="ml-2 text-sm text-gray-600">PBL Toolkit</span>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#dashboard" class="text-crimson border-b-2 border-crimson px-3 py-2 text-sm font-medium">Dashboard</a>
+                        <a href="#methodology" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium">Methodology</a>
+                        <a href="#templates" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium">Templates</a>
+                        <a href="#collaboration" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium">Student Hub</a>
+                        <a href="#resources" class="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium">Resources</a>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="bg-navy text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export Toolkit
+                    </button>
+                    <div class="flex items-center space-x-2">
+                        <img class="h-8 w-8 rounded-full" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Professor profile">
+                        <span class="text-sm font-medium text-gray-700">Prof. Treku</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Problem Statement -->
+    <section class="bg-gradient-to-r from-crimson to-red-600 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h1 class="text-4xl font-bold mb-6">Transform Information Overload into Purposeful Learning</h1>
+                    <p class="text-xl mb-8 text-red-100">Address the information glut crisis with strategic pedagogy that helps students grasp fundamental concepts while building adaptability for rapidly evolving tech fields.</p>
+                    
+                    <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                        <button class="bg-white text-crimson px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-rocket mr-2"></i>Start Methodology Wizard
+                        </button>
+                        <button class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-crimson transition-colors">
+                            <i class="fas fa-play mr-2"></i>Watch Demo
+                        </button>
+                    </div>
+                </div>
+                <div class="relative">
+                    <!-- Modern students overwhelmed by digital information -->
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&h=400" alt="Students collaborating with technology" class="rounded-xl shadow-2xl">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Problem Statement -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">The Information Overload Crisis</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Students have access to more knowledge than ever before, yet struggle to grasp fundamental concepts. This creates overwhelmed learners rather than empowered ones.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center p-6 bg-red-50 rounded-xl">
+                    <i class="fas fa-exclamation-triangle text-4xl text-crimson mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Information Avalanche</h3>
+                    <p class="text-gray-600">Students become insatiable for more content, leading to scattered learning and decreased engagement with core concepts.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-blue-50 rounded-xl">
+                    <i class="fas fa-compass text-4xl text-navy mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Navigation Challenge</h3>
+                    <p class="text-gray-600">Instructors must balance current business needs with rapidly evolving tech trends without overwhelming students.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-amber-50 rounded-xl">
+                    <i class="fas fa-target text-4xl text-amber mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Focus Solution</h3>
+                    <p class="text-gray-600">Strategic curation and structured methodology transforms overload into deep, purposeful learning experiences.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- @COMPONENT: Dashboard Overview -->
+    <section id="dashboard" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Your PBL Command Center</h2>
+                <p class="text-xl text-gray-600">Streamlined tools for implementing Pivot-and-Launch methodology across all your courses</p>
+            </div>
+
+            <!-- Quick Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-crimson/10 rounded-lg">
+                            <i class="fas fa-chalkboard-teacher text-crimson text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Active Courses</p>
+                            <p class="text-2xl font-bold text-gray-800" data-bind="dashboard.activeCourses">4</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-navy/10 rounded-lg">
+                            <i class="fas fa-project-diagram text-navy text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">PBL Projects</p>
+                            <p class="text-2xl font-bold text-gray-800" data-bind="dashboard.pblProjects">12</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-amber/10 rounded-lg">
+                            <i class="fas fa-users text-amber text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Students Engaged</p>
+                            <p class="text-2xl font-bold text-gray-800" data-bind="dashboard.studentsEngaged">156</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Completion Rate</p>
+                            <p class="text-2xl font-bold text-gray-800" data-bind="dashboard.completionRate">87%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Recent Course Activities</h3>
+                    <!-- @MAP: recentActivities.map(activity => ( -->
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-2 h-2 bg-crimson rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">Blockchain Applications - Project Template Updated</p>
+                                <p class="text-xs text-gray-600" data-mock="true">2 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-2 h-2 bg-navy rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">Fintech Data Analysis - 8 student submissions</p>
+                                <p class="text-xs text-gray-600" data-mock="true">6 hours ago</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                            <div class="w-2 h-2 bg-amber rounded-full"></div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">AI Business Models - New collaboration request</p>
+                                <p class="text-xs text-gray-600" data-mock="true">1 day ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Quick Actions</h3>
+                    <div class="space-y-4">
+                        <button class="w-full text-left p-4 bg-crimson/5 border border-crimson/20 rounded-lg hover:bg-crimson/10 transition-colors" data-event="click:startMethodologyWizard">
+                            <div class="flex items-center">
+                                <i class="fas fa-magic text-crimson mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-gray-800">Start Methodology Wizard</p>
+                                    <p class="text-sm text-gray-600">Create new PBL course structure</p>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="w-full text-left p-4 bg-navy/5 border border-navy/20 rounded-lg hover:bg-navy/10 transition-colors" data-event="click:browseTemplates">
+                            <div class="flex items-center">
+                                <i class="fas fa-layer-group text-navy mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-gray-800">Browse Project Templates</p>
+                                    <p class="text-sm text-gray-600">Ready-to-use PBL frameworks</p>
+                                </div>
+                            </div>
+                        </button>
+                        
+                        <button class="w-full text-left p-4 bg-amber/5 border border-amber/20 rounded-lg hover:bg-amber/10 transition-colors" data-event="click:uploadContent">
+                            <div class="flex items-center">
+                                <i class="fas fa-upload text-amber mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-gray-800">Upload Course Materials</p>
+                                    <p class="text-sm text-gray-600">Add to knowledge base</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Dashboard Overview -->
+
+    <!-- @COMPONENT: Methodology Wizard -->
+    <section id="methodology" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Guided Methodology Wizard</h2>
+                <p class="text-xl text-gray-600">Step-by-step implementation of Pivot-and-Launch pedagogy</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <!-- Progress Indicator -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-crimson text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                            <span class="text-sm font-medium text-crimson">Course Context</span>
+                        </div>
+                        <div class="flex-1 mx-4 h-1 bg-gray-200 rounded">
+                            <div class="h-1 bg-crimson rounded" style="width: 25%"></div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                            <span class="text-sm font-medium text-gray-600">Define Pivot</span>
+                        </div>
+                        <div class="flex-1 mx-4 h-1 bg-gray-200 rounded"></div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">3</div>
+                            <span class="text-sm font-medium text-gray-600">Launch Strategy</span>
+                        </div>
+                        <div class="flex-1 mx-4 h-1 bg-gray-200 rounded"></div>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-8 h-8 bg-gray-200 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium">4</div>
+                            <span class="text-sm font-medium text-gray-600">Implementation</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Step: Course Context -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">Step 1: Define Your Course Context</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Course Subject Area</label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent" data-implementation="Dropdown should populate from course database">
+                                <option>Select your primary subject area...</option>
+                                <option data-mock="true">Blockchain Applications</option>
+                                <option data-mock="true">Fintech & Financial Technology</option>
+                                <option data-mock="true">Data Science & Analytics</option>
+                                <option data-mock="true">Artificial Intelligence</option>
+                                <option data-mock="true">Business Information Systems</option>
+                                <option data-mock="true">Other Technology Field</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Student Level</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <label class="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="radio" name="studentLevel" value="undergraduate" class="text-crimson">
+                                    <span class="text-sm font-medium">Undergraduate</span>
+                                </label>
+                                <label class="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="radio" name="studentLevel" value="graduate" class="text-crimson">
+                                    <span class="text-sm font-medium">Graduate</span>
+                                </label>
+                                <label class="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="radio" name="studentLevel" value="professional" class="text-crimson">
+                                    <span class="text-sm font-medium">Professional</span>
+                                </label>
+                                <label class="flex items-center space-x-3 p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                    <input type="radio" name="studentLevel" value="mixed" class="text-crimson">
+                                    <span class="text-sm font-medium">Mixed Level</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Information Overload Assessment</label>
+                            <div class="space-y-3">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="text-crimson rounded" data-mock="true">
+                                    <span class="text-sm">Students frequently ask for "more advanced" content before mastering basics</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="text-crimson rounded" data-mock="true">
+                                    <span class="text-sm">Difficulty maintaining focus on core concepts due to trending technologies</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="text-crimson rounded" data-mock="true">
+                                    <span class="text-sm">Students struggle to apply theoretical knowledge in practical scenarios</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" class="text-crimson rounded" data-mock="true">
+                                    <span class="text-sm">Rapid changes in field make curriculum planning challenging</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between pt-6">
+                            <button class="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors" disabled>
+                                <i class="fas fa-arrow-left mr-2"></i>Previous
+                            </button>
+                            <button class="bg-crimson text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors" data-event="click:nextStep">
+                                Next: Define Pivot <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Methodology Wizard -->
+
+    <!-- @COMPONENT: Project Templates Library -->
+    <section id="templates" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Project Templates Library</h2>
+                <p class="text-xl text-gray-600">Ready-to-use PBL frameworks adapted from Prof. Treku's proven methodologies</p>
+            </div>
+
+            <!-- Filter and Search -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                <div class="flex space-x-4 mb-4 md:mb-0">
+                    <button class="px-4 py-2 bg-crimson text-white rounded-lg text-sm font-medium">All Templates</button>
+                    <button class="px-4 py-2 bg-white text-gray-600 hover:text-gray-800 rounded-lg text-sm font-medium border border-gray-300">Blockchain</button>
+                    <button class="px-4 py-2 bg-white text-gray-600 hover:text-gray-800 rounded-lg text-sm font-medium border border-gray-300">Fintech</button>
+                    <button class="px-4 py-2 bg-white text-gray-600 hover:text-gray-800 rounded-lg text-sm font-medium border border-gray-300">Data Science</button>
+                    <button class="px-4 py-2 bg-white text-gray-600 hover:text-gray-800 rounded-lg text-sm font-medium border border-gray-300">AI/ML</button>
+                </div>
+                <div class="relative">
+                    <input type="text" placeholder="Search templates..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-crimson focus:border-transparent">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+
+            <!-- Template Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- @MAP: templates.map(template => ( -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Blockchain DeFi application development project template -->
+                    <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="Blockchain technology visualization" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-crimson/10 text-crimson text-xs font-medium rounded-full" data-mock="true">Blockchain</span>
+                            <span class="text-xs text-gray-600" data-mock="true">4-6 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">DeFi Application Development</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Students build a decentralized finance application using Ethereum smart contracts, integrating theoretical blockchain concepts with practical development skills.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">Blockchain fundamentals, smart contract basics</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Real-world DeFi protocols, market analysis</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Fintech risk assessment and algorithmic trading project -->
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="Financial charts and data analysis" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-navy/10 text-navy text-xs font-medium rounded-full" data-mock="true">Fintech</span>
+                            <span class="text-xs text-gray-600" data-mock="true">3-4 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">Algorithmic Trading System</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Design and implement automated trading algorithms while understanding risk management principles and regulatory compliance in financial markets.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">Financial mathematics, risk theory</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Live market simulation, compliance analysis</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Data science machine learning model for business intelligence -->
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="Data visualization dashboard" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-amber/10 text-amber text-xs font-medium rounded-full" data-mock="true">Data Science</span>
+                            <span class="text-xs text-gray-600" data-mock="true">5-7 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">Business Intelligence ML Model</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Develop machine learning models for business decision-making using real corporate datasets, emphasizing ethical AI and interpretable results.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">Statistical modeling, data preprocessing</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Corporate case studies, stakeholder presentation</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- AI chatbot development project for customer service automation -->
+                    <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="AI robot and human interaction" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-purple-100 text-purple-600 text-xs font-medium rounded-full" data-mock="true">AI/ML</span>
+                            <span class="text-xs text-gray-600" data-mock="true">4-5 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">AI Customer Service Bot</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Create an intelligent chatbot system that handles customer inquiries, integrating natural language processing with business process automation.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">NLP fundamentals, conversation design</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Multi-platform deployment, analytics</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Business systems integration project for digital transformation -->
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="Business process automation dashboard" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Business IT</span>
+                            <span class="text-xs text-gray-600" data-mock="true">6-8 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">Digital Transformation Strategy</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Analyze and redesign business processes using modern IT solutions, focusing on efficiency gains and stakeholder change management.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">Systems analysis, process modeling</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Implementation roadmap, ROI analysis</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                    <!-- Cross-disciplinary cybersecurity project combining multiple technologies -->
+                    <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=200" alt="Cybersecurity network protection visualization" class="w-full h-48 object-cover">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 bg-red-100 text-red-600 text-xs font-medium rounded-full" data-mock="true">Cybersecurity</span>
+                            <span class="text-xs text-gray-600" data-mock="true">5-6 weeks</span>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3" data-mock="true">Integrated Security Framework</h3>
+                        <p class="text-gray-600 text-sm mb-4" data-mock="true">Design comprehensive security solutions spanning blockchain, fintech, and data systems using threat modeling and risk assessment methodologies.</p>
+                        
+                        <div class="space-y-2 mb-4">
+                            <div class="text-xs text-gray-600">
+                                <strong>Pivot:</strong> <span data-mock="true">Security principles, threat analysis</span>
+                            </div>
+                            <div class="text-xs text-gray-600">
+                                <strong>Launch:</strong> <span data-mock="true">Multi-domain implementation, compliance audit</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button class="text-crimson hover:text-red-700 text-sm font-medium" data-event="click:previewTemplate">
+                                <i class="fas fa-eye mr-1"></i>Preview
+                            </button>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:useTemplate">
+                                Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+
+            <div class="text-center mt-12">
+                <button class="bg-navy text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-800 transition-colors" data-event="click:createCustomTemplate">
+                    <i class="fas fa-plus mr-2"></i>Create Custom Template
+                </button>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Project Templates Library -->
+
+    <!-- @COMPONENT: Student Collaboration Hub -->
+    <section id="collaboration" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Student Collaboration Hub</h2>
+                <p class="text-xl text-gray-600">Empower students to contribute project ideas and provide critical reflections</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Student Contributions -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800">Recent Student Contributions</h3>
+                            <button class="bg-crimson text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors" data-event="click:submitContribution">
+                                <i class="fas fa-plus mr-2"></i>Submit Idea
+                            </button>
+                        </div>
+
+                        <!-- @MAP: studentContributions.map(contribution => ( -->
+                        <div class="space-y-6">
+                            <div class="p-4 bg-gray-50 rounded-lg border-l-4 border-crimson">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <!-- Student profile photo -->
+                                        <img src="https://pixabay.com/get/gce18a86fef826996be6afe3624a99a1c7b1fc75d9f6528ebdb9d97091b092f27a5dcc9d39e98a3525222e638d3ca146751b8f13f0f6f0c59c7444cab88188dba_1280.jpg" alt="Student profile" class="w-8 h-8 rounded-full">
+                                        <div>
+                                            <p class="font-medium text-gray-800" data-mock="true">Sarah Chen</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">Data Science Major • 2 days ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Approved</span>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        <span class="text-xs text-gray-600" data-mock="true">12</span>
+                                    </div>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2" data-mock="true">Predictive Analytics for Campus Sustainability</h4>
+                                <p class="text-gray-600 text-sm mb-3" data-mock="true">Project idea: Use machine learning to predict energy consumption patterns across campus facilities and recommend optimization strategies. Could integrate IoT sensors and real-time data processing.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2 py-1 bg-amber/10 text-amber text-xs font-medium rounded-full" data-mock="true">Data Science</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Sustainability</span>
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-600 text-xs font-medium rounded-full" data-mock="true">IoT</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-gray-50 rounded-lg border-l-4 border-navy">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <!-- Another student profile photo -->
+                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Student profile" class="w-8 h-8 rounded-full">
+                                        <div>
+                                            <p class="font-medium text-gray-800" data-mock="true">Marcus Johnson</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">Fintech Focus • 4 days ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-600 text-xs font-medium rounded-full" data-mock="true">Under Review</span>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        <span class="text-xs text-gray-600" data-mock="true">8</span>
+                                    </div>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2" data-mock="true">Microfinance Platform with Blockchain Verification</h4>
+                                <p class="text-gray-600 text-sm mb-3" data-mock="true">Develop a peer-to-peer lending platform for small businesses in underserved communities, using blockchain for transaction transparency and smart contracts for automated terms.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2 py-1 bg-crimson/10 text-crimson text-xs font-medium rounded-full" data-mock="true">Blockchain</span>
+                                    <span class="px-2 py-1 bg-navy/10 text-navy text-xs font-medium rounded-full" data-mock="true">Fintech</span>
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-medium rounded-full" data-mock="true">Social Impact</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-gray-50 rounded-lg border-l-4 border-amber">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center space-x-3">
+                                        <!-- Third student profile photo -->
+                                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Student profile" class="w-8 h-8 rounded-full">
+                                        <div>
+                                            <p class="font-medium text-gray-800" data-mock="true">Priya Patel</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">AI/Business Double Major • 1 week ago</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Approved</span>
+                                        <button class="text-crimson hover:text-red-700">
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                        <span class="text-xs text-gray-600" data-mock="true">15</span>
+                                    </div>
+                                </div>
+                                <h4 class="font-semibold text-gray-800 mb-2" data-mock="true">AI-Driven Supply Chain Optimization</h4>
+                                <p class="text-gray-600 text-sm mb-3" data-mock="true">Critical reflection: Current supply chain projects often ignore ethical AI considerations. Propose integrating fairness metrics and explainable AI into optimization algorithms for transparent decision-making.</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2 py-1 bg-purple-100 text-purple-600 text-xs font-medium rounded-full" data-mock="true">AI Ethics</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Supply Chain</span>
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-600 text-xs font-medium rounded-full" data-mock="true">Critical Reflection</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP )) -->
+                    </div>
+                </div>
+
+                <!-- Collaboration Tools -->
+                <div class="space-y-6">
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Contribution Guidelines</h3>
+                        <div class="space-y-3 text-sm text-gray-600">
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-lightbulb text-amber mt-1"></i>
+                                <p><strong>Project Ideas:</strong> Propose innovative applications of course concepts to real-world problems</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-search text-navy mt-1"></i>
+                                <p><strong>Micro Reflections:</strong> Quick insights or connections between concepts</p>
+                            </div>
+                            <div class="flex items-start space-x-2">
+                                <i class="fas fa-comments text-crimson mt-1"></i>
+                                <p><strong>Macro Reflections:</strong> Critical analysis of course methodology and industry implications</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Active Discussions</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">Ethics in AI Financial Trading</p>
+                                <p class="text-xs text-gray-600 mt-1" data-mock="true">8 contributors • Last active 2h ago</p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">Blockchain Environmental Impact</p>
+                                <p class="text-xs text-gray-600 mt-1" data-mock="true">12 contributors • Last active 4h ago</p>
+                            </div>
+                            <div class="p-3 bg-gray-50 rounded-lg">
+                                <p class="text-sm font-medium text-gray-800" data-mock="true">Data Privacy in Business Analytics</p>
+                                <p class="text-xs text-gray-600 mt-1" data-mock="true">6 contributors • Last active 1d ago</p>
+                            </div>
+                        </div>
+                        <button class="w-full mt-4 text-crimson hover:text-red-700 text-sm font-medium" data-event="click:viewAllDiscussions">
+                            View All Discussions <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Recognition Board</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-amber text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">Priya Patel</p>
+                                    <p class="text-xs text-gray-600" data-mock="true">Most innovative contributions</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-gray-400 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">Sarah Chen</p>
+                                    <p class="text-xs text-gray-600" data-mock="true">Best critical reflections</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 bg-yellow-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-800" data-mock="true">Marcus Johnson</p>
+                                    <p class="text-xs text-gray-600" data-mock="true">Most collaborative projects</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Student Collaboration Hub -->
+
+    <!-- @COMPONENT: Knowledge Base & Resources -->
+    <section id="resources" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Institutional Knowledge Base</h2>
+                <p class="text-xl text-gray-600">Private, secure repository for your institution's curriculum materials and resources</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Upload and Content Management -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Content Upload & Management</h3>
+                        
+                        <!-- Upload Area -->
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-crimson transition-colors cursor-pointer" data-implementation="File drop zone with drag-and-drop functionality">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
+                            <p class="text-lg font-medium text-gray-700 mb-2">Drag and drop your course materials</p>
+                            <p class="text-sm text-gray-600 mb-4">Supports DOCX, PDF, PPTX, and multimedia files</p>
+                            <button class="bg-crimson text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors" data-event="click:selectFiles">
+                                Select Files
+                            </button>
+                        </div>
+
+                        <!-- Recent Uploads -->
+                        <div class="mt-8">
+                            <h4 class="text-lg font-semibold text-gray-800 mb-4">Recently Uploaded</h4>
+                            <!-- @MAP: recentUploads.map(upload => ( -->
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-file-pdf text-red-600"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800" data-mock="true">Blockchain Fundamentals Syllabus.pdf</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">Uploaded 2 hours ago • 2.3 MB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Processed</span>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-file-powerpoint text-orange-600"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800" data-mock="true">Fintech Market Analysis Slides.pptx</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">Uploaded 5 hours ago • 8.7 MB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-yellow-100 text-yellow-600 text-xs font-medium rounded-full" data-mock="true">Processing</span>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-file-word text-blue-600"></i>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800" data-mock="true">Data Science Project Guidelines.docx</p>
+                                            <p class="text-xs text-gray-600" data-mock="true">Uploaded 1 day ago • 1.2 MB</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Processed</span>
+                                        <button class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- AI-Powered Suggestions -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Intelligent Content Suggestions</h3>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-lightbulb text-blue-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-blue-800 mb-2" data-mock="true">Suggested Project Enhancement</h4>
+                                        <p class="text-sm text-blue-700 mb-3" data-mock="true">Based on your "Blockchain Fundamentals" content, consider adding a DeFi practical component to strengthen the "Launch" phase of student learning.</p>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium" data-event="click:applySuggestion">
+                                            Apply Suggestion <i class="fas fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                                <div class="flex items-start space-x-3">
+                                    <i class="fas fa-chart-line text-amber-600 mt-1"></i>
+                                    <div>
+                                        <h4 class="font-semibold text-amber-800 mb-2" data-mock="true">Cross-Course Connection Opportunity</h4>
+                                        <p class="text-sm text-amber-700 mb-3" data-mock="true">Your Data Science and Fintech materials show overlap in statistical modeling. Consider creating an integrated project spanning both courses.</p>
+                                        <button class="text-amber-600 hover:text-amber-800 text-sm font-medium" data-event="click:exploreConnection">
+                                            Explore Connection <i class="fas fa-arrow-right ml-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Integration and Export Tools -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">External Integrations</h3>
+                        <div class="space-y-4">
+                            <div class="p-3 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fab fa-google text-blue-600"></i>
+                                        <span class="text-sm font-medium text-gray-800">Google Cloud NotebookLM</span>
+                                    </div>
+                                    <span class="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded-full" data-mock="true">Connected</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mb-2">Enhanced AI analysis and insights</p>
+                                <button class="text-crimson hover:text-red-700 text-xs font-medium" data-event="click:configureNotebookLM">
+                                    Configure Settings
+                                </button>
+                            </div>
+
+                            <div class="p-3 border border-gray-200 rounded-lg">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fab fa-microsoft text-blue-600"></i>
+                                        <span class="text-sm font-medium text-gray-800">Microsoft Copilot</span>
+                                    </div>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full" data-mock="true">Available</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mb-2">Project brainstorming and enhancement</p>
+                                <button class="text-crimson hover:text-red-700 text-xs font-medium" data-event="click:connectCopilot">
+                                    Connect Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Export & Sharing</h3>
+                        <div class="space-y-3">
+                            <button class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-event="click:exportPDF">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-file-pdf text-red-600"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Export as PDF</p>
+                                        <p class="text-xs text-gray-600">Complete toolkit documentation</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-event="click:exportPresentation">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-presentation text-orange-600"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Generate Presentation</p>
+                                        <p class="text-xs text-gray-600">Professional slide deck for meetings</p>
+                                    </div>
+                                </div>
+                            </button>
+
+                            <button class="w-full text-left p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" data-event="click:shareToolkit">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-share-alt text-navy"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Share Toolkit</p>
+                                        <p class="text-xs text-gray-600">Collaborate with colleagues</p>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Storage Usage</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Used</span>
+                                <span class="font-medium text-gray-800" data-bind="storage.used">2.4 GB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-crimson h-2 rounded-full" style="width: 24%" data-bind="storage.percentage"></div>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Available</span>
+                                <span class="font-medium text-gray-800" data-bind="storage.available">7.6 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Knowledge Base & Resources -->
+
+    <!-- @COMPONENT: Implementation Progress & Analytics -->
+    <section class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Implementation Progress & Analytics</h2>
+                <p class="text-xl text-gray-600">Track the effectiveness of your Pivot-and-Launch methodology</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Progress Tracking -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Course Implementation Status</h3>
+                    
+                    <!-- @MAP: courses.map(course => ( -->
+                    <div class="space-y-6">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800" data-mock="true">Blockchain Applications (CS 485)</h4>
+                                    <p class="text-sm text-gray-600" data-mock="true">Fall 2025 • 28 students</p>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 text-green-600 text-sm font-medium rounded-full" data-mock="true">Active</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Pivot Phase Completion</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.pivotCompletion">85%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-crimson h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Launch Projects Started</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.launchStarted">12/15</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800" data-mock="true">Fintech Analytics (FIN 520)</h4>
+                                    <p class="text-sm text-gray-600" data-mock="true">Fall 2025 • 22 students</p>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-600 text-sm font-medium rounded-full" data-mock="true">Planning</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Methodology Setup</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.setupCompletion">60%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-navy h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Templates Customized</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.templatesCustomized">3/5</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800" data-mock="true">Data Science Capstone (DS 590)</h4>
+                                    <p class="text-sm text-gray-600" data-mock="true">Spring 2025 • 35 students</p>
+                                </div>
+                                <span class="px-3 py-1 bg-amber/20 text-amber text-sm font-medium rounded-full" data-mock="true">Completed</span>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Overall Success Rate</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.successRate">92%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-amber h-2 rounded-full" style="width: 92%"></div>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-600">Student Satisfaction</span>
+                                    <span class="font-medium text-gray-800" data-bind="course.satisfaction">4.7/5.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_MAP )) -->
+                </div>
+
+                <!-- Analytics Dashboard -->
+                <div class="bg-white border-2 border-gray-200 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Student Engagement Analytics</h3>
+                    
+                    <!-- Key Metrics -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="text-center p-4 bg-crimson/5 rounded-lg">
+                            <p class="text-2xl font-bold text-crimson" data-bind="analytics.engagementIncrease">+34%</p>
+                            <p class="text-sm text-gray-600">Engagement Increase</p>
+                        </div>
+                        <div class="text-center p-4 bg-navy/5 rounded-lg">
+                            <p class="text-2xl font-bold text-navy" data-bind="analytics.overloadReduction">-58%</p>
+                            <p class="text-sm text-gray-600">Overload Reports</p>
+                        </div>
+                        <div class="text-center p-4 bg-amber/10 rounded-lg">
+                            <p class="text-2xl font-bold text-amber" data-bind="analytics.projectCompletion">89%</p>
+                            <p class="text-sm text-gray-600">Project Completion</p>
+                        </div>
+                        <div class="text-center p-4 bg-green-100 rounded-lg">
+                            <p class="text-2xl font-bold text-green-600" data-bind="analytics.conceptMastery">+42%</p>
+                            <p class="text-sm text-gray-600">Concept Mastery</p>
+                        </div>
+                    </div>
+
+                    <!-- Trend Chart Placeholder -->
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <!-- @FUNCTIONALITY: This should implement a chart library like Chart.js showing engagement trends over time -->
+                        <div class="h-48 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg">
+                            <div class="text-center">
+                                <i class="fas fa-chart-line text-4xl text-gray-400 mb-2"></i>
+                                <p class="text-gray-600">Student Engagement Trends</p>
+                                <p class="text-sm text-gray-500">Interactive chart showing weekly progress</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Feedback Summary -->
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Recent Student Feedback</h4>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <p class="text-sm text-green-800" data-mock="true">"The pivot-launch approach helped me understand how blockchain concepts actually apply to real business problems."</p>
+                                <p class="text-xs text-green-600 mt-1" data-mock="true">- Anonymous Student, CS 485</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p class="text-sm text-blue-800" data-mock="true">"I feel more confident tackling complex projects now that I have solid fundamentals."</p>
+                                <p class="text-xs text-blue-600 mt-1" data-mock="true">- Anonymous Student, DS 590</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Implementation Progress & Analytics -->
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-lightbulb text-2xl text-amber mr-3"></i>
+                        <h3 class="text-xl font-bold">Pivot-and-Launch PBL Toolkit</h3>
+                    </div>
+                    <p class="text-gray-300 mb-4">Transform information overload into purposeful learning with strategic pedagogy designed for rapidly evolving tech fields.</p>
+                    <p class="text-sm text-gray-400">Developed by Prof. Daniel Treku • University Research Initiative</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#methodology" class="hover:text-white transition-colors">Methodology Guide</a></li>
+                        <li><a href="#templates" class="hover:text-white transition-colors">Project Templates</a></li>
+                        <li><a href="#collaboration" class="hover:text-white transition-colors">Student Hub</a></li>
+                        <li><a href="#resources" class="hover:text-white transition-colors">Knowledge Base</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Training Videos</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Community Forum</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contact Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 Pivot-and-Launch PBL Toolkit. All rights reserved. Licensed under Academic Use Agreement.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Scoped functionality for UI interactions
+            
+            // Navigation smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Filter buttons for templates
+            const filterButtons = document.querySelectorAll('button[class*="border-gray-300"]');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active state from all buttons
+                    filterButtons.forEach(btn => {
+                        btn.className = btn.className.replace('bg-crimson text-white', 'bg-white text-gray-600 hover:text-gray-800');
+                    });
+                    // Add active state to clicked button
+                    this.className = this.className.replace('bg-white text-gray-600 hover:text-gray-800', 'bg-crimson text-white');
+                });
+            });
+
+            // File upload simulation
+            const uploadArea = document.querySelector('.border-dashed');
+            if (uploadArea) {
+                uploadArea.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('border-crimson', 'bg-crimson/5');
+                });
+                
+                uploadArea.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('border-crimson', 'bg-crimson/5');
+                });
+                
+                uploadArea.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.classList.remove('border-crimson', 'bg-crimson/5');
+                    // TODO: Handle file upload
+                    console.log('Files dropped:', e.dataTransfer.files);
+                });
+            }
+
+            // Progress bar animations
+            const progressBars = document.querySelectorAll('[style*="width:"]');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.transition = 'width 1s ease-in-out';
+                    bar.style.width = width;
+                }, 100);
+            });
+
+            // Modal placeholders for interactive elements
+            document.addEventListener('click', function(e) {
+                const button = e.target.closest('button');
+                if (!button) return;
+
+                const action = button.getAttribute('data-event');
+                if (action) {
+                    console.log('Action triggered:', action);
+                    // TODO: Implement specific action handlers
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
