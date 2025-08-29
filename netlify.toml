@@ -1,9 +1,10 @@
 [build]
   publish = "dist/public"
-  command = "npm run build"
+  command = "npm ci && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--include=dev"
 
 [[redirects]]
   from = "/api/*"
