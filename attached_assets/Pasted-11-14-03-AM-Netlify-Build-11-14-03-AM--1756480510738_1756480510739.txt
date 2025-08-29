@@ -1,0 +1,72 @@
+11:14:03 AM: Netlify Build                                                 
+11:14:03 AM: ────────────────────────────────────────────────────────────────
+11:14:03 AM: ​
+11:14:03 AM: ❯ Version
+11:14:03 AM:   @netlify/build 35.1.3
+11:14:03 AM: ​
+11:14:03 AM: ❯ Flags
+11:14:03 AM:   accountId: 68b185be9b63ad3bccac437f
+11:14:03 AM:   baseRelDir: true
+11:14:03 AM:   buildId: 68b1c3a185bc5d06245b700b
+11:14:03 AM:   deployId: 68b1c3a285bc5d06245b700d
+11:14:03 AM: ​
+11:14:03 AM: ❯ Current directory
+11:14:03 AM:   /opt/build/repo
+11:14:03 AM: ​
+11:14:03 AM: ❯ Config file
+11:14:03 AM:   /opt/build/repo/netlify.toml
+11:14:03 AM: ​
+11:14:03 AM: ❯ Context
+11:14:03 AM:   production
+11:14:03 AM: ​
+11:14:03 AM: build.command from netlify.toml                               
+11:14:03 AM: ────────────────────────────────────────────────────────────────
+11:14:03 AM: ​
+11:14:03 AM: $ npm ci && npm run build
+11:14:09 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2
+11:14:09 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+11:14:09 AM: added 526 packages, and audited 527 packages in 6s
+11:14:09 AM: 73 packages are looking for funding
+11:14:09 AM:   run `npm fund` for details
+11:14:09 AM: 3 low severity vulnerabilities
+11:14:09 AM: To address all issues, run:
+11:14:09 AM:   npm audit fix
+11:14:09 AM: Run `npm audit` for details.
+11:14:09 AM: > rest-express@1.0.0 build
+11:14:09 AM: > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+11:14:09 AM: sh: 1: vite: not found
+11:14:09 AM: ​
+11:14:09 AM: "build.command" failed                                        
+11:14:09 AM: ────────────────────────────────────────────────────────────────
+11:14:09 AM: ​
+11:14:09 AM:   Error message
+11:14:09 AM:   Command failed with exit code 127: npm ci && npm run build
+11:14:09 AM: ​
+11:14:09 AM:   Error location
+11:14:09 AM:   In build.command from netlify.toml:
+11:14:09 AM:   npm ci && npm run build
+11:14:09 AM: ​
+11:14:09 AM:   Resolved config
+11:14:09 AM:   build:
+11:14:09 AM:     command: npm ci && npm run build
+11:14:09 AM:     commandOrigin: config
+11:14:09 AM:     environment:
+11:14:09 AM:       - DATABASE_URL
+11:14:09 AM:       - NODE_ENV
+11:14:09 AM:       - SESSION_SECRET
+11:14:09 AM:       - NODE_VERSION
+11:14:09 AM:       - NPM_FLAGS
+11:14:09 AM:     publish: /opt/build/repo/dist/public
+11:14:09 AM:     publishOrigin: config
+11:14:09 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+11:14:09 AM:   redirects:
+11:14:09 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+11:14:09 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+11:14:09 AM: Failing build: Failed to build site
+11:14:10 AM: Finished processing build request in 29.757s
