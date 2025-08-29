@@ -195,15 +195,22 @@ export async function registerRoutes(app: Express) {
         });
       }
 
+      // Generate a simple session ID for frontend compatibility
+      const sessionId = `session_${user.id}_${Date.now()}`;
+
       res.json({
         success: true,
         message: "Login successful",
+        sessionId: sessionId,
         faculty: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-          status: user.status
+          status: user.status,
+          title: user.title,
+          department: user.department,
+          institution: user.institution
         }
       });
     } catch (error) {
@@ -212,6 +219,58 @@ export async function registerRoutes(app: Express) {
         message: "Internal server error",
         error: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  // User profile endpoint for frontend AuthContext
+  app.get('/api/auth/me', async (req, res) => {
+    try {
+      // Simple session validation for frontend compatibility
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: "Unauthorized - No session" });
+      }
+
+      const sessionId = authHeader.replace('Bearer ', '');
+      // Extract user ID from session (basic implementation)
+      const userIdMatch = sessionId.match(/session_(\d+)_/);
+      
+      if (!userIdMatch) {
+        return res.status(401).json({ message: "Invalid session" });
+      }
+
+      const userId = parseInt(userIdMatch[1]);
+      const [user] = await db
+        .select()
+        .from(faculty)
+        .where(eq(faculty.id, userId))
+        .limit(1);
+
+      if (!user || user.status !== 'approved') {
+        return res.status(401).json({ message: "User not found or not approved" });
+      }
+
+      res.json({
+        faculty: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          status: user.status,
+          title: user.title,
+          department: user.department,
+          institution: user.institution
+        },
+        stats: {
+          totalProjects: 0,
+          activeProjects: 0,
+          completedProjects: 0
+        }
+      });
+
+    } catch (error) {
+      console.error("Auth me error:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 
