@@ -39,10 +39,26 @@ async function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+// Middleware to check admin access (super_admin or admin)
+async function requireAdmin(req: any, res: any, next: any) {
+  if (!req.user || !['super_admin', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+}
+
 // Middleware to check super admin access
 async function requireSuperAdmin(req: any, res: any, next: any) {
   if (req.user?.role !== 'super_admin') {
     return res.status(403).json({ message: "Super admin access required" });
+  }
+  next();
+}
+
+// Middleware to check if user is approved
+async function requireApproved(req: any, res: any, next: any) {
+  if (req.user?.status !== 'approved') {
+    return res.status(403).json({ message: "Account pending approval" });
   }
   next();
 }
@@ -112,6 +128,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  // Public registration route
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role: ['student', 'instructor'].includes(role) ? role : 'instructor',
+        status: "pending", // All new registrations need approval
+        title,
+        department,
+        institution,
+        isActive: false, // Inactive until approved
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+
+      res.status(201).json({
+        message: "Registration successful. Please wait for admin approval.",
+        id: faculty.id,
+        email: faculty.email,
+        status: faculty.status
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Registration failed", error: getErrorMessage(error) });
     }
   });
 
@@ -596,35 +655,258 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Seed initial data route (for development)
-  app.post("/api/seed", async (req, res) => {
+  // User management routes (Admin only)
+  app.get("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
     try {
-      // Create super admin (Prof. Daniel Treku)
-      const passwordHash = await bcrypt.hash("admin123", 10); // Default password for setup
-      
-      const superAdmin = await storage.createFaculty({
-        name: "Prof. Daniel Treku",
-        email: "dtreku@wpi.edu",
-        passwordHash,
-        role: "super_admin",
-        isActive: true,
-        title: "Professor of Fintech, Information Systems and Data Science",
-        department: "Information Systems and Fintech",
-        institution: "Worcester Polytechnic Institute",
-        photoUrl: "/api/faculty-photo",
-        bio: "Information systems and fintech professor and collaborative faculty in the data science program. Expert in Pivot-and-Launch pedagogy and cognitive load management.",
-        expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations", "Project-Based Learning"],
-      });
+      const users = await storage.getAllFaculty();
+      res.json(users.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        title: user.title,
+        department: user.department,
+        institution: user.institution,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        approvedAt: user.approvedAt
+      })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users", error: getErrorMessage(error) });
+    }
+  });
 
-      // Create initial user stats for super admin
+  app.get("/api/admin/users/pending", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const pendingUsers = await storage.getPendingFaculty();
+      res.json(pendingUsers.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        title: user.title,
+        department: user.department,
+        institution: user.institution,
+        createdAt: user.createdAt
+      })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch pending users", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.approveFaculty(userId, req.user.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Set user as active after approval
+      await storage.setFacultyStatus(userId, "approved");
+      await storage.updateFaculty(userId, { isActive: true });
+
+      res.json({
+        message: "User approved successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users/:id/reject", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.rejectFaculty(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "User rejected successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role: ['student', 'instructor', 'admin'].includes(role) ? role : 'instructor',
+        status: "approved", // Admin-created accounts are auto-approved
+        title,
+        department,
+        institution,
+        isActive: true,
+        approvedBy: req.user.id,
+        approvedAt: new Date()
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+
+      // Create initial user stats
       await storage.createUserStats({
-        facultyId: superAdmin.id,
+        facultyId: faculty.id,
         loginCount: 0,
         projectsCreated: 0,
         templatesUsed: 0,
         totalTimeSpent: 0,
         lastActiveAt: new Date(),
       });
+
+      res.status(201).json({
+        message: "User created successfully",
+        user: {
+          id: faculty.id,
+          name: faculty.name,
+          email: faculty.email,
+          role: faculty.role,
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution,
+          status: faculty.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/admin/users/:id/status", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { status, isActive } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      const updateData: any = { status };
+      if (typeof isActive === 'boolean') {
+        updateData.isActive = isActive;
+      }
+
+      const user = await storage.updateFaculty(userId, updateData);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "User status updated successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status,
+          isActive: user.isActive
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user status", error: getErrorMessage(error) });
+    }
+  });
+
+  // Seed initial data route (for development)
+  app.post("/api/seed", async (req, res) => {
+    try {
+      // Create admin accounts
+      const passwordHash = await bcrypt.hash("admin123", 10); // Default password for setup
+      
+      const adminAccounts = [
+        {
+          name: "Prof. Daniel Treku",
+          email: "dtreku@wpi.edu",
+          role: "super_admin",
+          title: "Professor of Fintech, Information Systems and Data Science",
+          department: "Information Systems and Fintech",
+          bio: "Information systems and fintech professor and collaborative faculty in the data science program. Expert in Pivot-and-Launch pedagogy and cognitive load management.",
+          expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations", "Project-Based Learning"]
+        },
+        {
+          name: "Prof. Kathy Wobbe",
+          email: "kwobbe@wpi.edu", 
+          role: "admin",
+          title: "Professor of Mathematical Sciences",
+          department: "Mathematical Sciences",
+          bio: "Professor specializing in applied mathematics and data science education.",
+          expertise: ["Applied Mathematics", "Data Science", "Statistical Analysis", "Project-Based Learning"]
+        },
+        {
+          name: "Prof. Kristen Alecha-Sseur",
+          email: "kalechasseur@wpi.edu",
+          role: "admin", 
+          title: "Professor of Engineering Education",
+          department: "Engineering Education",
+          bio: "Professor focused on innovative engineering education methodologies and pedagogy.",
+          expertise: ["Engineering Education", "Pedagogy", "Curriculum Design", "Project-Based Learning"]
+        }
+      ];
+
+      const createdAdmins = [];
+      for (const adminData of adminAccounts) {
+        // Check if admin already exists
+        const existingAdmin = await storage.getFacultyByEmail(adminData.email);
+        if (!existingAdmin) {
+          const admin = await storage.createFaculty({
+            ...adminData,
+            passwordHash,
+            status: "approved",
+            isActive: true,
+            institution: "Worcester Polytechnic Institute",
+            photoUrl: "/api/faculty-photo",
+          });
+
+          // Create initial user stats for admin
+          await storage.createUserStats({
+            facultyId: admin.id,
+            loginCount: 0,
+            projectsCreated: 0,
+            templatesUsed: 0,
+            totalTimeSpent: 0,
+            lastActiveAt: new Date(),
+          });
+
+          createdAdmins.push(admin);
+        }
+      }
+
+      const superAdmin = createdAdmins.find(admin => admin.role === "super_admin") || createdAdmins[0];
 
       // Create default project templates
       const templates = [

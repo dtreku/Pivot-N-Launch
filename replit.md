@@ -11,6 +11,17 @@ Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and 
 
 ## Recent Changes
 
+### August 29, 2025
+- **Enhanced Authentication Security:** Removed super admin credentials display from signin page for security
+- **User Registration System:** Added public registration functionality with admin approval workflow
+- **Role-Based Access Control:** Implemented student role support separate from instructor/educator users
+- **Multi-Admin Management:** Added Prof. Kathy Wobbe (kwobbe@wpi.edu) and Prof. Kristen Alecha-Sseur (kalechasseur@wpi.edu) as admin accounts
+- **Approval Workflow:** New registrations require admin approval before system access
+- **User Management API:** Added comprehensive admin routes for user approval, rejection, and account creation
+- **Enhanced Middleware:** Added requireAdmin, requireApproved middleware for proper access control
+- **Registration Interface:** Updated signin page with toggle between signin and registration forms
+- **Status Management:** Users can have pending, approved, or rejected status with corresponding access controls
+
 ### August 21, 2025
 - **Authentication System:** Implemented instructor authentication with super admin (dtreku@wpi.edu)
 - **Password Security:** Added bcryptjs password hashing and session management
