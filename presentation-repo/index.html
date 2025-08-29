@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PBL Toolkit Presentations - Worcester Polytechnic Institute</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #dc143c 0%, #1e3a8a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px;
+            margin: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            border: 2px solid #dc143c;
+        }
+
+        .wpi-logo {
+            font-size: 1.4rem;
+            color: #dc143c;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .dept {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 3rem;
+            margin-bottom: 20px;
+            border-bottom: 4px solid #dc143c;
+            padding-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.3rem;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+
+        .presentation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .presentation-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 15px;
+            padding: 30px;
+            border-left: 5px solid #dc143c;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .presentation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(220, 20, 60, 0.2);
+        }
+
+        .presentation-card h3 {
+            color: #dc143c;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .presentation-card p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .card-audience {
+            background: #1e3a8a;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        .card-slides {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .platform-link {
+            background: linear-gradient(135deg, #dc143c 0%, #1e3a8a 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 40px 0;
+            text-decoration: none;
+            display: block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: transform 0.3s ease;
+        }
+
+        .platform-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-radius: 15px;
+            border: 2px solid #1e3a8a;
+        }
+
+        .footer h3 {
+            color: #1e3a8a;
+            margin-bottom: 15px;
+        }
+
+        .footer p {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        .status-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 30px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .presentation-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="wpi-logo">WORCESTER POLYTECHNIC INSTITUTE</div>
+            <div class="dept">Department of Information Systems & Fintech</div>
+            <h1>🎓 PBL Toolkit Presentations</h1>
+            <div class="subtitle">Pivot-and-Launch Project-Based Learning Platform</div>
+            <div class="status-badge">✅ Platform Fully Operational</div>
+        </div>
+
+        <a href="https://PNLToolkit.professordtreku.com" class="platform-link">
+            🌐 Access Live Platform: PNLToolkit.professordtreku.com
+        </a>
+
+        <div class="presentation-grid">
+            <a href="deployment-success-presentation.html" class="presentation-card">
+                <h3>🚀 Deployment Success</h3>
+                <p>Comprehensive overview of successful platform deployment, technical architecture, and operational status. Perfect for administrative reviews and stakeholder updates.</p>
+                <div class="card-meta">
+                    <span class="card-audience">Administrators</span>
+                    <span class="card-slides">8 slides</span>
+                </div>
+            </a>
+
+            <a href="research-enhanced-slide-deck.html" class="presentation-card">
+                <h3>🔬 Research Foundation</h3>
+                <p>Detailed research methodology and implementation covering cognitive load theory, transfer learning, and evidence-based educational design.</p>
+                <div class="card-meta">
+                    <span class="card-audience">Researchers</span>
+                    <span class="card-slides">Multi-slide</span>
+                </div>
+            </a>
+
+            <a href="slide-deck.html" class="presentation-card">
+                <h3>📚 General Overview</h3>
+                <p>Introduction to the PBL Toolkit platform, core features, and educational benefits. Suitable for general audiences and quick overviews.</p>
+                <div class="card-meta">
+                    <span class="card-audience">General</span>
+                    <span class="card-slides">Multi-slide</span>
+                </div>
+            </a>
+
+            <a href="slide-content.html" class="presentation-card">
+                <h3>📋 Content Summary</h3>
+                <p>Essential content overview highlighting key platform capabilities, research integration, and educational applications.</p>
+                <div class="card-meta">
+                    <span class="card-audience">Faculty</span>
+                    <span class="card-slides">Content-focused</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <h3>Contact & Support</h3>
+            <p>
+                <strong>Prof. Daniel Treku</strong><br>
+                Email: dtreku@wpi.edu<br>
+                Platform: <a href="https://PNLToolkit.professordtreku.com" style="color: #dc143c;">PNLToolkit.professordtreku.com</a><br>
+                <em>Revolutionizing project-based learning through research-validated methodologies</em>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

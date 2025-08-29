@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pivot-and-Launch PBL Pedagogy Tool Presentation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .slide {
+            background: white;
+            color: #1f2937;
+            margin: 20px 0;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            min-height: 500px;
+            page-break-after: always;
+        }
+        
+        .slide h1 {
+            color: #dc2626;
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+            border-bottom: 3px solid #dc2626;
+            padding-bottom: 10px;
+        }
+        
+        .slide h2 {
+            color: #1e3a8a;
+            font-size: 1.8em;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+        }
+        
+        .slide h3 {
+            color: #374151;
+            font-size: 1.3em;
+            margin-bottom: 0.5em;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(45deg, #fef3c7, #fed7aa);
+            border-left: 5px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #dc2626;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            background: #f0f9ff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1e3a8a;
+        }
+        
+        .feature-list li::before {
+            content: "✓";
+            color: #16a34a;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .title-slide {
+            background: linear-gradient(135deg, #1e3a8a 0%, #dc2626 100%);
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .title-slide h1 {
+            font-size: 3.5em;
+            color: white;
+            border: none;
+            margin-bottom: 0.3em;
+        }
+        
+        .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 2em;
+            font-style: italic;
+        }
+        
+        .presenter-info {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 2em;
+        }
+        
+        .methodology-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 30px 0;
+        }
+        
+        .methodology-phase {
+            background: #f8fafc;
+            border: 3px solid #1e3a8a;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            width: 200px;
+            position: relative;
+        }
+        
+        .methodology-phase::after {
+            content: "→";
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: #dc2626;
+        }
+        
+        .methodology-phase:last-child::after {
+            display: none;
+        }
+        
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .tech-item {
+            background: #1e3a8a;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        @media print {
+            body { background: white; }
+            .slide { box-shadow: none; border: 2px solid #e5e7eb; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Title Slide -->
+<div class="slide title-slide">
+    <h1>Pivot-and-Launch PBL Pedagogy Tool</h1>
+    <div class="subtitle">Combating Educational Information Overload Through Strategic Pedagogy</div>
+    <div class="presenter-info">
+        <h3>Prof. Daniel Treku</h3>
+        <p>Department of Information Systems and Fintech</p>
+        <p><strong>Focus Areas:</strong> Fintech • Information Systems • Data Science • Knowledge Integrations</p>
+    </div>
+</div>
+
+<!-- Problem Statement -->
+<div class="slide">
+    <h1>The Information Overload Crisis</h1>
+    
+    <div class="two-column">
+        <div>
+            <h2>Current Challenges</h2>
+            <ul class="feature-list">
+                <li>Students overwhelmed by vast information volumes</li>
+                <li>Difficulty distinguishing essential from peripheral knowledge</li>
+                <li>Reduced learning effectiveness and engagement</li>
+                <li>Faculty struggling to curate focused content</li>
+                <li>Traditional methods inadequate for modern landscape</li>
+            </ul>
+        </div>
+        <div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">90%</div>
+                    <div>Faculty report overload issues</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">20%</div>
+                    <div>Information retained from lectures</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">65%</div>
+                    <div>Retention increase with PBL</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Solution Overview -->
+<div class="slide">
+    <h1>Our Solution: Pivot-and-Launch Methodology</h1>
+    
+    <div class="methodology-diagram">
+        <div class="methodology-phase">
+            <h3 style="color: #dc2626;">PIVOT</h3>
+            <p><strong>Strengthening Foundation</strong></p>
+            <ul style="text-align: left; font-size: 0.9em;">
+                <li>Deep concept mastery</li>
+                <li>Mental reference points</li>
+                <li>Knowledge anchors</li>
+                <li>Cognitive frameworks</li>
+            </ul>
+        </div>
+        
+        <div class="methodology-phase">
+            <h3 style="color: #1e3a8a;">LAUNCH</h3>
+            <p><strong>Extending Application</strong></p>
+            <ul style="text-align: left; font-size: 0.9em;">
+                <li>Diverse contexts</li>
+                <li>Real-world problems</li>
+                <li>Creative knowledge transfer</li>
+                <li>Innovation through application</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="highlight-box">
+        <h3>Key Innovation</h3>
+        <p>Transform overwhelming information into structured, progressive learning experiences that build deep understanding before expanding to applications.</p>
+    </div>
+</div>
+
+<!-- Platform Architecture -->
+<div class="slide">
+    <h1>Comprehensive Digital Toolkit</h1>
+    
+    <div class="two-column">
+        <div>
+            <h2>Core Features</h2>
+            <ul class="feature-list">
+                <li>Faculty Management System</li>
+                <li>Methodology Wizard</li>
+                <li>Knowledge Base</li>
+                <li>Project Templates</li>
+                <li>Analytics Dashboard</li>
+                <li>Knowledge Integrations</li>
+            </ul>
+        </div>
+        <div>
+            <h2>Technical Foundation</h2>
+            <div class="tech-stack">
+                <div class="tech-item">React/TypeScript</div>
+                <div class="tech-item">PostgreSQL</div>
+                <div class="tech-item">RESTful APIs</div>
+                <div class="tech-item">Real-time Updates</div>
+                <div class="tech-item">Cloud-Native</div>
+                <div class="tech-item">Secure Auth</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Focus Areas -->
+<div class="slide">
+    <h1>Discipline Focus Areas</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card" style="background: linear-gradient(45deg, #fef3c7, #fed7aa);">
+            <h3 style="color: #92400e;">Fintech</h3>
+            <p>Financial technology applications, payment systems, DeFi, trading algorithms</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(45deg, #dbeafe, #bfdbfe);">
+            <h3 style="color: #1e40af;">Information Systems</h3>
+            <p>Enterprise systems, business processes, data management, system integration</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(45deg, #fce7f3, #fbcfe8);">
+            <h3 style="color: #be185d;">Data Science</h3>
+            <p>Analytics, machine learning, predictive modeling, data visualization</p>
+        </div>
+        <div class="stat-card" style="background: linear-gradient(45deg, #ecfdf5, #d1fae5);">
+            <h3 style="color: #065f46;">Knowledge Integrations</h3>
+            <p>Educational technology, research tools, collaborative platforms</p>
+        </div>
+    </div>
+</div>
+
+<!-- Project Templates -->
+<div class="slide">
+    <h1>Project Template Examples</h1>
+    
+    <div class="two-column">
+        <div>
+            <h2>Blockchain Applications</h2>
+            <div class="highlight-box">
+                <h3>Smart Contract Voting System</h3>
+                <p><strong>Pivot:</strong> Cryptographic hashing, consensus mechanisms</p>
+                <p><strong>Launch:</strong> Democratic applications, governance systems, security analysis</p>
+            </div>
+        </div>
+        <div>
+            <h2>Data Science Projects</h2>
+            <div class="highlight-box">
+                <h3>Predictive Analytics Platform</h3>
+                <p><strong>Pivot:</strong> Statistical analysis, algorithm understanding</p>
+                <p><strong>Launch:</strong> Business forecasting, market analysis, decision support</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="two-column">
+        <div>
+            <h2>Fintech Solutions</h2>
+            <div class="highlight-box">
+                <h3>Payment Processing System</h3>
+                <p><strong>Pivot:</strong> Financial protocols, security standards</p>
+                <p><strong>Launch:</strong> Mobile payments, international transfers, fraud detection</p>
+            </div>
+        </div>
+        <div>
+            <h2>Information Systems</h2>
+            <div class="highlight-box">
+                <h3>Enterprise Integration Platform</h3>
+                <p><strong>Pivot:</strong> System architecture, data flow</p>
+                <p><strong>Launch:</strong> Business process automation, scalability solutions</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Knowledge Integrations -->
+<div class="slide">
+    <h1>Knowledge Integrations Platform</h1>
+    
+    <div class="two-column">
+        <div>
+            <h2>Knowledge Tools</h2>
+            <ul class="feature-list">
+                <li>Google NotebookLM Enterprise</li>
+                <li>Microsoft Copilot</li>
+                <li>Research assistance platforms</li>
+                <li>Document analysis tools</li>
+            </ul>
+            
+            <h2>Survey & Analytics</h2>
+            <ul class="feature-list">
+                <li>Qualtrics integration</li>
+                <li>Real-time feedback collection</li>
+                <li>Custom reporting dashboards</li>
+                <li>Learning outcome tracking</li>
+            </ul>
+        </div>
+        <div>
+            <h2>Learning Management</h2>
+            <ul class="feature-list">
+                <li>Canvas LMS integration</li>
+                <li>Assignment synchronization</li>
+                <li>Grade passback functionality</li>
+                <li>Student roster management</li>
+            </ul>
+            
+            <h2>Collaboration Platforms</h2>
+            <ul class="feature-list">
+                <li>Microsoft Teams integration</li>
+                <li>GitHub Classroom</li>
+                <li>Project management tools</li>
+                <li>Version control systems</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Learning Objectives Converter -->
+<div class="slide">
+    <h1>Learning Objectives Transformation</h1>
+    
+    <div class="highlight-box">
+        <h2>Traditional Approach</h2>
+        <p style="font-style: italic;">"Students will learn about blockchain technology and its applications in various industries."</p>
+    </div>
+    
+    <div class="two-column">
+        <div>
+            <h3 style="color: #dc2626;">Blockchain Focus</h3>
+            <p>"Build a practical blockchain application that demonstrates cryptographic hashing, allowing students to learn through hands-on development while understanding real-world implementation challenges."</p>
+        </div>
+        <div>
+            <h3 style="color: #1e3a8a;">Data Science Focus</h3>
+            <p>"Solve a real-world data problem requiring statistical analysis, enabling students to apply theoretical knowledge through practical analysis while developing critical thinking about data interpretation."</p>
+        </div>
+    </div>
+    
+    <div class="two-column">
+        <div>
+            <h3 style="color: #059669;">Fintech Focus</h3>
+            <p>"Design an innovative fintech solution that incorporates financial protocols, challenging students to understand financial technology through practical application while considering regulatory constraints."</p>
+        </div>
+        <div>
+            <h3 style="color: #7c3aed;">Information Systems Focus</h3>
+            <p>"Develop an enterprise integration solution that applies system architecture principles, allowing students to practice scalable design through real business case studies."</p>
+        </div>
+    </div>
+</div>
+
+<!-- Implementation Benefits -->
+<div class="slide">
+    <h1>Implementation Benefits</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card" style="background: #f0f9ff;">
+            <h3 style="color: #1e40af;">For Faculty</h3>
+            <ul style="text-align: left; font-size: 0.9em;">
+                <li>Reduced preparation time</li>
+                <li>Improved engagement</li>
+                <li>Enhanced outcomes</li>
+                <li>Professional development</li>
+                <li>Research-backed methods</li>
+            </ul>
+        </div>
+        
+        <div class="stat-card" style="background: #fef3c7;">
+            <h3 style="color: #92400e;">For Students</h3>
+            <ul style="text-align: left; font-size: 0.9em;">
+                <li>Clearer objectives</li>
+                <li>Practical skills</li>
+                <li>Real-world applications</li>
+                <li>Reduced overwhelm</li>
+                <li>Increased retention</li>
+            </ul>
+        </div>
+        
+        <div class="stat-card" style="background: #ecfdf5;">
+            <h3 style="color: #065f46;">For Institutions</h3>
+            <ul style="text-align: left; font-size: 0.9em;">
+                <li>Quality assurance</li>
+                <li>Scalable implementation</li>
+                <li>Analytics insights</li>
+                <li>Cross-department collaboration</li>
+                <li>Improved outcomes</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Current Status -->
+<div class="slide">
+    <h1>Platform Status & Capabilities</h1>
+    
+    <div class="two-column">
+        <div>
+            <h2>✅ Completed Features</h2>
+            <ul class="feature-list">
+                <li>Full-stack web application</li>
+                <li>Faculty management system</li>
+                <li>Methodology wizard</li>
+                <li>Knowledge base</li>
+                <li>Project template library</li>
+                <li>Analytics dashboard</li>
+                <li>Knowledge integrations</li>
+                <li>Real-time collaboration</li>
+            </ul>
+        </div>
+        <div>
+            <h2>🚀 Upcoming Features</h2>
+            <ul class="feature-list">
+                <li>Mobile application</li>
+                <li>Advanced analytics</li>
+                <li>Multi-institutional support</li>
+                <li>Enhanced collaboration tools</li>
+                <li>Adaptive learning pathways</li>
+                <li>International expansion</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="highlight-box">
+        <h3>Ready for Pilot Implementation</h3>
+        <p>The platform is fully functional and ready for faculty adoption across Information Systems, Fintech, and Data Science programs.</p>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="slide">
+    <h1>Partnership Opportunities</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card" style="background: linear-gradient(45deg, #fef3c7, #fed7aa);">
+            <h3>For Faculty</h3>
+            <p>Join our pilot program to transform your teaching approach with research-backed methodologies</p>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(45deg, #dbeafe, #bfdbfe);">
+            <h3>For Administrators</h3>
+            <p>Implement institution-wide to improve learning outcomes and reduce information overload</p>
+        </div>
+        
+        <div class="stat-card" style="background: linear-gradient(45deg, #ecfdf5, #d1fae5);">
+            <h3>For Researchers</h3>
+            <p>Collaborate on educational technology advancement and learning effectiveness studies</p>
+        </div>
+    </div>
+    
+    <div class="highlight-box">
+        <h2>Next Steps</h2>
+        <div class="two-column">
+            <div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>📅 Schedule platform demonstration</li>
+                    <li>🤝 Discuss pilot program participation</li>
+                    <li>🔬 Explore research collaboration</li>
+                </ul>
+            </div>
+            <div>
+                <ul style="list-style: none; padding: 0;">
+                    <li>📋 Plan implementation timeline</li>
+                    <li>📊 Define success metrics</li>
+                    <li>🌐 Establish institutional partnerships</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact -->
+<div class="slide title-slide">
+    <h1>Thank You</h1>
+    <div class="subtitle">Questions & Discussion</div>
+    <div class="presenter-info">
+        <h3>Prof. Daniel Treku</h3>
+        <p>Email: daniel.treku@university.edu</p>
+        <p>Department: Information Systems and Fintech</p>
+        <br>
+        <p><strong>Focus Areas:</strong></p>
+        <p>Fintech • Information Systems • Data Science • Knowledge Integrations</p>
+        <br>
+        <p style="font-style: italic;">Let's work together to combat information overload and create focused, effective learning experiences.</p>
+    </div>
+</div>
+
+</body>
+</html>

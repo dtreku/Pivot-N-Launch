@@ -1,0 +1,36 @@
+{
+  "name": "pnl-toolkit-presentations",
+  "version": "1.0.0",
+  "description": "Presentation materials for the Pivot-and-Launch Project-Based Learning Toolkit",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080",
+    "serve": "npx http-server . -p 8080 -o",
+    "validate": "npx html-validate *.html",
+    "lint": "npx eslint --ext .js,.html .",
+    "deploy": "echo 'Deployed via Netlify - no build step required'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dtreku/PNLToolkitPresentation.git"
+  },
+  "keywords": [
+    "project-based-learning",
+    "pbl",
+    "education",
+    "presentations",
+    "wpi",
+    "cognitive-load",
+    "pivot-and-launch"
+  ],
+  "author": "Prof. Daniel Treku <dtreku@wpi.edu>",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://pnltoolkitpresentation.professordtreku.com",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "html-validate": "^8.11.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
