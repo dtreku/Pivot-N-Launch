@@ -6,7 +6,7 @@
 
 ## 🌐 Platform Status: FULLY OPERATIONAL
 
-**Live URL**: [PNLToolkit.professordtreku.com](https://PNLToolkit.professordtreku.com)  
+**Live URL**: [pnltoolkitpresentation.professordtreku.com](https://pnltoolkitpresentation.professordtreku.com)  
 **Deployment Date**: August 29, 2025  
 **Status**: Production-ready with all core features functional
 
@@ -99,7 +99,7 @@
 ## 📋 Immediate Action Items
 
 ### 1. Security Configuration (URGENT)
-1. Login to platform at PNLToolkit.professordtreku.com
+1. Login to platform at pnltoolkitpresentation.professordtreku.com
 2. Use admin credentials provided above
 3. **Change all default passwords immediately**
 4. Review and configure user permissions
@@ -236,7 +236,7 @@
 *The PBL Toolkit is now fully operational and ready to revolutionize project-based learning through research-validated methodologies and cutting-edge technology.*
 
 **Contact for questions or support**: Prof. Daniel Treku (dtreku@wpi.edu)  
-**Platform URL**: [PNLToolkit.professordtreku.com](https://PNLToolkit.professordtreku.com)
+**Platform URL**: [pnltoolkitpresentation.professordtreku.com](https://pnltoolkitpresentation.professordtreku.com)
 
 ---
 

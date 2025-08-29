@@ -137,7 +137,7 @@ presentation/
 
 For presentation technical issues or content updates:
 - **Contact**: Prof. Daniel Treku (dtreku@wpi.edu)
-- **Platform**: PNLToolkit.professordtreku.com
+- **Platform**: pnltoolkitpresentation.professordtreku.com
 - **Documentation**: See docs/ directory for additional materials
 
 ---
