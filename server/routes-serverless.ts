@@ -53,33 +53,36 @@ export async function registerRoutes(app: Express) {
         {
           email: "dtreku@wpi.edu",
           name: "Prof. Daniel Treku",
-          password: await bcrypt.hash("admin123", 10),
+          passwordHash: await bcrypt.hash("admin123", 10),
           role: "super_admin",
           status: "approved",
           title: "Professor of Information Systems and Fintech",
           department: "Information Systems and Fintech",
+          institution: "Worcester Polytechnic Institute",
           bio: "Information systems and fintech professor and collaborative faculty in the data science program. Expert in Pivot-and-Launch pedagogy and cognitive load management.",
           expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations", "Project-Based Learning"]
         },
         {
           email: "kwobbe@wpi.edu", 
           name: "Prof. Kristin Wobbe",
-          password: await bcrypt.hash("admin123", 10),
+          passwordHash: await bcrypt.hash("admin123", 10),
           role: "admin",
           status: "approved",
           title: "Professor of Mathematical Sciences",
           department: "Mathematical Sciences",
+          institution: "Worcester Polytechnic Institute",
           bio: "Professor specializing in applied mathematics and data science education.",
           expertise: ["Applied Mathematics", "Data Science", "Statistical Analysis", "Project-Based Learning"]
         },
         {
           email: "kalechasseur@wpi.edu",
           name: "Prof. Kimberly LeChasseur",
-          password: await bcrypt.hash("admin123", 10),
+          passwordHash: await bcrypt.hash("admin123", 10),
           role: "admin",
           status: "approved", 
           title: "Professor of Engineering Education",
           department: "Engineering Education",
+          institution: "Worcester Polytechnic Institute",
           bio: "Professor focused on innovative engineering education methodologies and pedagogy.",
           expertise: ["Engineering Education", "Pedagogy", "Curriculum Design", "Project-Based Learning"]
         }
@@ -205,10 +208,11 @@ export async function registerRoutes(app: Express) {
       const newFaculty = await storage.createFaculty({
         name,
         email,
-        password: hashedPassword,
-        title,
-        department,
-        bio,
+        passwordHash: hashedPassword,
+        title: title || "Instructor",
+        department: department || "General",
+        institution: "Worcester Polytechnic Institute",
+        bio: bio || "",
         expertise: expertise || [],
         role: "instructor",
         status: "pending"
