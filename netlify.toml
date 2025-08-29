@@ -1,9 +1,10 @@
 [build]
   publish = "dist/public"
-  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes.js"
+  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-minimal.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes.js"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--include=dev"
 
 [[redirects]]
   from = "/api/*"
