@@ -13,22 +13,24 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === "production") {
   const staticPath = path.join(__dirname, "../../dist/public");
   app.use(express.static(staticPath));
-  console.log("Serving static files from:", staticPath);
 }
 
-// Import the built server routes
-try {
-  const { registerRoutes } = require("../../dist/index.js");
-  
-  // Initialize routes
-  registerRoutes(app).then(() => {
-    console.log("Routes registered successfully");
-  }).catch(err => {
-    console.error("Error registering routes:", err);
-  });
-} catch (error) {
-  console.error("Error importing server:", error);
-}
+// Import routes directly from the built server
+let routesInitialized = false;
+
+const initializeRoutes = async () => {
+  if (!routesInitialized) {
+    try {
+      const { registerRoutes } = require("../../dist/index.js");
+      await registerRoutes(app);
+      routesInitialized = true;
+      console.log("Routes registered successfully");
+    } catch (err) {
+      console.error("Error registering routes:", err);
+      throw err;
+    }
+  }
+};
 
 // Handle client-side routing for SPA
 app.get("*", (req, res) => {
@@ -46,5 +48,11 @@ app.get("*", (req, res) => {
   }
 });
 
-// Export handler for Netlify
-module.exports.handler = serverless(app);
+// Create serverless handler with route initialization
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+  // Initialize routes on first request
+  await initializeRoutes();
+  return handler(event, context);
+};
