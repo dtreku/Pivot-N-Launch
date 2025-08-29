@@ -29,7 +29,7 @@ if git remote get-url origin &>/dev/null; then
 else
     echo "🔗 No remote repository found."
     echo "Please create a repository on GitHub and run:"
-    echo "git remote add origin https://github.com/yourusername/Pivot-N-Launch-PBL-Pedagogy-Tool.git"
+    echo "git remote add origin https://github.com/dtreku/Pivot-N-Launch.git"
     echo "git branch -M main"
     echo "git push -u origin main"
 fi
