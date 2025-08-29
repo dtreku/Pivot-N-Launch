@@ -21,6 +21,9 @@ Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and 
 - **Enhanced Middleware:** Added requireAdmin, requireApproved middleware for proper access control
 - **Registration Interface:** Updated signin page with toggle between signin and registration forms
 - **Status Management:** Users can have pending, approved, or rejected status with corresponding access controls
+- **GitHub & Netlify Deployment:** Enhanced deployment configuration for PNLToolkit.professordtreku.com
+- **Documentation:** Updated README.md for professional GitHub presentation and created automated deployment scripts
+- **CI/CD Pipeline:** Added GitHub Actions workflow for automated deployments
 
 ### August 21, 2025
 - **Authentication System:** Implemented instructor authentication with super admin (dtreku@wpi.edu)
@@ -164,12 +167,15 @@ The application uses a comprehensive design system based on:
 - Static file serving handled by Express in production
 - Database migrations managed through Drizzle Kit
 
-### GitHub and Netlify Deployment
+### GitHub and Netlify Deployment  
+- **Production URL:** PNLToolkit.professordtreku.com (custom domain configured)
 - **Netlify Configuration:** `netlify.toml` with functions and redirects
 - **GitHub Actions:** Automated CI/CD pipeline in `.github/workflows/deploy.yml`
 - **Environment Variables:** Secure configuration through Netlify environment settings
 - **Serverless Functions:** Express app converted to Netlify functions
 - **Database:** PostgreSQL cloud database (Neon, Supabase, or Railway recommended)
+- **Deployment Scripts:** Automated setup script in `scripts/deploy-setup.sh`
+- **Professional Documentation:** Enhanced README.md with badges, features overview, and contribution guidelines
 
 ### Authentication & Security
 - **Super Admin:** dtreku@wpi.edu (default password: admin123 - change after first login)
