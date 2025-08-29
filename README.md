@@ -51,8 +51,8 @@ The Pivot-and-Launch PBL Toolkit is a cutting-edge educational platform that imp
 
 Three admin accounts are pre-configured:
 - **Super Admin**: Prof. Daniel Treku (dtreku@wpi.edu)
-- **Admin**: Prof. Kathy Wobbe (kwobbe@wpi.edu)  
-- **Admin**: Prof. Kristen Alecha-Sseur (kalechasseur@wpi.edu)
+- **Admin**: Prof. Kristin Wobbe (kwobbe@wpi.edu)  
+- **Admin**: Prof. Kimberly LeChasseur (kalechasseur@wpi.edu)
 
 *Default password: `admin123` (change immediately after first login)*
 

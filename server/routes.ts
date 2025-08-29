@@ -859,7 +859,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           expertise: ["Blockchain", "Fintech", "Data Science", "Information Systems", "Knowledge Integrations", "Project-Based Learning"]
         },
         {
-          name: "Prof. Kathy Wobbe",
+          name: "Prof. Kristin Wobbe",
           email: "kwobbe@wpi.edu", 
           role: "admin",
           title: "Professor of Mathematical Sciences",
@@ -868,7 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           expertise: ["Applied Mathematics", "Data Science", "Statistical Analysis", "Project-Based Learning"]
         },
         {
-          name: "Prof. Kristen Alecha-Sseur",
+          name: "Prof. Kimberly LeChasseur",
           email: "kalechasseur@wpi.edu",
           role: "admin", 
           title: "Professor of Engineering Education",

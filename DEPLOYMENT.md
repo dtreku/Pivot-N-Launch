@@ -82,11 +82,12 @@ After deployment, seed your database with the super admin:
 
 ## Step 6: First Login
 
-Use these credentials to access the platform:
-- **Email**: dtreku@wpi.edu
-- **Password**: admin123
+Admin accounts are pre-configured with default password `admin123`:
+- **Super Admin**: Prof. Daniel Treku (dtreku@wpi.edu)
+- **Admin**: Prof. Kristin Wobbe (kwobbe@wpi.edu)
+- **Admin**: Prof. Kimberly LeChasseur (kalechasseur@wpi.edu)
 
-⚠️ **Important**: Change the password immediately after first login for security.
+⚠️ **Important**: Change passwords immediately after first login for security.
 
 ## Environment Variables Reference
 

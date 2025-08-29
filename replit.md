@@ -15,7 +15,7 @@ Focus areas: Knowledge Integrations (not AI), Fintech, Information Systems, and 
 - **Enhanced Authentication Security:** Removed super admin credentials display from signin page for security
 - **User Registration System:** Added public registration functionality with admin approval workflow
 - **Role-Based Access Control:** Implemented student role support separate from instructor/educator users
-- **Multi-Admin Management:** Added Prof. Kathy Wobbe (kwobbe@wpi.edu) and Prof. Kristen Alecha-Sseur (kalechasseur@wpi.edu) as admin accounts
+- **Multi-Admin Management:** Added Prof. Kristin Wobbe (kwobbe@wpi.edu) and Prof. Kimberly LeChasseur (kalechasseur@wpi.edu) as admin accounts
 - **Approval Workflow:** New registrations require admin approval before system access
 - **User Management API:** Added comprehensive admin routes for user approval, rejection, and account creation
 - **Enhanced Middleware:** Added requireAdmin, requireApproved middleware for proper access control
