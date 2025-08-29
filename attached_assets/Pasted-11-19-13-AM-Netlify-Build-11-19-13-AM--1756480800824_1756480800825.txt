@@ -1,0 +1,82 @@
+11:19:13 AM: Netlify Build                                                 
+11:19:13 AM: ────────────────────────────────────────────────────────────────
+11:19:13 AM: ​
+11:19:13 AM: ❯ Version
+11:19:13 AM:   @netlify/build 35.1.3
+11:19:13 AM: ​
+11:19:13 AM: ❯ Flags
+11:19:13 AM:   accountId: 68b185be9b63ad3bccac437f
+11:19:13 AM:   baseRelDir: true
+11:19:13 AM:   buildId: 68b1c4df3e20de10ed565576
+11:19:13 AM:   deployId: 68b1c4df3e20de10ed565578
+11:19:13 AM: ​
+11:19:13 AM: ❯ Current directory
+11:19:13 AM:   /opt/build/repo
+11:19:13 AM: ​
+11:19:13 AM: ❯ Config file
+11:19:13 AM:   /opt/build/repo/netlify.toml
+11:19:13 AM: ​
+11:19:13 AM: ❯ Context
+11:19:13 AM:   production
+11:19:13 AM: ​
+11:19:13 AM: build.command from netlify.toml                               
+11:19:13 AM: ────────────────────────────────────────────────────────────────
+11:19:13 AM: ​
+11:19:13 AM: $ npm install && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+11:19:14 AM: up to date, audited 527 packages in 961ms
+11:19:14 AM: 73 packages are looking for funding
+11:19:14 AM:   run `npm fund` for details
+11:19:14 AM: 3 low severity vulnerabilities
+11:19:14 AM: To address all issues, run:
+11:19:14 AM:   npm audit fix
+11:19:14 AM: Run `npm audit` for details.
+11:19:14 AM: npm warn exec The following package was not found and will be installed: vite@6.3.5
+11:19:18 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2
+11:19:17 AM: failed to load config from /opt/build/repo/vite.config.ts
+11:19:17 AM: error during build:
+11:19:17 AM: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/build/repo/node_modules/.vite-temp/vite.config.ts.timestamp-1756480757893-cd79d17595919.mjs
+11:19:17 AM:     at new NodeError (node:internal/errors:405:5)
+11:19:17 AM:     at packageResolve (node:internal/modules/esm/resolve:916:9)
+11:19:17 AM:     at moduleResolve (node:internal/modules/esm/resolve:973:20)
+11:19:17 AM:     at defaultResolve (node:internal/modules/esm/resolve:1206:11)
+11:19:17 AM:     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:404:12)
+11:19:17 AM:     at ModuleLoader.resolve (node:internal/modules/esm/loader:373:25)
+11:19:17 AM:     at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:250:38)
+11:19:17 AM:     at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+11:19:17 AM:     at link (node:internal/modules/esm/module_job:75:36)
+11:19:17 AM: ​
+11:19:17 AM: "build.command" failed                                        
+11:19:17 AM: ────────────────────────────────────────────────────────────────
+11:19:17 AM: ​
+11:19:17 AM:   Error message
+11:19:17 AM:   Command failed with exit code 1: npm install && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+11:19:17 AM: ​
+11:19:17 AM:   Error location
+11:19:17 AM:   In build.command from netlify.toml:
+11:19:17 AM:   npm install && npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+11:19:17 AM: ​
+11:19:17 AM:   Resolved config
+11:19:17 AM:   build:
+11:19:17 AM:     command: npm install && npx vite build && npx esbuild server/index.ts
+11:19:17 AM:       --platform=node --packages=external --bundle --format=esm --outdir=dist
+11:19:17 AM:     commandOrigin: config
+11:19:17 AM:     environment:
+11:19:17 AM:       - DATABASE_URL
+11:19:17 AM:       - NODE_ENV
+11:19:17 AM:       - SESSION_SECRET
+11:19:17 AM:       - NODE_VERSION
+11:19:17 AM:       - NPM_FLAGS
+11:19:17 AM:     publish: /opt/build/repo/dist/public
+11:19:17 AM:     publishOrigin: config
+11:19:17 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+11:19:17 AM:   redirects:
+11:19:18 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+11:19:18 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+11:19:18 AM: Failing build: Failed to build site
+11:19:18 AM: Finished processing build request in 21.578s
