@@ -1,6 +1,6 @@
 # Deployment Guide - PBL Pedagogy Tool
 
-This guide walks you through deploying the Pivot-and-Launch Project-Based Learning Platform to GitHub and Netlify.
+This guide walks you through deploying the Pivot-and-Launch Project-Based Learning Platform to GitHub and Netlify with the custom domain PNLToolkit.professordtreku.com.
 
 ## Prerequisites
 
@@ -77,7 +77,7 @@ After deployment, seed your database with the super admin:
 1. Access your deployed site
 2. Make a POST request to `/api/seed` or use this curl command:
    ```bash
-   curl -X POST https://your-site-name.netlify.app/api/seed
+   curl -X POST https://PNLToolkit.professordtreku.com/api/seed
    ```
 
 ## Step 6: First Login
@@ -113,19 +113,54 @@ Use these credentials to access the platform:
 - Check that database is seeded with super admin
 - Ensure secure connections (HTTPS) in production
 
-## Custom Domain (Optional)
+## Custom Domain Setup (PNLToolkit.professordtreku.com)
 
-1. In Netlify Dashboard, go to Domain Settings
-2. Add custom domain
-3. Configure DNS records as instructed
-4. Enable HTTPS (automatic with Netlify)
+### Step 1: Configure Domain in Netlify
+1. In Netlify Dashboard, go to Site Settings > Domain Management
+2. Click "Add custom domain"
+3. Enter: `PNLToolkit.professordtreku.com`
+4. Verify domain ownership
+
+### Step 2: DNS Configuration
+Configure these DNS records with your domain provider:
+
+**For subdomain (PNLToolkit.professordtreku.com):**
+```
+Type: CNAME
+Name: PNLToolkit
+Value: your-netlify-site.netlify.app
+```
+
+**Alternative with A records (if CNAME not supported):**
+```
+Type: A
+Name: PNLToolkit
+Value: 75.2.60.5
+```
+
+### Step 3: Enable HTTPS
+- HTTPS is automatically enabled by Netlify
+- SSL certificate will be provisioned within 24 hours
+- Force HTTPS redirect in Netlify settings
 
 ## Monitoring and Updates
 
+### Automated Deployments
+- Every push to main branch triggers automatic deployment
+- Preview deployments for pull requests
+- Build status notifications via email/Slack
+
+### Monitoring
 - Monitor Netlify Functions logs for server issues
-- Set up GitHub Actions for automated deployments
-- Regular database backups recommended
-- Monitor application performance through Netlify Analytics
+- Set up Netlify Analytics for usage insights
+- Database performance monitoring recommended
+- Uptime monitoring for PNLToolkit.professordtreku.com
+
+### Updates and Maintenance
+- Regular database backups (automated through cloud provider)
+- Monitor for security updates in dependencies
+- Test new features in preview deployments before merging
+- Keep admin accounts secure with strong passwords
 
 ## Support
 
