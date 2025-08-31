@@ -105,8 +105,11 @@ NODE_ENV=production
 
 ## Documentation
 
+- [Comprehensive Training Manual](docs/comprehensive-training-manual.md) - Complete usage and methodology guide
+- [Deployment Success Manual](docs/deployment-success-manual.md) - Platform status and next steps  
+- [Reflection Statement](docs/reflection-statement.md) - Development journey and learning insights
 - [Deployment Guide](DEPLOYMENT.md) - Complete deployment instructions
-- [replit.md](replit.md) - Technical architecture and development notes
+- [Technical Architecture](replit.md) - Development notes and system specifications
 
 ## Research Foundation
 
