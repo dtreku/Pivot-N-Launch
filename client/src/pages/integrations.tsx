@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -196,6 +197,8 @@ export default function Integrations() {
 
   const userConnections = integrationsData?.userConnections || [];
   const adminConnections = integrationsData?.adminConnections || [];
+  const userRole = integrationsData?.userRole || 'instructor';
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
 
   // Combine static integration info with connection status
   const combinedIntegrations = INTEGRATIONS.map(integration => {
@@ -211,6 +214,7 @@ export default function Integrations() {
       status: (userConnection || adminConnection) ? "connected" : "available",
       connectionId: userConnection?.id || adminConnection?.id,
       isAdminConnection: !!adminConnection && !userConnection,
+      canModify: userConnection ? true : (adminConnection && isAdmin), // Users can modify their own, admins can modify admin connections
     };
   });
 
@@ -288,7 +292,7 @@ export default function Integrations() {
     },
   });
 
-  const handleConnect = (integrationId: string) => {
+  const handleConnect = (integrationId: string, isAdminManaged = false) => {
     const integration = INTEGRATIONS.find(i => i.id === integrationId);
     if (!integration) return;
 
@@ -297,7 +301,7 @@ export default function Integrations() {
       integrationName: integration.name,
       integrationType: integration.category,
       parameters: {},
-      isAdminManaged: false,
+      isAdminManaged: isAdminManaged,
     });
   };
 
@@ -507,82 +511,129 @@ export default function Integrations() {
                           
                           {integration.status === "connected" ? (
                             <>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="outline">
-                                    <Settings className="w-3 h-3 mr-1" />
-                                    Config
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Configure {integration.name}</DialogTitle>
-                                  </DialogHeader>
-                                  <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                      <FormField
-                                        control={form.control}
-                                        name="apiKey"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel>API Key</FormLabel>
-                                            <FormControl>
-                                              <Input {...field} type="password" placeholder="Enter API key..." />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                      
-                                      {integration.requiresAuth && (
+                              {integration.canModify ? (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button size="sm" variant="outline" data-testid={`button-config-${integration.id}`}>
+                                      <Settings className="w-3 h-3 mr-1" />
+                                      Config
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Configure {integration.name}
+                                        {integration.isAdminConnection && <Badge variant="outline" className="ml-2 text-xs">Admin</Badge>}
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    <Form {...form}>
+                                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                         <FormField
                                           control={form.control}
-                                          name="endpoint"
+                                          name="apiKey"
                                           render={({ field }) => (
                                             <FormItem>
-                                              <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                              <FormLabel>API Key</FormLabel>
                                               <FormControl>
-                                                <Input {...field} placeholder="https://api.example.com" />
+                                                <Input {...field} type="password" placeholder="Enter API key..." />
                                               </FormControl>
                                               <FormMessage />
                                             </FormItem>
                                           )}
                                         />
-                                      )}
+                                        
+                                        {integration.requiresAuth && (
+                                          <FormField
+                                            control={form.control}
+                                            name="endpoint"
+                                            render={({ field }) => (
+                                              <FormItem>
+                                                <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                                <FormControl>
+                                                  <Input {...field} placeholder="https://api.example.com" />
+                                                </FormControl>
+                                                <FormMessage />
+                                              </FormItem>
+                                            )}
+                                          />
+                                        )}
 
-                                      <div className="flex justify-end space-x-2">
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          onClick={() => handleDisconnect(integration.id)}
-                                          disabled={disconnectMutation.isPending}
-                                          data-testid={`button-disconnect-${integration.id}`}
-                                        >
-                                          {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
-                                        </Button>
-                                        <Button 
-                                          type="submit"
-                                          disabled={configureMutation.isPending}
-                                          data-testid={`button-update-config-${integration.id}`}
-                                        >
-                                          {configureMutation.isPending ? "Updating..." : "Update"}
-                                        </Button>
-                                      </div>
-                                    </form>
-                                  </Form>
-                                </DialogContent>
-                              </Dialog>
+                                        <div className="flex justify-end space-x-2">
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => handleDisconnect(integration.id)}
+                                            disabled={disconnectMutation.isPending}
+                                            data-testid={`button-disconnect-${integration.id}`}
+                                          >
+                                            {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                                          </Button>
+                                          <Button 
+                                            type="submit"
+                                            disabled={configureMutation.isPending}
+                                            data-testid={`button-update-config-${integration.id}`}
+                                          >
+                                            {configureMutation.isPending ? "Updating..." : "Update"}
+                                          </Button>
+                                        </div>
+                                      </form>
+                                    </Form>
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    Admin Only
+                                  </Badge>
+                                  <Button size="sm" variant="outline" disabled data-testid={`button-readonly-${integration.id}`}>
+                                    <Settings className="w-3 h-3 mr-1" />
+                                    Read Only
+                                  </Button>
+                                </div>
+                              )}
                             </>
                           ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => handleConnect(integration.id)}
-                              className="pbl-button-primary"
-                              disabled={connectMutation.isPending}
-                              data-testid={`button-connect-${integration.id}`}
-                            >
-                              {connectMutation.isPending ? "Connecting..." : "Connect"}
-                            </Button>
+                            <>
+                              {isAdmin ? (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      className="pbl-button-primary"
+                                      disabled={connectMutation.isPending}
+                                      data-testid={`button-connect-dropdown-${integration.id}`}
+                                    >
+                                      {connectMutation.isPending ? "Connecting..." : "Connect"}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleConnect(integration.id, false)}
+                                      data-testid={`menu-connect-personal-${integration.id}`}
+                                    >
+                                      <Plug className="w-4 h-4 mr-2" />
+                                      Personal Connection
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleConnect(integration.id, true)}
+                                      data-testid={`menu-connect-admin-${integration.id}`}
+                                    >
+                                      <Shield className="w-4 h-4 mr-2" />
+                                      Admin Connection (Shared)
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleConnect(integration.id, false)}
+                                  className="pbl-button-primary"
+                                  disabled={connectMutation.isPending}
+                                  data-testid={`button-connect-${integration.id}`}
+                                >
+                                  {connectMutation.isPending ? "Connecting..." : "Connect"}
+                                </Button>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>

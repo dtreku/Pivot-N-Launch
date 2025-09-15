@@ -1525,15 +1525,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const connections = await storage.getIntegrationConnections(req.user.id);
       
-      // Also get admin-managed integrations if user is not admin
-      let adminConnections = [];
-      if (req.user.role !== 'super_admin' && req.user.role !== 'admin') {
-        adminConnections = await storage.getAdminIntegrationConnections();
-      }
+      // Get admin-managed integrations filtered by user's institution
+      const adminConnections = await storage.getAdminIntegrationConnections(req.user.institution);
       
       res.json({ 
         userConnections: connections, 
-        adminConnections: adminConnections 
+        adminConnections: adminConnections,
+        userRole: req.user.role // Include user role so frontend knows permission level
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch integrations", error: getErrorMessage(error) });
@@ -1565,6 +1563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         integrationType: validatedData.integrationType,
         status: "connected",
         isAdminManaged: validatedData.isAdminManaged,
+        institution: validatedData.isAdminManaged ? req.user.institution : null,
         lastConnectedAt: new Date()
       });
       
@@ -1599,9 +1598,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Integration connection not found" });
       }
       
-      // Check permissions - users can only configure their own integrations, admins can configure admin-managed ones
+      // Check permissions - users can only configure their own integrations, admins can configure admin-managed ones from their institution
       const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
-      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged && connection.institution === req.user.institution)) {
         return res.status(403).json({ message: "You don't have permission to configure this integration" });
       }
       
@@ -1652,9 +1651,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Integration connection not found" });
       }
       
-      // Check permissions
+      // Check permissions - users can only delete their own integrations, admins can delete admin-managed ones from their institution
       const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
-      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged && connection.institution === req.user.institution)) {
         return res.status(403).json({ message: "You don't have permission to delete this integration" });
       }
       
@@ -1674,9 +1673,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Integration connection not found" });
       }
       
-      // Check permissions
+      // Check permissions - users can only view their own integration parameters, admins can view admin-managed ones from their institution  
       const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
-      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged && connection.institution === req.user.institution)) {
         return res.status(403).json({ message: "You don't have permission to view this integration's parameters" });
       }
       

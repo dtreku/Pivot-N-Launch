@@ -148,7 +148,7 @@ export interface IStorage {
 
   // Integration methods
   getIntegrationConnections(facultyId: number): Promise<IntegrationConnection[]>;
-  getAdminIntegrationConnections(): Promise<IntegrationConnection[]>;
+  getAdminIntegrationConnections(userInstitution: string): Promise<IntegrationConnection[]>;
   createIntegrationConnection(connection: InsertIntegrationConnection): Promise<IntegrationConnection>;
   updateIntegrationConnection(id: number, connection: Partial<IntegrationConnection>): Promise<IntegrationConnection | undefined>;
   deleteIntegrationConnection(id: number): Promise<boolean>;
@@ -784,11 +784,16 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(integrationConnections.createdAt));
   }
 
-  async getAdminIntegrationConnections(): Promise<IntegrationConnection[]> {
+  async getAdminIntegrationConnections(userInstitution: string): Promise<IntegrationConnection[]> {
     return await db
       .select()
       .from(integrationConnections)
-      .where(eq(integrationConnections.isAdminManaged, true))
+      .where(
+        and(
+          eq(integrationConnections.isAdminManaged, true),
+          eq(integrationConnections.institution, userInstitution)
+        )
+      )
       .orderBy(desc(integrationConnections.createdAt));
   }
 
