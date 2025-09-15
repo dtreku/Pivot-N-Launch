@@ -52,7 +52,7 @@ export default function Settings() {
         title: "Success",
         description: "OpenAI API key updated successfully",
       });
-      setApiKey(""); // Clear the input for security
+      setApiKey(""); // Clear the input for security only on success
     },
     onError: (error: any) => {
       setApiKeyStatus("invalid");
@@ -61,6 +61,7 @@ export default function Settings() {
         description: error.message || "Failed to update API key",
         variant: "destructive",
       });
+      // Don't clear the API key on error so user can fix and retry
     },
   });
 
@@ -99,6 +100,7 @@ export default function Settings() {
         title: "Success",
         description: "API key is valid and working!",
       });
+      // Don't clear the input on test success so user can save it
     },
     onError: () => {
       setApiKeyStatus("invalid");
@@ -107,6 +109,7 @@ export default function Settings() {
         description: "The API key is not valid or has expired",
         variant: "destructive",
       });
+      // Don't clear the input on test failure so user can see and fix the key
     },
   });
 

@@ -18,6 +18,12 @@ export async function apiRequest(
     ...headers,
   };
 
+  // Add Authorization header if sessionId exists
+  const sessionId = localStorage.getItem("sessionId");
+  if (sessionId) {
+    defaultHeaders.Authorization = `Bearer ${sessionId}`;
+  }
+
   const res = await fetch(url, {
     method,
     headers: defaultHeaders,
@@ -35,8 +41,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers: Record<string, string> = {};
+    
+    // Add Authorization header if sessionId exists
+    const sessionId = localStorage.getItem("sessionId");
+    if (sessionId) {
+      headers.Authorization = `Bearer ${sessionId}`;
+    }
+
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
