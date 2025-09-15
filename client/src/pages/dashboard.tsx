@@ -200,23 +200,34 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
             
             <div className="space-y-3">
-              <Button className="w-full flex items-center justify-between p-3 bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-colors">
-                <span className="font-medium">Create New Project</span>
-                <Plus className="w-4 h-4" />
-              </Button>
+              <Link href="/templates">
+                <Button className="w-full flex items-center justify-between p-3 bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-colors" data-testid="button-create-project">
+                  <span className="font-medium">Create New Project</span>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </Link>
               
-              <Button variant="outline" className="w-full flex items-center justify-between p-3">
-                <span className="font-medium">Upload Course Materials</span>
-                <Upload className="w-4 h-4" />
-              </Button>
+              <Link href="/documents">
+                <Button variant="outline" className="w-full flex items-center justify-between p-3" data-testid="button-upload-materials">
+                  <span className="font-medium">Upload Course Materials</span>
+                  <Upload className="w-4 h-4" />
+                </Button>
+              </Link>
               
-              <Button variant="outline" className="w-full flex items-center justify-between p-3">
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-between p-3" 
+                data-testid="button-generate-presentation"
+                onClick={() => {
+                  window.open('/api/analytics/presentation', '_blank');
+                }}
+              >
                 <span className="font-medium">Generate Presentation</span>
                 <Presentation className="w-4 h-4" />
               </Button>
               
               <Link href="/collaboration">
-                <Button variant="outline" className="w-full flex items-center justify-between p-3">
+                <Button variant="outline" className="w-full flex items-center justify-between p-3" data-testid="button-student-feedback">
                   <span className="font-medium">View Student Feedback</span>
                   <MessageSquare className="w-4 h-4" />
                 </Button>
@@ -233,10 +244,10 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="collaboration-card suggestion">
                 <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">JD</span>
+                  <span className="text-white text-sm font-medium">DT</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">John Doe</p>
+                  <p className="text-sm font-medium text-gray-800">Daniel Treku</p>
                   <p className="text-xs text-gray-600">
                     Suggested: Blockchain voting system with mobile interface
                   </p>
