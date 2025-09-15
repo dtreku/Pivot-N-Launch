@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { ObjectUploader } from "@/components/ObjectUploader";
 import { Upload, Download, FileText, Trash2, BookOpen, FlaskConical, Palette, Calculator } from "lucide-react";
@@ -22,6 +23,7 @@ export default function DocumentManager({ facultyId }: DocumentManagerProps) {
   const queryClient = useQueryClient();
   const [uploadDescription, setUploadDescription] = useState("");
   const [uploadCategory, setUploadCategory] = useState("manual");
+  const [includeInVectorDb, setIncludeInVectorDb] = useState(false);
 
   const { data: documents = [], isLoading } = useQuery<DocumentUpload[]>({
     queryKey: ["/api/documents/faculty", facultyId],
@@ -37,6 +39,7 @@ export default function DocumentManager({ facultyId }: DocumentManagerProps) {
       fileUrl: string;
       description?: string;
       category: string;
+      includeInVectorDb?: boolean;
     }) => {
       return apiRequest("/api/documents", "POST", documentData);
     },
@@ -44,9 +47,12 @@ export default function DocumentManager({ facultyId }: DocumentManagerProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/documents/faculty", facultyId] });
       toast({
         title: "Success",
-        description: "Document uploaded successfully! Available for on-demand access.",
+        description: includeInVectorDb 
+          ? "Document uploaded successfully! Available for on-demand access and added to vector database for AI-powered search."
+          : "Document uploaded successfully! Available for on-demand access.",
       });
       setUploadDescription("");
+      setIncludeInVectorDb(false);
     },
     onError: (error) => {
       toast({
@@ -99,6 +105,7 @@ export default function DocumentManager({ facultyId }: DocumentManagerProps) {
         fileUrl: uploadURL,
         description: uploadDescription,
         category: uploadCategory,
+        includeInVectorDb: includeInVectorDb,
       });
     }
   };
@@ -210,6 +217,27 @@ export default function DocumentManager({ facultyId }: DocumentManagerProps) {
                 value={uploadCategory}
                 onChange={(e) => setUploadCategory(e.target.value)}
                 placeholder="e.g., templates, resources, guides"
+              />
+            </div>
+          </div>
+          
+          {/* Vector Database Integration Option */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label htmlFor="vector-db" className="text-sm font-medium text-blue-900">
+                  Include in Vector Database
+                </Label>
+                <p className="text-xs text-blue-700 mt-1">
+                  Enable AI-powered search, semantic analysis, and intelligent document retrieval. 
+                  Documents will be processed for enhanced question-answering and content discovery.
+                </p>
+              </div>
+              <Switch
+                id="vector-db"
+                checked={includeInVectorDb}
+                onCheckedChange={setIncludeInVectorDb}
+                data-testid="switch-vector-db"
               />
             </div>
           </div>
