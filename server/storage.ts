@@ -10,6 +10,7 @@ import {
   documentUploads,
   teams,
   sessions,
+  systemSettings,
   userStats,
   type Faculty,
   type InsertFaculty,
@@ -32,6 +33,8 @@ import {
   type Team,
   type InsertTeam,
   type Session,
+  type SystemSettings,
+  type InsertSystemSettings,
   type UserStats,
   type InsertUserStats
 } from "@shared/schema";
@@ -118,6 +121,17 @@ export interface IStorage {
   getTeamMembers(teamId: number): Promise<Faculty[]>;
   addTeamMember(teamId: number, facultyId: number): Promise<void>;
   removeTeamMember(teamId: number, facultyId: number): Promise<void>;
+
+  // System settings methods (admin only)
+  getSystemSetting(key: string): Promise<SystemSettings | undefined>;
+  setSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings>;
+  updateSystemSetting(key: string, value: string, updatedBy?: number): Promise<SystemSettings | undefined>;
+  deleteSystemSetting(key: string): Promise<boolean>;
+
+  // Vector search methods
+  vectorSearchDocuments(facultyId: number, queryEmbedding: number[], limit?: number): Promise<DocumentUpload[]>;
+  updateDocumentEmbeddings(documentId: number, embeddings: string, textContent: string): Promise<DocumentUpload | undefined>;
+  markDocumentForVectorization(documentId: number): Promise<DocumentUpload | undefined>;
 
   // User statistics methods
   getUserStats(facultyId: number): Promise<UserStats | undefined>;
