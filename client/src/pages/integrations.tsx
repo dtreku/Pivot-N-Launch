@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,9 +11,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 import {
   Plug,
   ExternalLink,
@@ -43,7 +47,7 @@ const INTEGRATIONS: Array<{
   id: string;
   name: string;
   description: string;
-  category: "ai" | "survey" | "lms" | "cloud" | "analytics";
+  category: "ai" | "survey" | "lms" | "cloud" | "analytics" | "knowledge";
   status: IntegrationStatus["status"];
   icon: any;
   color: string;
@@ -174,6 +178,8 @@ const INTEGRATIONS: Array<{
 export default function Integrations() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [configDialog, setConfigDialog] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<IntegrationConfig>({
     resolver: zodResolver(integrationConfigSchema),
@@ -184,9 +190,47 @@ export default function Integrations() {
     },
   });
 
+  // Fetch user's integrations from API
+  const { data: integrationsData, isLoading: integrationsLoading } = useQuery<{
+    userConnections: any[];
+    adminConnections: any[];
+    userRole: string;
+  }>({
+    queryKey: ["/api/integrations"],
+  });
+
+  const userConnections = integrationsData?.userConnections || [];
+  const adminConnections = integrationsData?.adminConnections || [];
+  const userRole = integrationsData?.userRole || 'instructor';
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+
+  // Combine static integration info with connection status
+  const combinedIntegrations = INTEGRATIONS.map(integration => {
+    const userConnection = userConnections.find(
+      (conn: any) => conn.integrationId === integration.id
+    );
+    const adminConnection = adminConnections.find(
+      (conn: any) => conn.integrationId === integration.id
+    );
+    
+    // Access control: Users can only connect if there's an admin connection OR they are admin
+    const hasAdminConnection = !!adminConnection;
+    const canUserConnect = isAdmin || hasAdminConnection;
+    
+    return {
+      ...integration,
+      status: (userConnection || adminConnection) ? "connected" : "available",
+      connectionId: userConnection?.id || adminConnection?.id,
+      isAdminConnection: !!adminConnection && !userConnection,
+      canModify: userConnection ? true : (adminConnection && isAdmin), // Users can modify their own, admins can modify admin connections
+      canUserConnect: canUserConnect, // New field to control user access
+      hasAdminConnection: hasAdminConnection, // Track if admin has set up this service
+    };
+  });
+
   const filteredIntegrations = selectedCategory === "all" 
-    ? INTEGRATIONS 
-    : INTEGRATIONS.filter(integration => integration.category === selectedCategory);
+    ? combinedIntegrations 
+    : combinedIntegrations.filter(integration => integration.category === selectedCategory);
 
   const getStatusIcon = (status: IntegrationStatus["status"]) => {
     switch (status) {
@@ -210,20 +254,112 @@ export default function Integrations() {
     }
   };
 
-  const handleConnect = (integrationId: string) => {
-    console.log("Connecting to:", integrationId);
-    // Implement actual connection logic
+  // Connect integration mutation
+  const connectMutation = useMutation({
+    mutationFn: async (integrationData: {
+      integrationId: string;
+      integrationName: string;
+      integrationType: string;
+      parameters?: Record<string, any>;
+      isAdminManaged?: boolean;
+    }) => {
+      return await apiRequest("/api/integrations/connect", "POST", integrationData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      toast({
+        title: "Integration Connected",
+        description: "Successfully connected to the integration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Connection Failed",
+        description: error?.message || "Failed to connect integration",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Disconnect integration mutation
+  const disconnectMutation = useMutation({
+    mutationFn: async (connectionId: number) => {
+      return await apiRequest(`/api/integrations/${connectionId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      toast({
+        title: "Integration Disconnected",
+        description: "Successfully disconnected from the integration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Disconnection Failed",
+        description: error?.message || "Failed to disconnect integration",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleConnect = (integrationId: string, isAdminManaged = false) => {
+    const integration = INTEGRATIONS.find(i => i.id === integrationId);
+    if (!integration) return;
+
+    connectMutation.mutate({
+      integrationId: integration.id,
+      integrationName: integration.name,
+      integrationType: integration.category,
+      parameters: {},
+      isAdminManaged: isAdminManaged,
+    });
   };
 
   const handleDisconnect = (integrationId: string) => {
-    console.log("Disconnecting from:", integrationId);
-    // Implement actual disconnection logic
+    const integration = combinedIntegrations.find(i => i.id === integrationId);
+    if (!integration?.connectionId) return;
+
+    disconnectMutation.mutate(integration.connectionId);
   };
 
+  // Configuration mutation
+  const configureMutation = useMutation({
+    mutationFn: async (configData: {
+      connectionId: number;
+      parameters: Record<string, any>;
+    }) => {
+      return await apiRequest(`/api/integrations/${configData.connectionId}/configure`, "PUT", { parameters: configData.parameters });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      setConfigDialog(null);
+      form.reset();
+      toast({
+        title: "Integration Configured",
+        description: "Successfully updated integration settings.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Configuration Failed", 
+        description: error?.message || "Failed to update integration settings",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: IntegrationConfig) => {
-    console.log("Configuring integration:", configDialog, data);
-    setConfigDialog(null);
-    form.reset();
+    const integration = combinedIntegrations.find(i => i.id === configDialog);
+    if (!integration?.connectionId) return;
+
+    configureMutation.mutate({
+      connectionId: integration.connectionId,
+      parameters: {
+        apiKey: data.apiKey,
+        endpoint: data.endpoint,
+        ...data.settings,
+      },
+    });
   };
 
   const categories = [
@@ -234,6 +370,27 @@ export default function Integrations() {
     { value: "cloud", label: "Cloud Services", icon: Cloud },
     { value: "analytics", label: "Analytics", icon: BarChart3 },
   ];
+
+  if (integrationsLoading) {
+    return (
+      <div className="anti-overload-container">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Integrations
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Connect knowledge tools, survey platforms, and educational services to enhance your PBL toolkit
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-pulse text-gray-500 mb-4">Loading integrations...</div>
+            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="anti-overload-container">
@@ -255,40 +412,56 @@ export default function Integrations() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
+          {combinedIntegrations.filter(integration => integration.status === "connected").length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Plug className="w-6 h-6 text-gray-400" />
               </div>
-              <div>
-                <p className="font-medium text-gray-800">NotebookLM Enterprise</p>
-                <p className="text-sm text-gray-600">Knowledge Research Assistant</p>
-              </div>
-              <Check className="w-5 h-5 text-green-600" />
+              <p className="text-gray-600 text-sm">No integrations connected yet</p>
+              <p className="text-gray-500 text-xs mt-1">Connect services below to see them here</p>
             </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Qualtrics</p>
-                <p className="text-sm text-gray-600">Survey Platform</p>
-              </div>
-              <Check className="w-5 h-5 text-green-600" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {combinedIntegrations
+                .filter(integration => integration.status === "connected")
+                .map(integration => {
+                  const Icon = integration.icon;
+                  return (
+                    <div 
+                      key={integration.id}
+                      className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
+                      data-testid={`connected-service-${integration.id}`}
+                    >
+                      <div className={`w-10 h-10 bg-${integration.color}-600 rounded-lg flex items-center justify-center`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{integration.name}</p>
+                        <p className="text-sm text-gray-600">{integration.description.substring(0, 40)}...</p>
+                        {integration.isAdminConnection && (
+                          <Badge variant="outline" className="text-xs mt-1">Admin</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Check className="w-5 h-5 text-green-600" />
+                        {integration.canModify && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => handleDisconnect(integration.id)}
+                            disabled={disconnectMutation.isPending}
+                            data-testid={`button-disconnect-quick-${integration.id}`}
+                          >
+                            <AlertCircle className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              }
             </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Microsoft Copilot</p>
-                <p className="text-sm text-gray-600">Available to Connect</p>
-              </div>
-              <Button size="sm" variant="outline">Connect</Button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -327,13 +500,22 @@ export default function Integrations() {
                           )}
                         </div>
                       </div>
-                      {getStatusIcon(integration.status)}
+                      {getStatusIcon(integration.status as IntegrationStatus["status"])}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 text-sm mb-4">
                       {integration.description}
                     </p>
+                    
+                    {!integration.canUserConnect && !isAdmin && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                        <p className="text-orange-800 text-xs">
+                          <AlertCircle className="w-3 h-3 inline mr-1" />
+                          Admin approval required. Contact your institution administrator to enable this service.
+                        </p>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <div>
@@ -352,7 +534,7 @@ export default function Integrations() {
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t">
-                        {getStatusBadge(integration.status)}
+                        {getStatusBadge(integration.status as IntegrationStatus["status"])}
                         <div className="flex items-center space-x-2">
                           <Button
                             size="sm"
@@ -364,72 +546,147 @@ export default function Integrations() {
                           
                           {integration.status === "connected" ? (
                             <>
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button size="sm" variant="outline">
-                                    <Settings className="w-3 h-3 mr-1" />
-                                    Config
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Configure {integration.name}</DialogTitle>
-                                  </DialogHeader>
-                                  <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                      <FormField
-                                        control={form.control}
-                                        name="apiKey"
-                                        render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel>API Key</FormLabel>
-                                            <FormControl>
-                                              <Input {...field} type="password" placeholder="Enter API key..." />
-                                            </FormControl>
-                                            <FormMessage />
-                                          </FormItem>
-                                        )}
-                                      />
-                                      
-                                      {integration.requiresAuth && (
+                              {integration.canModify ? (
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button size="sm" variant="outline" data-testid={`button-config-${integration.id}`}>
+                                      <Settings className="w-3 h-3 mr-1" />
+                                      Config
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Configure {integration.name}
+                                        {integration.isAdminConnection && <Badge variant="outline" className="ml-2 text-xs">Admin</Badge>}
+                                      </DialogTitle>
+                                    </DialogHeader>
+                                    <Form {...form}>
+                                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                                         <FormField
                                           control={form.control}
-                                          name="endpoint"
+                                          name="apiKey"
                                           render={({ field }) => (
                                             <FormItem>
-                                              <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                              <FormLabel>API Key</FormLabel>
                                               <FormControl>
-                                                <Input {...field} placeholder="https://api.example.com" />
+                                                <Input {...field} type="password" placeholder="Enter API key..." />
                                               </FormControl>
                                               <FormMessage />
                                             </FormItem>
                                           )}
                                         />
-                                      )}
+                                        
+                                        {integration.requiresAuth && (
+                                          <FormField
+                                            control={form.control}
+                                            name="endpoint"
+                                            render={({ field }) => (
+                                              <FormItem>
+                                                <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                                <FormControl>
+                                                  <Input {...field} placeholder="https://api.example.com" />
+                                                </FormControl>
+                                                <FormMessage />
+                                              </FormItem>
+                                            )}
+                                          />
+                                        )}
 
-                                      <div className="flex justify-end space-x-2">
-                                        <Button
-                                          type="button"
-                                          variant="outline"
-                                          onClick={() => handleDisconnect(integration.id)}
-                                        >
-                                          Disconnect
-                                        </Button>
-                                        <Button type="submit">Update</Button>
-                                      </div>
-                                    </form>
-                                  </Form>
-                                </DialogContent>
-                              </Dialog>
+                                        <div className="flex justify-end space-x-2">
+                                          <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => handleDisconnect(integration.id)}
+                                            disabled={disconnectMutation.isPending}
+                                            data-testid={`button-disconnect-${integration.id}`}
+                                          >
+                                            {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                                          </Button>
+                                          <Button 
+                                            type="submit"
+                                            disabled={configureMutation.isPending}
+                                            data-testid={`button-update-config-${integration.id}`}
+                                          >
+                                            {configureMutation.isPending ? "Updating..." : "Update"}
+                                          </Button>
+                                        </div>
+                                      </form>
+                                    </Form>
+                                  </DialogContent>
+                                </Dialog>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <Badge variant="outline" className="text-xs">
+                                    Admin Only
+                                  </Badge>
+                                  <Button size="sm" variant="outline" disabled data-testid={`button-readonly-${integration.id}`}>
+                                    <Settings className="w-3 h-3 mr-1" />
+                                    Read Only
+                                  </Button>
+                                </div>
+                              )}
                             </>
                           ) : (
-                            <Button
-                              size="sm"
-                              onClick={() => handleConnect(integration.id)}
-                              className="pbl-button-primary"
-                            >
-                              Connect
-                            </Button>
+                            <>
+                              {isAdmin ? (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      className="pbl-button-primary"
+                                      disabled={connectMutation.isPending}
+                                      data-testid={`button-connect-dropdown-${integration.id}`}
+                                    >
+                                      {connectMutation.isPending ? "Connecting..." : "Connect"}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleConnect(integration.id, false)}
+                                      data-testid={`menu-connect-personal-${integration.id}`}
+                                    >
+                                      <Plug className="w-4 h-4 mr-2" />
+                                      Personal Connection
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => handleConnect(integration.id, true)}
+                                      data-testid={`menu-connect-admin-${integration.id}`}
+                                    >
+                                      <Shield className="w-4 h-4 mr-2" />
+                                      Admin Connection (Shared)
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              ) : (
+                                <>
+                                  {integration.canUserConnect ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleConnect(integration.id, false)}
+                                      className="pbl-button-primary"
+                                      disabled={connectMutation.isPending}
+                                      data-testid={`button-connect-${integration.id}`}
+                                    >
+                                      {connectMutation.isPending ? "Connecting..." : "Connect"}
+                                    </Button>
+                                  ) : (
+                                    <div className="flex items-center space-x-2">
+                                      <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                                        Admin Required
+                                      </Badge>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        disabled 
+                                        data-testid={`button-disabled-${integration.id}`}
+                                      >
+                                        Not Available
+                                      </Button>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
