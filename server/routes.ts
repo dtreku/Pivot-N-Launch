@@ -15,6 +15,7 @@ import {
   insertTeamSchema
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import OpenAI from "openai";
 
 // Middleware to check authentication
 async function requireAuth(req: any, res: any, next: any) {
@@ -1213,6 +1214,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Document deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete document", error: getErrorMessage(error) });
+    }
+  });
+
+  // OpenAI API Key Management Routes
+  app.get("/api/faculty/:id/settings", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      
+      // Check if the user can access this faculty's settings
+      if (req.user.id !== facultyId && !['super_admin', 'admin'].includes(req.user.role)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const faculty = await storage.getFaculty(facultyId);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json({
+        hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
+        // Don't return the actual API key for security
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      const { apiKey } = req.body;
+      
+      // Check if the user can update this faculty's API key
+      if (req.user.id !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
+        return res.status(400).json({ message: "Valid API key required" });
+      }
+      
+      await storage.updateFaculty(facultyId, { openaiApiKey: apiKey });
+      
+      res.json({ message: "API key updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update API key", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      
+      // Check if the user can delete this faculty's API key
+      if (req.user.id !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.updateFaculty(facultyId, { openaiApiKey: null });
+      
+      res.json({ message: "API key removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove API key", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/openai/test", requireAuth, async (req, res) => {
+    try {
+      const { apiKey } = req.body;
+      
+      if (!apiKey || typeof apiKey !== 'string') {
+        return res.status(400).json({ message: "API key required" });
+      }
+      
+      // Test the API key by making a simple request
+      const openai = new OpenAI({ apiKey });
+      
+      try {
+        // Use a very small, inexpensive request to test the key
+        await openai.models.list();
+        res.json({ valid: true, message: "API key is valid" });
+      } catch (openaiError: any) {
+        if (openaiError?.status === 401) {
+          return res.status(400).json({ valid: false, message: "Invalid API key" });
+        }
+        throw openaiError;
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to test API key", error: getErrorMessage(error) });
     }
   });
 

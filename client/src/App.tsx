@@ -16,6 +16,7 @@ import Integrations from "@/pages/integrations";
 import PivotAssets from "@/pages/pivot-assets";
 import CognitiveLoadAnalytics from "@/pages/cognitive-load-analytics";
 import DocumentManager from "@/pages/document-manager";
+import Settings from "@/pages/settings";
 import Signin from "@/pages/signin";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
@@ -59,6 +60,7 @@ function Router() {
             <Route path="/documents">
               {() => <DocumentManager facultyId={faculty?.id || 1} />}
             </Route>
+            <Route path="/settings" component={Settings} />
             <Route component={NotFound} />
           </Switch>
         </main>
