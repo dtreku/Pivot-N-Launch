@@ -659,6 +659,102 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(userStats.facultyId, facultyId));
   }
+
+  // System settings methods (admin only)
+  async getSystemSetting(key: string): Promise<SystemSettings | undefined> {
+    const [result] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+    return result || undefined;
+  }
+
+  async setSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings> {
+    // Try to update existing setting first
+    const existing = await this.getSystemSetting(setting.settingKey);
+    if (existing) {
+      const [result] = await db
+        .update(systemSettings)
+        .set({
+          ...setting,
+          updatedAt: new Date()
+        })
+        .where(eq(systemSettings.settingKey, setting.settingKey))
+        .returning();
+      return result;
+    } else {
+      // Create new setting
+      const [result] = await db
+        .insert(systemSettings)
+        .values(setting)
+        .returning();
+      return result;
+    }
+  }
+
+  async updateSystemSetting(key: string, value: string, updatedBy?: number): Promise<SystemSettings | undefined> {
+    const [result] = await db
+      .update(systemSettings)
+      .set({
+        settingValue: value,
+        updatedBy,
+        updatedAt: new Date()
+      })
+      .where(eq(systemSettings.settingKey, key))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteSystemSetting(key: string): Promise<boolean> {
+    const result = await db
+      .delete(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Vector search methods
+  async vectorSearchDocuments(facultyId: number, queryEmbedding: number[], limit = 10): Promise<DocumentUpload[]> {
+    // Use pgvector extension for actual similarity search
+    const queryVector = `[${queryEmbedding.join(',')}]`;
+    
+    return await db
+      .select()
+      .from(documentUploads)
+      .where(and(
+        eq(documentUploads.facultyId, facultyId),
+        sql`${documentUploads.embeddings} IS NOT NULL`,
+        eq(documentUploads.vectorStatus, "ready")
+      ))
+      .orderBy(sql`${documentUploads.embeddings}::vector <-> ${queryVector}::vector`)
+      .limit(limit);
+  }
+
+  async updateDocumentEmbeddings(documentId: number, embeddings: string, textContent: string): Promise<DocumentUpload | undefined> {
+    const [result] = await db
+      .update(documentUploads)
+      .set({
+        embeddings,
+        textContent,
+        vectorStatus: "ready",
+        updatedAt: new Date()
+      })
+      .where(eq(documentUploads.id, documentId))
+      .returning();
+    return result || undefined;
+  }
+
+  async markDocumentForVectorization(documentId: number): Promise<DocumentUpload | undefined> {
+    const [result] = await db
+      .update(documentUploads)
+      .set({
+        includeInVectorDb: true,
+        vectorStatus: "queued",
+        updatedAt: new Date()
+      })
+      .where(eq(documentUploads.id, documentId))
+      .returning();
+    return result || undefined;
+  }
 }
 
 export const storage = new DatabaseStorage();
