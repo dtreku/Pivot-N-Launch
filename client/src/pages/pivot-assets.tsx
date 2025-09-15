@@ -111,8 +111,8 @@ const RETRIEVAL_ACTIVITIES = [
     question: "What is the key difference between Proof of Work and Proof of Stake?",
     answer: "PoW requires computational work to validate; PoS requires economic stake and selection algorithm",
     difficulty: "basic",
-    lastShown: "2025-01-23",
-    nextDue: "2025-01-25"
+    lastShown: "2025-09-23",
+    nextDue: "2025-09-25"
   },
   {
     id: 2,
@@ -122,8 +122,8 @@ const RETRIEVAL_ACTIVITIES = [
     options: ["1NF", "2NF", "3NF", "BCNF"],
     correct: 0,
     difficulty: "basic",
-    lastShown: "2025-01-22",
-    nextDue: "2025-01-24"
+    lastShown: "2025-09-22",
+    nextDue: "2025-09-24"
   }
 ];
 
@@ -337,7 +337,14 @@ export default function PivotAssets() {
         <TabsContent value="retrieval" className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-gray-800">Micro-Retrieval Bank</h2>
-            <Button className="pbl-button">
+            <Button 
+              className="pbl-button"
+              onClick={() => {
+                // TODO: Implement add retrieval item functionality
+                alert('Add Retrieval Item feature coming soon! This will open a form to create new flashcards, concept checks, or application exercises.');
+              }}
+              data-testid="button-add-retrieval"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Retrieval Item
             </Button>
@@ -410,7 +417,7 @@ export default function PivotAssets() {
                     <div className="text-right text-sm text-gray-500 ml-4">
                       <p>Last shown: {activity.lastShown}</p>
                       <p>Next due: {activity.nextDue}</p>
-                      <Badge variant={activity.nextDue <= "2025-01-24" ? "destructive" : "secondary"}>
+                      <Badge variant={activity.nextDue <= "2025-09-24" ? "destructive" : "secondary"}>
                         {activity.difficulty}
                       </Badge>
                     </div>
