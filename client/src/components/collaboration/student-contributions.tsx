@@ -41,6 +41,7 @@ export default function StudentContributions({ contributions, projects }: Studen
       contributionApi.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/contributions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contributions/all"] });
       toast({
         title: "Status Updated",
         description: "The contribution status has been updated successfully.",
@@ -150,7 +151,24 @@ export default function StudentContributions({ contributions, projects }: Studen
           <p className="text-gray-600 mb-4">
             Student contributions and feedback will appear here as they participate in your projects.
           </p>
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            data-testid="button-invite-students-contribute"
+            onClick={() => {
+              const subject = encodeURIComponent('Invitation to Contribute to PBL Project');
+              const body = encodeURIComponent(`Hello,
+
+You are invited to contribute to our Project-Based Learning initiative. Please visit our platform to share your ideas, feedback, and reflections.
+
+Platform: ${window.location.origin}
+
+Thank you for your participation!
+
+Best regards`);
+              
+              window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            }}
+          >
             Invite Students to Contribute
           </Button>
         </CardContent>
@@ -195,7 +213,7 @@ export default function StudentContributions({ contributions, projects }: Studen
                   
                   <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <Calendar className="w-3 h-3" />
-                    <span>{formatDate(contribution.createdAt)}</span>
+                    <span>{formatDate(contribution.createdAt.toString())}</span>
                   </div>
                 </div>
               </div>
@@ -236,7 +254,7 @@ export default function StudentContributions({ contributions, projects }: Studen
                         </div>
                         <div>
                           <span className="font-medium">Date:</span>
-                          <p>{formatDate(contribution.createdAt)}</p>
+                          <p>{formatDate(contribution.createdAt.toString())}</p>
                         </div>
                       </div>
                       
@@ -305,7 +323,7 @@ export default function StudentContributions({ contributions, projects }: Studen
               <div className="flex items-center space-x-4 text-xs text-gray-500">
                 <span>Project: {getProjectTitle(contribution.projectId)}</span>
                 <span>•</span>
-                <span>{formatDate(contribution.createdAt)}</span>
+                <span>{formatDate(contribution.createdAt.toString())}</span>
               </div>
               
               {contribution.status === "pending" && (

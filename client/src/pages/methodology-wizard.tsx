@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -48,6 +49,7 @@ const WIZARD_STEPS: WizardStep[] = [
 ];
 
 export default function MethodologyWizard() {
+  const [, navigate] = useLocation();
   const [currentStep, setCurrentStep] = useState(0);
   const [steps, setSteps] = useState(WIZARD_STEPS);
   const [formData, setFormData] = useState({
@@ -72,6 +74,38 @@ export default function MethodologyWizard() {
       }));
       setSteps(updatedSteps);
       setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleComplete = () => {
+    // Mark all steps as completed
+    const updatedSteps = steps.map((step) => ({
+      ...step,
+      completed: true,
+      active: false,
+    }));
+    setSteps(updatedSteps);
+    
+    // Show completion message or redirect
+    alert('Congratulations! Your Pivot-and-Launch methodology has been successfully configured. You will receive your complete toolkit shortly.');
+    
+    // Navigate to dashboard using wouter
+    navigate('/dashboard');
+  };
+
+  const isCurrentStepValid = () => {
+    switch (currentStepData.id) {
+      case "discipline":
+        return formData.discipline && formData.discipline !== "select";
+      case "pivot-concepts":
+      case "launch-applications":
+      case "assessment":
+      case "implementation":
+        // For these steps, we'll consider them valid if the user has reached them
+        // In a real implementation, you'd validate the form fields
+        return true;
+      default:
+        return true;
     }
   };
 
@@ -425,9 +459,10 @@ export default function MethodologyWizard() {
                 Previous
               </Button>
               <Button
-                onClick={handleNext}
-                disabled={currentStep === steps.length - 1}
+                onClick={currentStep === steps.length - 1 ? handleComplete : handleNext}
+                disabled={currentStep === steps.length - 1 ? !isCurrentStepValid() : false}
                 className="w-full pbl-button-primary"
+                data-testid="button-wizard-next"
               >
                 {currentStep === steps.length - 1 ? "Complete" : "Next"}
                 <ArrowRight className="w-4 h-4 ml-2" />

@@ -103,7 +103,7 @@ export default function ObjectivesConverter() {
 
   const generatePBLFramework = (objective: string, discipline: string): string => {
     // This would integrate with AI services in production
-    const frameworks = {
+    const frameworks: Record<string, string> = {
       blockchain: `Transform "${objective}" into: Build a practical blockchain application that demonstrates ${objective.toLowerCase()}, allowing students to learn through hands-on development while understanding real-world implementation challenges and industry best practices.`,
       "data-science": `Convert "${objective}" into: Solve a real-world data problem that requires ${objective.toLowerCase()}, enabling students to apply theoretical knowledge through practical analysis while developing critical thinking about data interpretation and decision-making.`,
       fintech: `Evolve "${objective}" to: Design an innovative fintech solution that incorporates ${objective.toLowerCase()}, challenging students to understand financial technology through practical application while considering regulatory and market constraints.`,

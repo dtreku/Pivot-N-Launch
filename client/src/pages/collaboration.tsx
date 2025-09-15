@@ -213,7 +213,27 @@ export default function Collaboration() {
             <TabsTrigger value="reflections">Reflections</TabsTrigger>
           </TabsList>
 
-          <Button className="pbl-button-primary">
+          <Button 
+            className="pbl-button-primary" 
+            data-testid="button-invite-students"
+            onClick={() => {
+              // Navigate to email invitation or modal functionality
+              // For now, we'll use mailto as a fallback
+              const subject = encodeURIComponent('Invitation to Contribute to PBL Project');
+              const body = encodeURIComponent(`Hello,
+
+You are invited to contribute to our Project-Based Learning initiative. Please visit our platform to share your ideas, feedback, and reflections.
+
+Platform: ${window.location.origin}
+
+Thank you for your participation!
+
+Best regards,
+${faculty?.name || 'Your Instructor'}`);
+              
+              window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            }}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Invite Students
           </Button>
