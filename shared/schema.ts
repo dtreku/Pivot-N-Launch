@@ -393,6 +393,7 @@ export const integrationConnections = pgTable("integration_connections", {
   integrationType: varchar("integration_type", { length: 50 }).notNull(), // 'connector', 'blueprint'
   status: varchar("status", { length: 50 }).default("disconnected").notNull(), // 'connected', 'disconnected', 'error'
   isAdminManaged: boolean("is_admin_managed").default(false), // If true, this connection is managed by admins for all users
+  institution: varchar("institution", { length: 255 }), // Institution for admin-managed connections
   lastConnectedAt: timestamp("last_connected_at"),
   lastError: text("last_error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
