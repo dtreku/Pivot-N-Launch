@@ -10,7 +10,10 @@ import {
   documentUploads,
   teams,
   sessions,
+  systemSettings,
   userStats,
+  integrationConnections,
+  integrationParameters,
   type Faculty,
   type InsertFaculty,
   type Project,
@@ -32,8 +35,14 @@ import {
   type Team,
   type InsertTeam,
   type Session,
+  type SystemSettings,
+  type InsertSystemSettings,
   type UserStats,
-  type InsertUserStats
+  type InsertUserStats,
+  type IntegrationConnection,
+  type InsertIntegrationConnection,
+  type IntegrationParameter,
+  type InsertIntegrationParameter
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, like, sql } from "drizzle-orm";
@@ -119,12 +128,36 @@ export interface IStorage {
   addTeamMember(teamId: number, facultyId: number): Promise<void>;
   removeTeamMember(teamId: number, facultyId: number): Promise<void>;
 
+  // System settings methods (admin only)
+  getSystemSetting(key: string): Promise<SystemSettings | undefined>;
+  setSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings>;
+  updateSystemSetting(key: string, value: string, updatedBy?: number): Promise<SystemSettings | undefined>;
+  deleteSystemSetting(key: string): Promise<boolean>;
+
+  // Vector search methods
+  vectorSearchDocuments(facultyId: number, queryEmbedding: number[], limit?: number): Promise<DocumentUpload[]>;
+  updateDocumentEmbeddings(documentId: number, embeddings: string, textContent: string): Promise<DocumentUpload | undefined>;
+  markDocumentForVectorization(documentId: number): Promise<DocumentUpload | undefined>;
+
   // User statistics methods
   getUserStats(facultyId: number): Promise<UserStats | undefined>;
   createUserStats(stats: InsertUserStats): Promise<UserStats>;
   updateUserStats(facultyId: number, stats: Partial<UserStats>): Promise<UserStats | undefined>;
   incrementLoginCount(facultyId: number): Promise<void>;
   updateActivityTime(facultyId: number, minutesSpent: number): Promise<void>;
+
+  // Integration methods
+  getIntegrationConnections(facultyId: number): Promise<IntegrationConnection[]>;
+  getAdminIntegrationConnections(userInstitution: string): Promise<IntegrationConnection[]>;
+  createIntegrationConnection(connection: InsertIntegrationConnection): Promise<IntegrationConnection>;
+  updateIntegrationConnection(id: number, connection: Partial<IntegrationConnection>): Promise<IntegrationConnection | undefined>;
+  deleteIntegrationConnection(id: number): Promise<boolean>;
+  getIntegrationConnection(id: number): Promise<IntegrationConnection | undefined>;
+  
+  getIntegrationParameters(connectionId: number): Promise<IntegrationParameter[]>;
+  createIntegrationParameter(parameter: InsertIntegrationParameter): Promise<IntegrationParameter>;
+  updateIntegrationParameter(id: number, parameter: Partial<IntegrationParameter>): Promise<IntegrationParameter | undefined>;
+  deleteIntegrationParameter(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -644,6 +677,193 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(userStats.facultyId, facultyId));
+  }
+
+  // System settings methods (admin only)
+  async getSystemSetting(key: string): Promise<SystemSettings | undefined> {
+    const [result] = await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+    return result || undefined;
+  }
+
+  async setSystemSetting(setting: InsertSystemSettings): Promise<SystemSettings> {
+    // Try to update existing setting first
+    const existing = await this.getSystemSetting(setting.settingKey);
+    if (existing) {
+      const [result] = await db
+        .update(systemSettings)
+        .set({
+          ...setting,
+          updatedAt: new Date()
+        })
+        .where(eq(systemSettings.settingKey, setting.settingKey))
+        .returning();
+      return result;
+    } else {
+      // Create new setting
+      const [result] = await db
+        .insert(systemSettings)
+        .values(setting)
+        .returning();
+      return result;
+    }
+  }
+
+  async updateSystemSetting(key: string, value: string, updatedBy?: number): Promise<SystemSettings | undefined> {
+    const [result] = await db
+      .update(systemSettings)
+      .set({
+        settingValue: value,
+        updatedBy,
+        updatedAt: new Date()
+      })
+      .where(eq(systemSettings.settingKey, key))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteSystemSetting(key: string): Promise<boolean> {
+    const result = await db
+      .delete(systemSettings)
+      .where(eq(systemSettings.settingKey, key));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Vector search methods
+  async vectorSearchDocuments(facultyId: number, queryEmbedding: number[], limit = 10): Promise<DocumentUpload[]> {
+    // Use pgvector extension for actual similarity search
+    const queryVector = `[${queryEmbedding.join(',')}]`;
+    
+    return await db
+      .select()
+      .from(documentUploads)
+      .where(and(
+        eq(documentUploads.facultyId, facultyId),
+        sql`${documentUploads.embeddings} IS NOT NULL`,
+        eq(documentUploads.vectorStatus, "ready")
+      ))
+      .orderBy(sql`${documentUploads.embeddings}::vector <-> ${queryVector}::vector`)
+      .limit(limit);
+  }
+
+  async updateDocumentEmbeddings(documentId: number, embeddings: string, textContent: string): Promise<DocumentUpload | undefined> {
+    const [result] = await db
+      .update(documentUploads)
+      .set({
+        embeddings,
+        textContent,
+        vectorStatus: "ready",
+        updatedAt: new Date()
+      })
+      .where(eq(documentUploads.id, documentId))
+      .returning();
+    return result || undefined;
+  }
+
+  async markDocumentForVectorization(documentId: number): Promise<DocumentUpload | undefined> {
+    const [result] = await db
+      .update(documentUploads)
+      .set({
+        includeInVectorDb: true,
+        vectorStatus: "queued",
+        updatedAt: new Date()
+      })
+      .where(eq(documentUploads.id, documentId))
+      .returning();
+    return result || undefined;
+  }
+
+  // Integration methods
+  async getIntegrationConnections(facultyId: number): Promise<IntegrationConnection[]> {
+    return await db
+      .select()
+      .from(integrationConnections)
+      .where(eq(integrationConnections.facultyId, facultyId))
+      .orderBy(desc(integrationConnections.createdAt));
+  }
+
+  async getAdminIntegrationConnections(userInstitution: string): Promise<IntegrationConnection[]> {
+    return await db
+      .select()
+      .from(integrationConnections)
+      .where(
+        and(
+          eq(integrationConnections.isAdminManaged, true),
+          eq(integrationConnections.institution, userInstitution)
+        )
+      )
+      .orderBy(desc(integrationConnections.createdAt));
+  }
+
+  async createIntegrationConnection(connection: InsertIntegrationConnection): Promise<IntegrationConnection> {
+    const [result] = await db
+      .insert(integrationConnections)
+      .values(connection)
+      .returning();
+    return result;
+  }
+
+  async updateIntegrationConnection(id: number, connection: Partial<IntegrationConnection>): Promise<IntegrationConnection | undefined> {
+    const [result] = await db
+      .update(integrationConnections)
+      .set({ ...connection, updatedAt: new Date() })
+      .where(eq(integrationConnections.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteIntegrationConnection(id: number): Promise<boolean> {
+    // Also delete associated parameters
+    await db
+      .delete(integrationParameters)
+      .where(eq(integrationParameters.connectionId, id));
+    
+    const result = await db
+      .delete(integrationConnections)
+      .where(eq(integrationConnections.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getIntegrationConnection(id: number): Promise<IntegrationConnection | undefined> {
+    const [result] = await db
+      .select()
+      .from(integrationConnections)
+      .where(eq(integrationConnections.id, id));
+    return result || undefined;
+  }
+
+  async getIntegrationParameters(connectionId: number): Promise<IntegrationParameter[]> {
+    return await db
+      .select()
+      .from(integrationParameters)
+      .where(eq(integrationParameters.connectionId, connectionId))
+      .orderBy(integrationParameters.parameterKey);
+  }
+
+  async createIntegrationParameter(parameter: InsertIntegrationParameter): Promise<IntegrationParameter> {
+    const [result] = await db
+      .insert(integrationParameters)
+      .values(parameter)
+      .returning();
+    return result;
+  }
+
+  async updateIntegrationParameter(id: number, parameter: Partial<IntegrationParameter>): Promise<IntegrationParameter | undefined> {
+    const [result] = await db
+      .update(integrationParameters)
+      .set({ ...parameter, updatedAt: new Date() })
+      .where(eq(integrationParameters.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteIntegrationParameter(id: number): Promise<boolean> {
+    const result = await db
+      .delete(integrationParameters)
+      .where(eq(integrationParameters.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 
