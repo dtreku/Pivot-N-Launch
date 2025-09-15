@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { 
   Anchor, 
   BookOpen, 
@@ -32,7 +34,7 @@ const PIVOT_CARDS = [
     minimalExample: "Proof of Work: Miners compete to solve cryptographic puzzles",
     counterExample: "Simple voting without Byzantine fault tolerance",
     misconceptions: ["All consensus mechanisms are equally secure", "Proof of Stake eliminates all centralization"],
-    createdAt: "2025-01-20",
+    createdAt: "2025-09-20",
     retrievalCount: 15,
     masteryLevel: 0.85
   },
@@ -45,7 +47,7 @@ const PIVOT_CARDS = [
     minimalExample: "1NF: Eliminate repeating groups in columns",
     counterExample: "Storing multiple phone numbers in a single column",
     misconceptions: ["Higher normal forms are always better", "Denormalization is always bad"],
-    createdAt: "2025-01-18",
+    createdAt: "2025-09-18",
     retrievalCount: 8,
     masteryLevel: 0.72
   },
@@ -58,7 +60,7 @@ const PIVOT_CARDS = [
     minimalExample: "Large study finds 0.1% improvement with p<0.001 - statistically but not practically significant",
     counterExample: "Assuming statistical significance always means practical importance",
     misconceptions: ["Significant p-value means large effect", "Non-significant results are worthless"],
-    createdAt: "2025-01-22",
+    createdAt: "2025-09-22",
     retrievalCount: 12,
     masteryLevel: 0.68
   }
@@ -111,8 +113,8 @@ const RETRIEVAL_ACTIVITIES = [
     question: "What is the key difference between Proof of Work and Proof of Stake?",
     answer: "PoW requires computational work to validate; PoS requires economic stake and selection algorithm",
     difficulty: "basic",
-    lastShown: "2025-09-23",
-    nextDue: "2025-09-25"
+    lastShown: "2025-09-14",
+    nextDue: "2025-09-16"
   },
   {
     id: 2,
@@ -122,8 +124,8 @@ const RETRIEVAL_ACTIVITIES = [
     options: ["1NF", "2NF", "3NF", "BCNF"],
     correct: 0,
     difficulty: "basic",
-    lastShown: "2025-09-22",
-    nextDue: "2025-09-24"
+    lastShown: "2025-09-13",
+    nextDue: "2025-09-15"
   }
 ];
 
@@ -132,6 +134,16 @@ export default function PivotAssets() {
   const [selectedDiscipline, setSelectedDiscipline] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newCardData, setNewCardData] = useState({
+    title: "",
+    discipline: "",
+    definition: "",
+    constraints: "",
+    minimalExample: "",
+    counterExample: "",
+    misconceptions: ""
+  });
 
   const filteredCards = PIVOT_CARDS.filter(card => {
     const matchesDiscipline = selectedDiscipline === "all" || card.discipline === selectedDiscipline;
@@ -140,6 +152,49 @@ export default function PivotAssets() {
       card.definition.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesDiscipline && matchesSearch;
   });
+
+  const handleCreateCard = () => {
+    // Validate required fields
+    if (!newCardData.title.trim() || !newCardData.discipline || !newCardData.definition.trim()) {
+      alert("Please fill in all required fields (title, discipline, and definition).");
+      return;
+    }
+
+    // Create new card object
+    const newCard = {
+      id: Math.max(...PIVOT_CARDS.map(c => c.id)) + 1,
+      title: newCardData.title.trim(),
+      discipline: newCardData.discipline,
+      definition: newCardData.definition.trim(),
+      constraints: newCardData.constraints.trim() || "Not specified",
+      minimalExample: newCardData.minimalExample.trim() || "Not provided",
+      counterExample: newCardData.counterExample.trim() || "Not provided", 
+      misconceptions: newCardData.misconceptions.trim() ? 
+        newCardData.misconceptions.split(',').map(m => m.trim()).filter(m => m) :
+        [],
+      createdAt: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+      retrievalCount: 0,
+      masteryLevel: 0
+    };
+
+    // Add to PIVOT_CARDS array (in a real app, this would be an API call)
+    PIVOT_CARDS.push(newCard);
+
+    // Reset form and close dialog
+    setNewCardData({
+      title: "",
+      discipline: "",
+      definition: "",
+      constraints: "",
+      minimalExample: "",
+      counterExample: "",
+      misconceptions: ""
+    });
+    setIsCreateDialogOpen(false);
+
+    // Show success message
+    alert(`Successfully created pivot card: "${newCard.title}"`);
+  };
 
   return (
     <div className="anti-overload-container">
@@ -233,10 +288,125 @@ export default function PivotAssets() {
         <TabsContent value="cards" className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold text-gray-800">Core Concept Cards</h2>
-            <Button className="pbl-button">
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Card
-            </Button>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="pbl-button" data-testid="button-create-pivot-card">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create New Card
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Pivot Card</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="title">Title *</Label>
+                      <Input
+                        id="title"
+                        value={newCardData.title}
+                        onChange={(e) => setNewCardData({...newCardData, title: e.target.value})}
+                        placeholder="e.g., Blockchain Consensus Mechanisms"
+                        data-testid="input-card-title"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="discipline">Discipline *</Label>
+                      <Select value={newCardData.discipline} onValueChange={(value) => setNewCardData({...newCardData, discipline: value})}>
+                        <SelectTrigger data-testid="select-card-discipline">
+                          <SelectValue placeholder="Select discipline" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="fintech">Fintech</SelectItem>
+                          <SelectItem value="information-systems">Information Systems</SelectItem>
+                          <SelectItem value="data-science">Data Science</SelectItem>
+                          <SelectItem value="knowledge-integration">Knowledge Integration</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="definition">Definition *</Label>
+                    <Textarea
+                      id="definition"
+                      value={newCardData.definition}
+                      onChange={(e) => setNewCardData({...newCardData, definition: e.target.value})}
+                      placeholder="Clear, concise definition of the core concept"
+                      className="min-h-[80px]"
+                      data-testid="textarea-card-definition"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="constraints">Constraints & Context</Label>
+                    <Textarea
+                      id="constraints"
+                      value={newCardData.constraints}
+                      onChange={(e) => setNewCardData({...newCardData, constraints: e.target.value})}
+                      placeholder="Key limitations, assumptions, or contextual factors"
+                      className="min-h-[60px]"
+                      data-testid="textarea-card-constraints"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="minimalExample">Minimal Example</Label>
+                    <Textarea
+                      id="minimalExample"
+                      value={newCardData.minimalExample}
+                      onChange={(e) => setNewCardData({...newCardData, minimalExample: e.target.value})}
+                      placeholder="Simplest possible example that illustrates the concept"
+                      className="min-h-[60px]"
+                      data-testid="textarea-card-minimal-example"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="counterExample">Counter-Example</Label>
+                    <Textarea
+                      id="counterExample"
+                      value={newCardData.counterExample}
+                      onChange={(e) => setNewCardData({...newCardData, counterExample: e.target.value})}
+                      placeholder="Example of what this concept is NOT"
+                      className="min-h-[60px]"
+                      data-testid="textarea-card-counter-example"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="misconceptions">Common Misconceptions</Label>
+                    <Textarea
+                      id="misconceptions"
+                      value={newCardData.misconceptions}
+                      onChange={(e) => setNewCardData({...newCardData, misconceptions: e.target.value})}
+                      placeholder="Separate multiple misconceptions with commas"
+                      className="min-h-[60px]"
+                      data-testid="textarea-card-misconceptions"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Tip: Separate multiple items with commas</p>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsCreateDialogOpen(false)}
+                      data-testid="button-cancel-card"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateCard}
+                      className="pbl-button"
+                      data-testid="button-save-card"
+                    >
+                      Create Pivot Card
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
