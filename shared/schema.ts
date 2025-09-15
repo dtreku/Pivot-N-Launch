@@ -3,7 +3,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Faculty table - Enhanced with authentication
+// Faculty table - Enhanced with authentication  
 export const faculty = pgTable("faculty", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -21,7 +21,7 @@ export const faculty = pgTable("faculty", {
   openaiApiKey: text("openai_api_key"), // User's personal OpenAI API key
   teamId: integer("team_id"), // For team management
   lastLoginAt: timestamp("last_login_at"),
-  approvedBy: integer("approved_by").references(() => faculty.id),
+  approvedBy: integer("approved_by"),
   approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -359,6 +359,19 @@ export const sessions = pgTable("sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// System settings table for admin-only configurations
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  settingKey: varchar("setting_key", { length: 255 }).notNull().unique(),
+  settingValue: text("setting_value"),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(), // 'openai', 'general', etc.
+  isEncrypted: boolean("is_encrypted").default(false),
+  updatedBy: integer("updated_by").references(() => faculty.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // User statistics tracking
 export const userStats = pgTable("user_stats", {
   id: serial("id").primaryKey(),
@@ -373,6 +386,12 @@ export const userStats = pgTable("user_stats", {
 
 // Insert schemas
 export const insertTeamSchema = createInsertSchema(teams).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -415,6 +434,9 @@ export type Team = typeof teams.$inferSelect;
 export type InsertTeam = z.infer<typeof insertTeamSchema>;
 
 export type Session = typeof sessions.$inferSelect;
+
+export type SystemSettings = typeof systemSettings.$inferSelect;
+export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
 
 export type UserStats = typeof userStats.$inferSelect;
 export type InsertUserStats = z.infer<typeof insertUserStatsSchema>;

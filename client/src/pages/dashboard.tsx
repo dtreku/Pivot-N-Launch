@@ -244,10 +244,10 @@ export default function Dashboard() {
             <div className="space-y-4">
               <div className="collaboration-card suggestion">
                 <div className="w-8 h-8 bg-blue-800 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">JD</span>
+                  <span className="text-white text-sm font-medium">DT</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">John Doe</p>
+                  <p className="text-sm font-medium text-gray-800">Daniel Treku</p>
                   <p className="text-xs text-gray-600">
                     Suggested: Blockchain voting system with mobile interface
                   </p>
