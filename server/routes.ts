@@ -1554,6 +1554,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.isAdminManaged && req.user.role !== 'super_admin' && req.user.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can create system-wide integrations" });
       }
+
+      // Access control: Users can only connect if there's an admin connection OR they are admin
+      if (!validatedData.isAdminManaged && req.user.role !== 'super_admin' && req.user.role !== 'admin') {
+        const adminConnections = await storage.getAdminIntegrationConnections(req.user.institution);
+        const hasAdminConnection = adminConnections.some(conn => conn.integrationId === validatedData.integrationId);
+        
+        if (!hasAdminConnection) {
+          return res.status(403).json({ 
+            message: "This service is not available. Please contact your institution administrator to enable this integration." 
+          });
+        }
+      }
       
       // Create the integration connection
       const connection = await storage.createIntegrationConnection({
