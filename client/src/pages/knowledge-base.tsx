@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useDefaultFaculty } from "@/hooks/use-faculty";
 import { knowledgeBaseApi } from "@/lib/api";
+import { apiRequest } from "@/lib/queryClient";
+import { ObjectUploader } from "@/components/ObjectUploader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -118,7 +120,9 @@ export default function KnowledgeBase() {
   const createEntry = useMutation({
     mutationFn: knowledgeBaseApi.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base"] });
+      // Invalidate both the list and search queries with proper keys
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base/faculty", faculty?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base/search"] });
       setIsUploadOpen(false);
       form.reset();
       toast({
@@ -138,7 +142,9 @@ export default function KnowledgeBase() {
   const deleteEntry = useMutation({
     mutationFn: knowledgeBaseApi.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base"] });
+      // Invalidate both the list and search queries with proper keys
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base/faculty", faculty?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge-base/search"] });
       toast({
         title: "Content Deleted",
         description: "The content has been removed from your knowledge base.",
@@ -152,6 +158,64 @@ export default function KnowledgeBase() {
       });
     },
   });
+
+  // Quick Upload handlers
+  const handleGetUploadParameters = async (fileName: string) => {
+    const response = await apiRequest("/api/documents/upload-url", "POST", { fileName }) as unknown as { uploadURL: string };
+    return {
+      method: "PUT" as const,
+      url: response.uploadURL,
+    };
+  };
+
+  const handleUploadComplete = async (result: any) => {
+    if (!faculty?.id || !result.successful) return;
+
+    try {
+      // Create knowledge base entries for all uploaded files in batch
+      const uploadPromises = result.successful.map(async (file: any) => {
+        const fileType = file.name?.split('.').pop()?.toLowerCase() || 'unknown';
+        
+        // Create a downloadable URL path instead of storing the temporary presigned URL
+        // Extract the object key from the upload URL to construct download path
+        let downloadUrl = '';
+        if (file.uploadURL) {
+          // The upload URL contains the object path - extract it for downloads
+          const urlParts = file.uploadURL.split('/');
+          const bucketIndex = urlParts.findIndex(part => part.includes('.'));
+          if (bucketIndex > -1) {
+            const objectPath = urlParts.slice(bucketIndex + 1).join('/');
+            downloadUrl = `/objects/${objectPath}`;
+          }
+        }
+        
+        return createEntry.mutateAsync({
+          facultyId: faculty.id,
+          title: file.name || 'Uploaded File',
+          content: `File uploaded: ${file.name}. Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`,
+          fileType: fileType,
+          fileUrl: downloadUrl,
+          tags: ['upload', 'quick-upload'],
+          isPrivate: true,
+        });
+      });
+
+      await Promise.all(uploadPromises);
+
+      toast({
+        title: "Files Uploaded",
+        description: `${result.successful.length} file(s) added to your knowledge base.`,
+      });
+      
+    } catch (error) {
+      console.error('Failed to create knowledge base entries:', error);
+      toast({
+        title: "Upload Error", 
+        description: "Files uploaded but failed to add to knowledge base. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const onSubmit = (data: UploadForm) => {
     if (!faculty?.id) return;
@@ -180,16 +244,16 @@ export default function KnowledgeBase() {
   });
 
   // Get unique tags and file types for filtering
-  const allTags = [...new Set(knowledgeBase.flatMap(item => item.tags || []))];
-  const allFileTypes = [...new Set(knowledgeBase.map(item => item.fileType).filter(Boolean))];
+  const allTags = Array.from(new Set(knowledgeBase.flatMap(item => item.tags || [])));
+  const allFileTypes = Array.from(new Set(knowledgeBase.map(item => item.fileType).filter(Boolean)));
 
   const getFileIcon = (fileType: string) => {
-    const IconComponent = FILE_TYPE_ICONS[fileType] || File;
+    const IconComponent = FILE_TYPE_ICONS[fileType as keyof typeof FILE_TYPE_ICONS] || File;
     return IconComponent;
   };
 
   const getFileColor = (fileType: string) => {
-    return FILE_TYPE_COLORS[fileType] || "text-gray-600";
+    return FILE_TYPE_COLORS[fileType as keyof typeof FILE_TYPE_COLORS] || "text-gray-600";
   };
 
   const handleDelete = (id: number) => {
@@ -441,21 +505,29 @@ export default function KnowledgeBase() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Upload Area */}
+          {/* Quick Upload */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Quick Upload</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 mb-2">
-                  Drag & drop files here
-                </p>
-                <Button variant="outline" size="sm">
-                  Choose Files
-                </Button>
-              </div>
+              <ObjectUploader
+                maxNumberOfFiles={10}
+                maxFileSize={50 * 1024 * 1024} // 50MB
+                onGetUploadParameters={handleGetUploadParameters}
+                onComplete={handleUploadComplete}
+                buttonClassName="w-full"
+              >
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600 mb-2">
+                    Drag & drop files here
+                  </p>
+                  <span className="text-sm font-medium text-gray-700">
+                    Choose Files
+                  </span>
+                </div>
+              </ObjectUploader>
               <div className="mt-4 text-xs text-gray-500">
                 Supported: PDF, DOC, DOCX, TXT, Images, Audio, Video
               </div>
@@ -483,7 +555,7 @@ export default function KnowledgeBase() {
                           checked={filters.fileType === type}
                           onChange={(e) => setFilters(prev => ({ 
                             ...prev, 
-                            fileType: e.target.checked ? type : "" 
+                            fileType: e.target.checked ? type : undefined 
                           }))}
                           className="w-3 h-3"
                         />
