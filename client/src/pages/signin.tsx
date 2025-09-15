@@ -136,7 +136,7 @@ export default function Signin({ onSignin }: SigninProps) {
                     <Label htmlFor="name">Full Name</Label>
                     <Input
                       id="name"
-                      placeholder="John Doe"
+                      placeholder="Daniel Treku"
                       {...registerForm.register("name")}
                       className={registerForm.formState.errors.name ? "border-red-500" : ""}
                     />
@@ -150,7 +150,7 @@ export default function Signin({ onSignin }: SigninProps) {
                     <Input
                       id="register-email"
                       type="email"
-                      placeholder="john.doe@university.edu"
+                      placeholder="daniel.treku@university.edu"
                       {...registerForm.register("email")}
                       className={registerForm.formState.errors.email ? "border-red-500" : ""}
                     />
