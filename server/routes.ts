@@ -1235,7 +1235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       
       res.json({
-        hasApiKey: false, // Temporarily disabled until DB schema is updated
+        hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
         // Never return the actual API key for security
       });
     } catch (error) {
@@ -1261,8 +1261,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Encrypt the API key before storing
       const encryptedApiKey = encryptApiKey(validatedData.apiKey);
-      // Temporarily disabled until DB schema is updated
-      // await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
+      await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
       
       res.json({ message: "API key updated successfully" });
     } catch (error) {
@@ -1282,8 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      // Temporarily disabled until DB schema is updated  
-      // await storage.updateFaculty(facultyId, { openaiApiKey: null });
+      await storage.updateFaculty(facultyId, { openaiApiKey: null });
       
       res.json({ message: "API key removed successfully" });
     } catch (error) {
@@ -1403,12 +1401,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Helper function to get available OpenAI API key (user key or system default)
   async function getOpenAIApiKey(userId: number): Promise<string | null> {
     try {
-      // First try user's personal API key - temporarily disabled until DB schema is updated
+      // First try user's personal API key
       const faculty = await storage.getFaculty(userId);
-      // if (faculty?.openaiApiKey && isApiKeyEncrypted(faculty.openaiApiKey)) {
-      //   const decryptedKey = decryptApiKey(faculty.openaiApiKey);
-      //   if (decryptedKey) return decryptedKey;
-      // }
+      if (faculty?.openaiApiKey && isApiKeyEncrypted(faculty.openaiApiKey)) {
+        const decryptedKey = decryptApiKey(faculty.openaiApiKey);
+        if (decryptedKey) return decryptedKey;
+      }
       
       // Fall back to system default key (admin-only)
       const systemSetting = await storage.getSystemSetting("default_openai_api_key");
