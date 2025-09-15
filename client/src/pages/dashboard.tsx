@@ -207,7 +207,7 @@ export default function Dashboard() {
                 </Button>
               </Link>
               
-              <Link href="/document-manager">
+              <Link href="/documents">
                 <Button variant="outline" className="w-full flex items-center justify-between p-3" data-testid="button-upload-materials">
                   <span className="font-medium">Upload Course Materials</span>
                   <Upload className="w-4 h-4" />
