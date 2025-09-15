@@ -16,6 +16,7 @@ import {
 } from "@shared/schema";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
+import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
 
 // Middleware to check authentication
 async function requireAuth(req: any, res: any, next: any) {
@@ -1222,8 +1223,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const facultyId = parseInt(req.params.id);
       
-      // Check if the user can access this faculty's settings
-      if (req.user.id !== facultyId && !['super_admin', 'admin'].includes(req.user.role)) {
+      // Strict authorization check - users can only access their own settings
+      if (req.user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -1232,9 +1233,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Faculty not found" });
       }
       
+      
       res.json({
         hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
-        // Don't return the actual API key for security
+        // Never return the actual API key for security
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch settings", error: getErrorMessage(error) });
@@ -1244,21 +1246,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
     try {
       const facultyId = parseInt(req.params.id);
-      const { apiKey } = req.body;
       
-      // Check if the user can update this faculty's API key
+      // Strict authorization check - users can only update their own API key
       if (req.user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      if (!apiKey || typeof apiKey !== 'string' || apiKey.length < 20) {
-        return res.status(400).json({ message: "Valid API key required" });
-      }
+      // Validate request body
+      const apiKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters").regex(/^sk-/, "API key must start with 'sk-'")
+      });
       
-      await storage.updateFaculty(facultyId, { openaiApiKey: apiKey });
+      const validatedData = apiKeySchema.parse(req.body);
+      
+      // Encrypt the API key before storing
+      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
+      await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
       
       res.json({ message: "API key updated successfully" });
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid API key", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to update API key", error: getErrorMessage(error) });
     }
   });
@@ -1267,7 +1276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const facultyId = parseInt(req.params.id);
       
-      // Check if the user can delete this faculty's API key
+      // Strict authorization check - users can only delete their own API key
       if (req.user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -1280,16 +1289,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rate limiting middleware for testing (simple in-memory solution)
+  const testKeyLimiter = new Map<string, { count: number; lastReset: number }>();
+  const TEST_LIMIT = 5; // 5 attempts per hour
+  const TEST_WINDOW = 60 * 60 * 1000; // 1 hour
+
   app.post("/api/openai/test", requireAuth, async (req, res) => {
     try {
-      const { apiKey } = req.body;
+      // Rate limiting
+      const userId = req.user.id.toString();
+      const now = Date.now();
+      const userLimits = testKeyLimiter.get(userId);
       
-      if (!apiKey || typeof apiKey !== 'string') {
-        return res.status(400).json({ message: "API key required" });
+      if (userLimits) {
+        if (now - userLimits.lastReset > TEST_WINDOW) {
+          // Reset the counter if window passed
+          testKeyLimiter.set(userId, { count: 1, lastReset: now });
+        } else if (userLimits.count >= TEST_LIMIT) {
+          return res.status(429).json({ message: "Too many test attempts. Please try again later." });
+        } else {
+          userLimits.count++;
+        }
+      } else {
+        testKeyLimiter.set(userId, { count: 1, lastReset: now });
       }
       
+      // Validate request body
+      const testKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters")
+      });
+      
+      const validatedData = testKeySchema.parse(req.body);
+      
       // Test the API key by making a simple request
-      const openai = new OpenAI({ apiKey });
+      const openai = new OpenAI({ apiKey: validatedData.apiKey });
       
       try {
         // Use a very small, inexpensive request to test the key
@@ -1302,6 +1335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw openaiError;
       }
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to test API key", error: getErrorMessage(error) });
     }
   });
