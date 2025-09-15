@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDefaultFaculty } from "@/hooks/use-faculty";
+import { useAuth } from "@/contexts/AuthContext";
 import { useProjects } from "@/hooks/use-projects";
 import { contributionApi } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export default function Collaboration() {
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
 
   const { data: faculty } = useDefaultFaculty();
+  const { faculty: currentUser } = useAuth();
   const { data: projects = [] } = useProjects(faculty?.id);
 
   // Get all contributions across projects
@@ -65,9 +67,26 @@ export default function Collaboration() {
       );
       
       const contributionsArrays = await Promise.all(contributionsPromises);
-      return contributionsArrays.flat().sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      const allContributions = contributionsArrays.flat();
+      
+      // Sort to show current user's contributions first, then others
+      return allContributions.sort((a, b) => {
+        const currentUserEmail = currentUser?.email;
+        if (!currentUserEmail) {
+          // If no current user, just sort by date
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        
+        const aIsCurrentUser = a.studentEmail === currentUserEmail;
+        const bIsCurrentUser = b.studentEmail === currentUserEmail;
+        
+        // If one is from current user and other is not, current user goes first
+        if (aIsCurrentUser && !bIsCurrentUser) return -1;
+        if (!aIsCurrentUser && bIsCurrentUser) return 1;
+        
+        // If both are from same user type (current user or others), sort by date
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     },
     enabled: !!faculty?.id && projects.length > 0,
   });
