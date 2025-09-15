@@ -518,18 +518,32 @@ export default function KnowledgeBase() {
                 onComplete={handleUploadComplete}
                 buttonClassName="w-full"
               >
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600 mb-2">
-                    Drag & drop files here
-                  </p>
-                  <span className="text-sm font-medium text-gray-700">
-                    Choose Files
-                  </span>
+                <div className="relative border-2 border-dashed border-blue-200 rounded-xl p-8 text-center hover:border-blue-300 hover:bg-blue-50/30 transition-all duration-200 cursor-pointer group">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="p-3 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors duration-200">
+                      <Upload className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-700">
+                        Drop files here to upload
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        or click to browse your files
+                      </p>
+                    </div>
+                    <div className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+                      Choose Files
+                    </div>
+                  </div>
                 </div>
               </ObjectUploader>
-              <div className="mt-4 text-xs text-gray-500">
-                Supported: PDF, DOC, DOCX, TXT, Images, Audio, Video
+              <div className="mt-3 px-1">
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  <span className="font-medium">Supported formats:</span> PDF, DOC, DOCX, TXT, Images, Audio, Video
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Maximum 10 files, 50MB each
+                </p>
               </div>
             </CardContent>
           </Card>
