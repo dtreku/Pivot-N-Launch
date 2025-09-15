@@ -1342,6 +1342,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin-only system settings routes
+
+  // Get system default OpenAI key status (admin only)
+  app.get("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const setting = await storage.getSystemSetting("default_openai_api_key");
+      res.json({
+        hasDefaultKey: !!(setting?.settingValue && setting.settingValue.length > 0),
+        updatedBy: setting?.updatedBy,
+        updatedAt: setting?.updatedAt
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch system settings", error: getErrorMessage(error) });
+    }
+  });
+
+  // Set system default OpenAI key (admin only)  
+  app.put("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const apiKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters").startsWith("sk-", "API key must start with 'sk-'")
+      });
+      
+      const validatedData = apiKeySchema.parse(req.body);
+      
+      // Encrypt the system default API key
+      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
+      
+      await storage.setSystemSetting({
+        settingKey: "default_openai_api_key",
+        settingValue: encryptedApiKey,
+        description: "Default OpenAI API key for system-wide operations",
+        category: "openai",
+        isEncrypted: true,
+        updatedBy: req.user.id
+      });
+      
+      res.json({ message: "System default API key updated successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update system default API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Remove system default OpenAI key (admin only)
+  app.delete("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteSystemSetting("default_openai_api_key");
+      res.json({ message: "System default API key removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove system default API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Helper function to get available OpenAI API key (user key or system default)
+  async function getOpenAIApiKey(userId: number): Promise<string | null> {
+    try {
+      // First try user's personal API key
+      const faculty = await storage.getFaculty(userId);
+      if (faculty?.openaiApiKey && isApiKeyEncrypted(faculty.openaiApiKey)) {
+        const decryptedKey = decryptApiKey(faculty.openaiApiKey);
+        if (decryptedKey) return decryptedKey;
+      }
+      
+      // Fall back to system default key (admin-only)
+      const systemSetting = await storage.getSystemSetting("default_openai_api_key");
+      if (systemSetting?.settingValue && isApiKeyEncrypted(systemSetting.settingValue)) {
+        const decryptedKey = decryptApiKey(systemSetting.settingValue);
+        if (decryptedKey) return decryptedKey;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to get OpenAI API key:', error);
+      return null;
+    }
+  }
+
+  // Vector search endpoints
+  app.post("/api/documents/:id/vectorize", requireAuth, async (req, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const apiKey = await getOpenAIApiKey(req.user.id);
+      
+      if (!apiKey) {
+        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
+      }
+      
+      // Get document
+      const document = await storage.getDocumentUpload(documentId);
+      if (!document || document.facultyId !== req.user.id) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Mark for vectorization
+      await storage.markDocumentForVectorization(documentId);
+      
+      // Extract text content based on file type
+      let textContent = document.textContent || "";
+      
+      if (!textContent && document.mimeType?.includes("pdf")) {
+        try {
+          // Extract text from PDF
+          const pdfParse = require('pdf-parse');
+          const response = await fetch(document.fileUrl);
+          const buffer = await response.arrayBuffer();
+          const pdfData = await pdfParse(Buffer.from(buffer));
+          textContent = pdfData.text;
+        } catch (error) {
+          console.warn("Failed to extract PDF text:", error);
+          textContent = document.fileName; // Fallback to filename
+        }
+      } else if (!textContent) {
+        textContent = document.fileName; // Fallback to filename for other types
+      }
+
+      // Generate embeddings using OpenAI
+      const openai = new OpenAI({ apiKey });
+      
+      try {
+        const response = await openai.embeddings.create({
+          model: "text-embedding-ada-002",
+          input: textContent.slice(0, 8000) // Limit to ~8k characters to stay within token limits
+        });
+        
+        const embeddings = JSON.stringify(response.data[0].embedding);
+        await storage.updateDocumentEmbeddings(documentId, embeddings, textContent);
+        
+        res.json({ message: "Document vectorized successfully", status: "ready" });
+      } catch (openaiError: any) {
+        await storage.updateDocumentEmbeddings(documentId, "", "");
+        if (openaiError?.status === 401) {
+          return res.status(400).json({ message: "Invalid OpenAI API key" });
+        }
+        throw openaiError;
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to vectorize document", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/search/documents", requireAuth, async (req, res) => {
+    try {
+      const searchSchema = z.object({
+        query: z.string().min(1, "Search query is required"),
+        limit: z.number().min(1).max(50).optional().default(10)
+      });
+      
+      const validatedData = searchSchema.parse(req.body);
+      const apiKey = await getOpenAIApiKey(req.user.id);
+      
+      if (!apiKey) {
+        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
+      }
+      
+      // Generate embedding for search query
+      const openai = new OpenAI({ apiKey });
+      const response = await openai.embeddings.create({
+        model: "text-embedding-ada-002",
+        input: validatedData.query
+      });
+      
+      const queryEmbedding = response.data[0].embedding;
+      
+      // Search documents using vector similarity (simplified implementation)
+      const documents = await storage.vectorSearchDocuments(req.user.id, queryEmbedding, validatedData.limit);
+      
+      res.json({ documents, query: validatedData.query });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to search documents", error: getErrorMessage(error) });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -17,7 +17,8 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle,
-  Trash2
+  Trash2,
+  Shield
 } from "lucide-react";
 
 export default function Settings() {
@@ -27,6 +28,11 @@ export default function Settings() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [apiKeyStatus, setApiKeyStatus] = useState<"none" | "testing" | "valid" | "invalid">("none");
+  const [showSystemApiKey, setShowSystemApiKey] = useState(false);
+  const [systemApiKey, setSystemApiKey] = useState("");
+  const [systemApiKeyStatus, setSystemApiKeyStatus] = useState<"none" | "valid" | "loading">("loading");
+
+  const isAdmin = faculty?.role === 'super_admin' || faculty?.role === 'admin';
 
   // Load current API key status
   const { data: userSettings, isLoading } = useQuery({
@@ -82,6 +88,62 @@ export default function Settings() {
       toast({
         title: "Error",
         description: error.message || "Failed to remove API key",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Load system default API key status (admin only)
+  const { data: systemSettings } = useQuery({
+    queryKey: ["/api/admin/settings/openai-key"],
+    queryFn: () => apiRequest("/api/admin/settings/openai-key", "GET"),
+    enabled: isAdmin,
+    onSuccess: (data: any) => {
+      setSystemApiKeyStatus(data.hasDefaultKey ? "valid" : "none");
+    },
+    onError: () => {
+      setSystemApiKeyStatus("none");
+    }
+  });
+
+  const updateSystemApiKeyMutation = useMutation({
+    mutationFn: (newSystemKey: string) => {
+      return apiRequest("/api/admin/settings/openai-key", "PUT", { apiKey: newSystemKey });
+    },
+    onSuccess: () => {
+      setSystemApiKeyStatus("valid");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings/openai-key"] });
+      toast({
+        title: "Success",
+        description: "System default OpenAI API key updated successfully",
+      });
+      setSystemApiKey(""); // Clear the input for security
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update system default API key",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteSystemApiKeyMutation = useMutation({
+    mutationFn: () => {
+      return apiRequest("/api/admin/settings/openai-key", "DELETE");
+    },
+    onSuccess: () => {
+      setSystemApiKeyStatus("none");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings/openai-key"] });
+      toast({
+        title: "Success",
+        description: "System default OpenAI API key removed successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove system default API key",
         variant: "destructive",
       });
     },
@@ -314,6 +376,114 @@ export default function Settings() {
           </div>
         </CardContent>
       </Card>
+
+      {/* System Administration Section (Admin Only) */}
+      {isAdmin && (
+        <>
+          <Separator />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-red-600" />
+                System Administration
+              </CardTitle>
+              <CardDescription>
+                Configure system-wide settings. This section is only available to administrators.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* System Default OpenAI API Key */}
+              <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                <h4 className="font-medium text-orange-900 mb-2 flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  System Default OpenAI API Key
+                </h4>
+                <p className="text-sm text-orange-800 mb-4">
+                  This key serves as a fallback when users don't have their own OpenAI API key configured.
+                  It will be used for system-wide operations and AI features for users without personal keys.
+                </p>
+                
+                {/* System API Key Status */}
+                <div className="flex items-center gap-2 p-3 bg-white rounded-lg mb-4">
+                  {systemApiKeyStatus === "valid" && <CheckCircle className="w-4 h-4 text-green-600" />}
+                  {systemApiKeyStatus === "none" && <AlertCircle className="w-4 h-4 text-gray-600" />}
+                  {systemApiKeyStatus === "loading" && (
+                    <div className="w-4 h-4 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {systemApiKeyStatus === "valid" && "System default key configured"}
+                    {systemApiKeyStatus === "none" && "No system default key"}
+                    {systemApiKeyStatus === "loading" && "Loading..."}
+                  </span>
+                </div>
+
+                {/* System API Key Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="system-api-key">System Default OpenAI API Key</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        id="system-api-key"
+                        type={showSystemApiKey ? "text" : "password"}
+                        placeholder="sk-..."
+                        value={systemApiKey}
+                        onChange={(e) => setSystemApiKey(e.target.value)}
+                        data-testid="input-system-openai-api-key"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                        onClick={() => setShowSystemApiKey(!showSystemApiKey)}
+                      >
+                        {showSystemApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* System API Key Actions */}
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    onClick={() => updateSystemApiKeyMutation.mutate(systemApiKey)}
+                    disabled={!systemApiKey || updateSystemApiKeyMutation.isPending}
+                    className="bg-orange-600 hover:bg-orange-700"
+                    data-testid="button-save-system-api-key"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateSystemApiKeyMutation.isPending ? "Saving..." : "Save System Key"}
+                  </Button>
+                  
+                  {systemSettings?.hasDefaultKey && (
+                    <Button
+                      variant="outline"
+                      onClick={() => deleteSystemApiKeyMutation.mutate()}
+                      disabled={deleteSystemApiKeyMutation.isPending}
+                      className="border-red-300 text-red-700 hover:bg-red-50"
+                      data-testid="button-remove-system-api-key"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {deleteSystemApiKeyMutation.isPending ? "Removing..." : "Remove System Key"}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Warning about system key */}
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+                  <p className="text-sm text-red-800">
+                    <strong>Security Notice:</strong> The system default API key should be managed carefully. 
+                    It will be used for users who don't have their own keys configured. 
+                    Monitor usage and costs associated with this key.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
