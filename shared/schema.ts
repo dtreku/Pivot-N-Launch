@@ -202,7 +202,7 @@ export const analyticsEvents = pgTable("analytics_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Document uploads table for manual document sharing
+// Document uploads table for manual document sharing with vector database support
 export const documentUploads = pgTable("document_uploads", {
   id: serial("id").primaryKey(),
   facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
@@ -215,6 +215,11 @@ export const documentUploads = pgTable("document_uploads", {
   category: varchar("category", { length: 100 }).default("manual"),
   isPublic: boolean("is_public").default(false),
   downloadCount: integer("download_count").default(0),
+  // Vector database fields
+  includeInVectorDb: boolean("include_in_vector_db").default(false),
+  vectorStatus: varchar("vector_status", { length: 20 }).default("none"), // none, queued, processing, ready, error
+  textContent: text("text_content"), // extracted text for embedding
+  embeddings: text("embeddings"), // pgvector doesn't have direct Drizzle support, we'll handle this separately
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
