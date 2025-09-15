@@ -18,6 +18,7 @@ export const faculty = pgTable("faculty", {
   photoUrl: text("photo_url"),
   bio: text("bio"),
   expertise: jsonb("expertise").$type<string[]>().default([]),
+  openaiApiKey: text("openai_api_key"), // User's personal OpenAI API key
   teamId: integer("team_id"), // For team management
   lastLoginAt: timestamp("last_login_at"),
   approvedBy: integer("approved_by").references(() => faculty.id),
