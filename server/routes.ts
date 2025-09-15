@@ -1520,6 +1520,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Integration management routes
+  app.get("/api/integrations", requireAuth, async (req, res) => {
+    try {
+      const connections = await storage.getIntegrationConnections(req.user.id);
+      
+      // Also get admin-managed integrations if user is not admin
+      let adminConnections = [];
+      if (req.user.role !== 'super_admin' && req.user.role !== 'admin') {
+        adminConnections = await storage.getAdminIntegrationConnections();
+      }
+      
+      res.json({ 
+        userConnections: connections, 
+        adminConnections: adminConnections 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch integrations", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/integrations/connect", requireAuth, async (req, res) => {
+    try {
+      const connectSchema = z.object({
+        integrationId: z.string().min(1),
+        integrationName: z.string().min(1),
+        integrationType: z.string().min(1),
+        parameters: z.record(z.any()).optional(),
+        isAdminManaged: z.boolean().optional().default(false)
+      });
+      
+      const validatedData = connectSchema.parse(req.body);
+      
+      // Only admins can create admin-managed connections
+      if (validatedData.isAdminManaged && req.user.role !== 'super_admin' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can create system-wide integrations" });
+      }
+      
+      // Create the integration connection
+      const connection = await storage.createIntegrationConnection({
+        facultyId: validatedData.isAdminManaged ? null : req.user.id,
+        integrationId: validatedData.integrationId,
+        integrationName: validatedData.integrationName,
+        integrationType: validatedData.integrationType,
+        status: "connected",
+        isAdminManaged: validatedData.isAdminManaged,
+        lastConnectedAt: new Date()
+      });
+      
+      // Add parameters if provided
+      if (validatedData.parameters) {
+        for (const [key, value] of Object.entries(validatedData.parameters)) {
+          await storage.createIntegrationParameter({
+            connectionId: connection.id,
+            parameterKey: key,
+            parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
+            parameterType: typeof value === 'object' ? 'json' : typeof value,
+            isRequired: true
+          });
+        }
+      }
+      
+      res.json({ connection, message: "Integration connected successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to connect integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/integrations/:id/configure", requireAuth, async (req, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions - users can only configure their own integrations, admins can configure admin-managed ones
+      const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+        return res.status(403).json({ message: "You don't have permission to configure this integration" });
+      }
+      
+      const configSchema = z.object({
+        parameters: z.record(z.any())
+      });
+      
+      const validatedData = configSchema.parse(req.body);
+      
+      // Delete existing parameters
+      const existingParams = await storage.getIntegrationParameters(connectionId);
+      for (const param of existingParams) {
+        await storage.deleteIntegrationParameter(param.id);
+      }
+      
+      // Add new parameters
+      for (const [key, value] of Object.entries(validatedData.parameters)) {
+        await storage.createIntegrationParameter({
+          connectionId: connectionId,
+          parameterKey: key,
+          parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
+          parameterType: typeof value === 'object' ? 'json' : typeof value,
+          isRequired: true
+        });
+      }
+      
+      // Update connection status
+      await storage.updateIntegrationConnection(connectionId, {
+        status: "connected",
+        lastConnectedAt: new Date()
+      });
+      
+      res.json({ message: "Integration configured successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to configure integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/integrations/:id", requireAuth, async (req, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions
+      const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+        return res.status(403).json({ message: "You don't have permission to delete this integration" });
+      }
+      
+      await storage.deleteIntegrationConnection(connectionId);
+      res.json({ message: "Integration disconnected successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to disconnect integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/integrations/:id/parameters", requireAuth, async (req, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions
+      const isAdmin = req.user.role === 'super_admin' || req.user.role === 'admin';
+      if (connection.facultyId !== req.user.id && !(isAdmin && connection.isAdminManaged)) {
+        return res.status(403).json({ message: "You don't have permission to view this integration's parameters" });
+      }
+      
+      const parameters = await storage.getIntegrationParameters(connectionId);
+      res.json({ parameters });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch integration parameters", error: getErrorMessage(error) });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
