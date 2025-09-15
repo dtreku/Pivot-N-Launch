@@ -47,7 +47,7 @@ const INTEGRATIONS: Array<{
   id: string;
   name: string;
   description: string;
-  category: "ai" | "survey" | "lms" | "cloud" | "analytics";
+  category: "ai" | "survey" | "lms" | "cloud" | "analytics" | "knowledge";
   status: IntegrationStatus["status"];
   icon: any;
   color: string;
@@ -191,7 +191,11 @@ export default function Integrations() {
   });
 
   // Fetch user's integrations from API
-  const { data: integrationsData, isLoading: integrationsLoading } = useQuery({
+  const { data: integrationsData, isLoading: integrationsLoading } = useQuery<{
+    userConnections: any[];
+    adminConnections: any[];
+    userRole: string;
+  }>({
     queryKey: ["/api/integrations"],
   });
 
@@ -203,11 +207,15 @@ export default function Integrations() {
   // Combine static integration info with connection status
   const combinedIntegrations = INTEGRATIONS.map(integration => {
     const userConnection = userConnections.find(
-      conn => conn.integrationId === integration.id
+      (conn: any) => conn.integrationId === integration.id
     );
     const adminConnection = adminConnections.find(
-      conn => conn.integrationId === integration.id
+      (conn: any) => conn.integrationId === integration.id
     );
+    
+    // Access control: Users can only connect if there's an admin connection OR they are admin
+    const hasAdminConnection = !!adminConnection;
+    const canUserConnect = isAdmin || hasAdminConnection;
     
     return {
       ...integration,
@@ -215,6 +223,8 @@ export default function Integrations() {
       connectionId: userConnection?.id || adminConnection?.id,
       isAdminConnection: !!adminConnection && !userConnection,
       canModify: userConnection ? true : (adminConnection && isAdmin), // Users can modify their own, admins can modify admin connections
+      canUserConnect: canUserConnect, // New field to control user access
+      hasAdminConnection: hasAdminConnection, // Track if admin has set up this service
     };
   });
 
@@ -402,40 +412,56 @@ export default function Integrations() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
+          {combinedIntegrations.filter(integration => integration.status === "connected").length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Plug className="w-6 h-6 text-gray-400" />
               </div>
-              <div>
-                <p className="font-medium text-gray-800">NotebookLM Enterprise</p>
-                <p className="text-sm text-gray-600">Knowledge Research Assistant</p>
-              </div>
-              <Check className="w-5 h-5 text-green-600" />
+              <p className="text-gray-600 text-sm">No integrations connected yet</p>
+              <p className="text-gray-500 text-xs mt-1">Connect services below to see them here</p>
             </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-              <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Qualtrics</p>
-                <p className="text-sm text-gray-600">Survey Platform</p>
-              </div>
-              <Check className="w-5 h-5 text-green-600" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {combinedIntegrations
+                .filter(integration => integration.status === "connected")
+                .map(integration => {
+                  const Icon = integration.icon;
+                  return (
+                    <div 
+                      key={integration.id}
+                      className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
+                      data-testid={`connected-service-${integration.id}`}
+                    >
+                      <div className={`w-10 h-10 bg-${integration.color}-600 rounded-lg flex items-center justify-center`}>
+                        <Icon className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-800">{integration.name}</p>
+                        <p className="text-sm text-gray-600">{integration.description.substring(0, 40)}...</p>
+                        {integration.isAdminConnection && (
+                          <Badge variant="outline" className="text-xs mt-1">Admin</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Check className="w-5 h-5 text-green-600" />
+                        {integration.canModify && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => handleDisconnect(integration.id)}
+                            disabled={disconnectMutation.isPending}
+                            data-testid={`button-disconnect-quick-${integration.id}`}
+                          >
+                            <AlertCircle className="w-3 h-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              }
             </div>
-
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Microsoft Copilot</p>
-                <p className="text-sm text-gray-600">Available to Connect</p>
-              </div>
-              <Button size="sm" variant="outline">Connect</Button>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -474,13 +500,22 @@ export default function Integrations() {
                           )}
                         </div>
                       </div>
-                      {getStatusIcon(integration.status)}
+                      {getStatusIcon(integration.status as IntegrationStatus["status"])}
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 text-sm mb-4">
                       {integration.description}
                     </p>
+                    
+                    {!integration.canUserConnect && !isAdmin && (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
+                        <p className="text-orange-800 text-xs">
+                          <AlertCircle className="w-3 h-3 inline mr-1" />
+                          Admin approval required. Contact your institution administrator to enable this service.
+                        </p>
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <div>
@@ -499,7 +534,7 @@ export default function Integrations() {
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t">
-                        {getStatusBadge(integration.status)}
+                        {getStatusBadge(integration.status as IntegrationStatus["status"])}
                         <div className="flex items-center space-x-2">
                           <Button
                             size="sm"
@@ -623,15 +658,33 @@ export default function Integrations() {
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               ) : (
-                                <Button
-                                  size="sm"
-                                  onClick={() => handleConnect(integration.id, false)}
-                                  className="pbl-button-primary"
-                                  disabled={connectMutation.isPending}
-                                  data-testid={`button-connect-${integration.id}`}
-                                >
-                                  {connectMutation.isPending ? "Connecting..." : "Connect"}
-                                </Button>
+                                <>
+                                  {integration.canUserConnect ? (
+                                    <Button
+                                      size="sm"
+                                      onClick={() => handleConnect(integration.id, false)}
+                                      className="pbl-button-primary"
+                                      disabled={connectMutation.isPending}
+                                      data-testid={`button-connect-${integration.id}`}
+                                    >
+                                      {connectMutation.isPending ? "Connecting..." : "Connect"}
+                                    </Button>
+                                  ) : (
+                                    <div className="flex items-center space-x-2">
+                                      <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                                        Admin Required
+                                      </Badge>
+                                      <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        disabled 
+                                        data-testid={`button-disabled-${integration.id}`}
+                                      >
+                                        Not Available
+                                      </Button>
+                                    </div>
+                                  )}
+                                </>
                               )}
                             </>
                           )}
