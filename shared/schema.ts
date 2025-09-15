@@ -3,7 +3,7 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Faculty table - Enhanced with authentication
+// Faculty table - Enhanced with authentication  
 export const faculty = pgTable("faculty", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -18,9 +18,10 @@ export const faculty = pgTable("faculty", {
   photoUrl: text("photo_url"),
   bio: text("bio"),
   expertise: jsonb("expertise").$type<string[]>().default([]),
+  openaiApiKey: text("openai_api_key"), // User's personal OpenAI API key
   teamId: integer("team_id"), // For team management
   lastLoginAt: timestamp("last_login_at"),
-  approvedBy: integer("approved_by").references(() => faculty.id),
+  approvedBy: integer("approved_by"),
   approvedAt: timestamp("approved_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -202,7 +203,7 @@ export const analyticsEvents = pgTable("analytics_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Document uploads table for manual document sharing
+// Document uploads table for manual document sharing with vector database support
 export const documentUploads = pgTable("document_uploads", {
   id: serial("id").primaryKey(),
   facultyId: integer("faculty_id").references(() => faculty.id).notNull(),
@@ -215,6 +216,11 @@ export const documentUploads = pgTable("document_uploads", {
   category: varchar("category", { length: 100 }).default("manual"),
   isPublic: boolean("is_public").default(false),
   downloadCount: integer("download_count").default(0),
+  // Vector database fields
+  includeInVectorDb: boolean("include_in_vector_db").default(false),
+  vectorStatus: varchar("vector_status", { length: 20 }).default("none"), // none, queued, processing, ready, error
+  textContent: text("text_content"), // extracted text for embedding
+  embeddings: text("embeddings"), // pgvector doesn't have direct Drizzle support, we'll handle this separately
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -353,6 +359,19 @@ export const sessions = pgTable("sessions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// System settings table for admin-only configurations
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  settingKey: varchar("setting_key", { length: 255 }).notNull().unique(),
+  settingValue: text("setting_value"),
+  description: text("description"),
+  category: varchar("category", { length: 100 }).notNull(), // 'openai', 'general', etc.
+  isEncrypted: boolean("is_encrypted").default(false),
+  updatedBy: integer("updated_by").references(() => faculty.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // User statistics tracking
 export const userStats = pgTable("user_stats", {
   id: serial("id").primaryKey(),
@@ -365,6 +384,35 @@ export const userStats = pgTable("user_stats", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Integration Connections table - Tracks which integrations are connected by users/admins
+export const integrationConnections = pgTable("integration_connections", {
+  id: serial("id").primaryKey(),
+  facultyId: integer("faculty_id").references(() => faculty.id),
+  integrationId: varchar("integration_id", { length: 255 }).notNull(), // e.g., 'connector:ccfg_notion_01K49R392Z3CSNMXCPWSV67AF4'
+  integrationName: varchar("integration_name", { length: 255 }).notNull(), // e.g., 'Notion'
+  integrationType: varchar("integration_type", { length: 50 }).notNull(), // 'connector', 'blueprint'
+  status: varchar("status", { length: 50 }).default("disconnected").notNull(), // 'connected', 'disconnected', 'error'
+  isAdminManaged: boolean("is_admin_managed").default(false), // If true, this connection is managed by admins for all users
+  institution: varchar("institution", { length: 255 }), // Institution for admin-managed connections
+  lastConnectedAt: timestamp("last_connected_at"),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Integration Parameters table - Stores configuration parameters for integrations
+export const integrationParameters = pgTable("integration_parameters", {
+  id: serial("id").primaryKey(),
+  connectionId: integer("connection_id").references(() => integrationConnections.id).notNull(),
+  parameterKey: varchar("parameter_key", { length: 255 }).notNull(), // e.g., 'api_key', 'endpoint', 'webhook_url'
+  parameterValue: text("parameter_value"), // Encrypted for sensitive values
+  parameterType: varchar("parameter_type", { length: 50 }).default("string"), // 'string', 'number', 'boolean', 'json', 'encrypted'
+  isRequired: boolean("is_required").default(false),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas
 export const insertTeamSchema = createInsertSchema(teams).omit({
   id: true,
@@ -372,8 +420,26 @@ export const insertTeamSchema = createInsertSchema(teams).omit({
   updatedAt: true,
 });
 
+export const insertSystemSettingsSchema = createInsertSchema(systemSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertUserStatsSchema = createInsertSchema(userStats).omit({
   id: true,
+  updatedAt: true,
+});
+
+export const insertIntegrationConnectionSchema = createInsertSchema(integrationConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertIntegrationParameterSchema = createInsertSchema(integrationParameters).omit({
+  id: true,
+  createdAt: true,
   updatedAt: true,
 });
 
@@ -410,5 +476,14 @@ export type InsertTeam = z.infer<typeof insertTeamSchema>;
 
 export type Session = typeof sessions.$inferSelect;
 
+export type SystemSettings = typeof systemSettings.$inferSelect;
+export type InsertSystemSettings = z.infer<typeof insertSystemSettingsSchema>;
+
 export type UserStats = typeof userStats.$inferSelect;
 export type InsertUserStats = z.infer<typeof insertUserStatsSchema>;
+
+export type IntegrationConnection = typeof integrationConnections.$inferSelect;
+export type InsertIntegrationConnection = z.infer<typeof insertIntegrationConnectionSchema>;
+
+export type IntegrationParameter = typeof integrationParameters.$inferSelect;
+export type InsertIntegrationParameter = z.infer<typeof insertIntegrationParameterSchema>;
