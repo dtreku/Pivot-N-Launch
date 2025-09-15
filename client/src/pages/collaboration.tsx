@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDefaultFaculty } from "@/hooks/use-faculty";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,8 +56,8 @@ export default function Collaboration() {
   const { faculty: currentUser } = useAuth();
   const { data: projects = [] } = useProjects(faculty?.id);
 
-  // Get all contributions across projects
-  const { data: allContributions = [], isLoading } = useQuery({
+  // Get all contributions across projects (unsorted baseline)
+  const { data: rawContributions = [], isLoading } = useQuery({
     queryKey: ["/api/contributions/all", faculty?.id],
     queryFn: async () => {
       if (!projects.length) return [];
@@ -67,29 +67,36 @@ export default function Collaboration() {
       );
       
       const contributionsArrays = await Promise.all(contributionsPromises);
-      const allContributions = contributionsArrays.flat();
-      
-      // Sort to show current user's contributions first, then others
-      return allContributions.sort((a, b) => {
-        const currentUserEmail = currentUser?.email;
-        if (!currentUserEmail) {
-          // If no current user, just sort by date
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        
-        const aIsCurrentUser = a.studentEmail === currentUserEmail;
-        const bIsCurrentUser = b.studentEmail === currentUserEmail;
-        
-        // If one is from current user and other is not, current user goes first
-        if (aIsCurrentUser && !bIsCurrentUser) return -1;
-        if (!aIsCurrentUser && bIsCurrentUser) return 1;
-        
-        // If both are from same user type (current user or others), sort by date
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      });
+      return contributionsArrays.flat().sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     },
     enabled: !!faculty?.id && projects.length > 0,
   });
+
+  // Sort contributions reactively to show current user first
+  const allContributions = useMemo(() => {
+    if (!rawContributions.length) return [];
+    
+    const currentUserEmail = currentUser?.email;
+    if (!currentUserEmail) {
+      // If no current user, just return date-sorted
+      return rawContributions;
+    }
+    
+    // Sort to show current user's contributions first, then others
+    return [...rawContributions].sort((a, b) => {
+      const aIsCurrentUser = a.studentEmail === currentUserEmail;
+      const bIsCurrentUser = b.studentEmail === currentUserEmail;
+      
+      // If one is from current user and other is not, current user goes first
+      if (aIsCurrentUser && !bIsCurrentUser) return -1;
+      if (!aIsCurrentUser && bIsCurrentUser) return 1;
+      
+      // If both are from same user type (current user or others), sort by date
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawContributions, currentUser?.email]);
 
   // Filter contributions
   const filteredContributions = allContributions.filter(contribution => {
