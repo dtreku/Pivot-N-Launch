@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
 import {
   Plug,
   ExternalLink,
@@ -174,6 +177,8 @@ const INTEGRATIONS: Array<{
 export default function Integrations() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [configDialog, setConfigDialog] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<IntegrationConfig>({
     resolver: zodResolver(integrationConfigSchema),
@@ -184,9 +189,34 @@ export default function Integrations() {
     },
   });
 
+  // Fetch user's integrations from API
+  const { data: integrationsData, isLoading: integrationsLoading } = useQuery({
+    queryKey: ["/api/integrations"],
+  });
+
+  const userConnections = integrationsData?.userConnections || [];
+  const adminConnections = integrationsData?.adminConnections || [];
+
+  // Combine static integration info with connection status
+  const combinedIntegrations = INTEGRATIONS.map(integration => {
+    const userConnection = userConnections.find(
+      conn => conn.integrationId === integration.id
+    );
+    const adminConnection = adminConnections.find(
+      conn => conn.integrationId === integration.id
+    );
+    
+    return {
+      ...integration,
+      status: (userConnection || adminConnection) ? "connected" : "available",
+      connectionId: userConnection?.id || adminConnection?.id,
+      isAdminConnection: !!adminConnection && !userConnection,
+    };
+  });
+
   const filteredIntegrations = selectedCategory === "all" 
-    ? INTEGRATIONS 
-    : INTEGRATIONS.filter(integration => integration.category === selectedCategory);
+    ? combinedIntegrations 
+    : combinedIntegrations.filter(integration => integration.category === selectedCategory);
 
   const getStatusIcon = (status: IntegrationStatus["status"]) => {
     switch (status) {
@@ -210,20 +240,112 @@ export default function Integrations() {
     }
   };
 
+  // Connect integration mutation
+  const connectMutation = useMutation({
+    mutationFn: async (integrationData: {
+      integrationId: string;
+      integrationName: string;
+      integrationType: string;
+      parameters?: Record<string, any>;
+      isAdminManaged?: boolean;
+    }) => {
+      return await apiRequest("/api/integrations/connect", "POST", integrationData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      toast({
+        title: "Integration Connected",
+        description: "Successfully connected to the integration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Connection Failed",
+        description: error?.message || "Failed to connect integration",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Disconnect integration mutation
+  const disconnectMutation = useMutation({
+    mutationFn: async (connectionId: number) => {
+      return await apiRequest(`/api/integrations/${connectionId}`, "DELETE");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      toast({
+        title: "Integration Disconnected",
+        description: "Successfully disconnected from the integration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Disconnection Failed",
+        description: error?.message || "Failed to disconnect integration",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleConnect = (integrationId: string) => {
-    console.log("Connecting to:", integrationId);
-    // Implement actual connection logic
+    const integration = INTEGRATIONS.find(i => i.id === integrationId);
+    if (!integration) return;
+
+    connectMutation.mutate({
+      integrationId: integration.id,
+      integrationName: integration.name,
+      integrationType: integration.category,
+      parameters: {},
+      isAdminManaged: false,
+    });
   };
 
   const handleDisconnect = (integrationId: string) => {
-    console.log("Disconnecting from:", integrationId);
-    // Implement actual disconnection logic
+    const integration = combinedIntegrations.find(i => i.id === integrationId);
+    if (!integration?.connectionId) return;
+
+    disconnectMutation.mutate(integration.connectionId);
   };
 
+  // Configuration mutation
+  const configureMutation = useMutation({
+    mutationFn: async (configData: {
+      connectionId: number;
+      parameters: Record<string, any>;
+    }) => {
+      return await apiRequest(`/api/integrations/${configData.connectionId}/configure`, "PUT", { parameters: configData.parameters });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      setConfigDialog(null);
+      form.reset();
+      toast({
+        title: "Integration Configured",
+        description: "Successfully updated integration settings.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Configuration Failed", 
+        description: error?.message || "Failed to update integration settings",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: IntegrationConfig) => {
-    console.log("Configuring integration:", configDialog, data);
-    setConfigDialog(null);
-    form.reset();
+    const integration = combinedIntegrations.find(i => i.id === configDialog);
+    if (!integration?.connectionId) return;
+
+    configureMutation.mutate({
+      connectionId: integration.connectionId,
+      parameters: {
+        apiKey: data.apiKey,
+        endpoint: data.endpoint,
+        ...data.settings,
+      },
+    });
   };
 
   const categories = [
@@ -234,6 +356,27 @@ export default function Integrations() {
     { value: "cloud", label: "Cloud Services", icon: Cloud },
     { value: "analytics", label: "Analytics", icon: BarChart3 },
   ];
+
+  if (integrationsLoading) {
+    return (
+      <div className="anti-overload-container">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Integrations
+          </h1>
+          <p className="text-gray-600 text-lg">
+            Connect knowledge tools, survey platforms, and educational services to enhance your PBL toolkit
+          </p>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-pulse text-gray-500 mb-4">Loading integrations...</div>
+            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="anti-overload-container">
@@ -412,10 +555,18 @@ export default function Integrations() {
                                           type="button"
                                           variant="outline"
                                           onClick={() => handleDisconnect(integration.id)}
+                                          disabled={disconnectMutation.isPending}
+                                          data-testid={`button-disconnect-${integration.id}`}
                                         >
-                                          Disconnect
+                                          {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
                                         </Button>
-                                        <Button type="submit">Update</Button>
+                                        <Button 
+                                          type="submit"
+                                          disabled={configureMutation.isPending}
+                                          data-testid={`button-update-config-${integration.id}`}
+                                        >
+                                          {configureMutation.isPending ? "Updating..." : "Update"}
+                                        </Button>
                                       </div>
                                     </form>
                                   </Form>
@@ -427,8 +578,10 @@ export default function Integrations() {
                               size="sm"
                               onClick={() => handleConnect(integration.id)}
                               className="pbl-button-primary"
+                              disabled={connectMutation.isPending}
+                              data-testid={`button-connect-${integration.id}`}
                             >
-                              Connect
+                              {connectMutation.isPending ? "Connecting..." : "Connect"}
                             </Button>
                           )}
                         </div>
