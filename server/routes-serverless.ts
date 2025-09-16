@@ -1,9 +1,29 @@
 // Serverless-compatible routes for Netlify Functions
 import type { Express } from "express";
 import { storage } from "./storage";
+import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { 
+  insertFacultySchema,
+  insertProjectSchema,
+  insertStudentContributionSchema,
+  insertKnowledgeBaseSchema,
+  insertObjectiveConversionSchema,
+  insertSurveyResponseSchema,
+  insertAnalyticsEventSchema,
+  insertDocumentUploadSchema,
+  insertTeamSchema
+} from "@shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import OpenAI from "openai";
+import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
+
+// Helper function for error messages
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export async function registerRoutes(app: Express) {
   // Configure session middleware for serverless
@@ -42,6 +62,23 @@ export async function registerRoutes(app: Express) {
       return next();
     }
     return res.status(403).json({ message: "Admin access required" });
+  };
+
+  // Middleware to require super admin role
+  const requireSuperAdmin = (req: any, res: any, next: any) => {
+    if (req.session?.role !== 'super_admin') {
+      return res.status(403).json({ message: "Super admin access required" });
+    }
+    return next();
+  };
+
+  // Middleware to check if user is approved
+  const requireApproved = (req: any, res: any, next: any) => {
+    const user = req.session;
+    if (user?.status !== 'approved') {
+      return res.status(403).json({ message: "Account pending approval" });
+    }
+    return next();
   };
   // Seed endpoint for database initialization - ADMIN ONLY
   app.post('/api/seed', requireAuth, requireAdmin, async (req, res) => {
@@ -113,6 +150,69 @@ export async function registerRoutes(app: Express) {
         message: "Error seeding database",
         error: error instanceof Error ? error.message : "Unknown error"
       });
+    }
+  });
+
+  // Faculty routes
+  app.get("/api/faculty/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const faculty = await storage.getFaculty(id);
+      
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json(faculty);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/faculty/email/:email", async (req, res) => {
+    try {
+      const email = req.params.email;
+      const faculty = await storage.getFacultyByEmail(email);
+      
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json(faculty);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/faculty", async (req, res) => {
+    try {
+      const validatedData = insertFacultySchema.parse(req.body);
+      const faculty = await storage.createFaculty(validatedData);
+      res.status(201).json(faculty);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/faculty/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertFacultySchema.partial().parse(req.body);
+      const faculty = await storage.updateFaculty(id, validatedData);
+      
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json(faculty);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update faculty", error: getErrorMessage(error) });
     }
   });
 
@@ -234,6 +334,281 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Team management routes
+  app.get("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teams = await storage.getTeamsByAdmin((req.session as any).facultyId);
+      res.json(teams);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch teams", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const validatedData = insertTeamSchema.parse({
+        ...req.body,
+        adminId: (req.session as any).facultyId,
+      });
+      const team = await storage.createTeam(validatedData);
+      res.status(201).json(team);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create team", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/teams/:id/members", requireAuth, async (req, res) => {
+    try {
+      const teamId = parseInt(req.params.id);
+      const members = await storage.getTeamMembers(teamId);
+      res.json(members);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch team members", error: getErrorMessage(error) });
+    }
+  });
+
+  // Project routes
+  app.get("/api/projects/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const projects = await storage.getProjectsByFaculty(facultyId);
+      res.json(projects);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch projects", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const project = await storage.getProject(id);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      res.json(project);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch project", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const validatedData = insertProjectSchema.parse(req.body);
+      const project = await storage.createProject(validatedData);
+      
+      // Track analytics event
+      await storage.createAnalyticsEvent({
+        facultyId: project.facultyId,
+        eventType: "project_created",
+        eventData: { projectId: project.id, discipline: project.discipline },
+      });
+      
+      res.status(201).json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create project", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertProjectSchema.partial().parse(req.body);
+      const project = await storage.updateProject(id, validatedData);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Track analytics event
+      await storage.createAnalyticsEvent({
+        facultyId: project.facultyId,
+        eventType: "project_updated",
+        eventData: { projectId: project.id, status: project.status },
+      });
+      
+      res.json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update project", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteProject(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      res.json({ message: "Project deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete project", error: getErrorMessage(error) });
+    }
+  });
+
+  // Knowledge base routes
+  app.get("/api/knowledge-base/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const entries = await storage.getKnowledgeBaseByFaculty(facultyId);
+      res.json(entries);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch knowledge base", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/knowledge-base", async (req, res) => {
+    try {
+      const validatedData = insertKnowledgeBaseSchema.parse(req.body);
+      const entry = await storage.createKnowledgeBase(validatedData);
+      res.status(201).json(entry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid knowledge base data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create knowledge base entry", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/knowledge-base/search/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const { query } = req.query;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const results = await storage.searchKnowledgeBase(facultyId, query);
+      res.json(results);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search knowledge base", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/knowledge-base/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteKnowledgeBase(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Knowledge base entry not found" });
+      }
+      
+      res.json({ message: "Knowledge base entry deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete knowledge base entry", error: getErrorMessage(error) });
+    }
+  });
+
+  // Objective conversion routes
+  app.get("/api/objective-conversions/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const conversions = await storage.getObjectiveConversionsByFaculty(facultyId);
+      res.json(conversions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch objective conversions", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/objective-conversions", async (req, res) => {
+    try {
+      const validatedData = insertObjectiveConversionSchema.parse(req.body);
+      const conversion = await storage.createObjectiveConversion(validatedData);
+      
+      // Track analytics event
+      await storage.createAnalyticsEvent({
+        facultyId: conversion.facultyId,
+        eventType: "objective_converted",
+        eventData: { discipline: conversion.discipline },
+      });
+      
+      res.status(201).json(conversion);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid conversion data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create objective conversion", error: getErrorMessage(error) });
+    }
+  });
+
+  // Survey response routes
+  app.post("/api/survey-responses", async (req, res) => {
+    try {
+      const validatedData = insertSurveyResponseSchema.parse(req.body);
+      const response = await storage.createSurveyResponse(validatedData);
+      res.status(201).json(response);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid survey response data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create survey response", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/survey-responses/project/:projectId", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const responses = await storage.getSurveyResponsesByProject(projectId);
+      res.json(responses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch survey responses", error: getErrorMessage(error) });
+    }
+  });
+
+  // Analytics routes
+  app.post("/api/analytics", async (req, res) => {
+    try {
+      const validatedData = insertAnalyticsEventSchema.parse(req.body);
+      const event = await storage.createAnalyticsEvent(validatedData);
+      res.status(201).json(event);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid analytics data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create analytics event", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/analytics/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const { eventType } = req.query;
+      
+      const events = await storage.getAnalyticsByFaculty(
+        facultyId, 
+        eventType as string || undefined
+      );
+      res.json(events);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch analytics", error: getErrorMessage(error) });
+    }
+  });
+
+  // Dashboard stats route
+  app.get("/api/dashboard/stats/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const stats = await storage.getDashboardStats(facultyId);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch dashboard stats", error: getErrorMessage(error) });
+    }
+  });
+
   // Admin endpoints for user management
   app.get('/api/admin/pending-users', requireAuth, requireAdmin, async (req, res) => {
     try {
@@ -275,6 +650,195 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Reject user error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Extended Admin User Management Routes  
+  app.get("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllFaculty();
+      res.json(users.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        title: user.title,
+        department: user.department,
+        institution: user.institution,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        approvedAt: user.approvedAt
+      })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch users", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/admin/users/pending", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const pendingUsers = await storage.getPendingFaculty();
+      res.json(pendingUsers.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        title: user.title,
+        department: user.department,
+        institution: user.institution,
+        createdAt: user.createdAt
+      })));
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch pending users", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const session = req.session as any;
+      const user = await storage.approveFaculty(userId, session.facultyId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Set user as active after approval
+      await storage.setFacultyStatus(userId, "approved");
+      await storage.updateFaculty(userId, { isActive: true });
+
+      res.json({
+        message: "User approved successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users/:id/reject", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.rejectFaculty(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "User rejected successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+      const session = req.session as any;
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role: ['student', 'instructor', 'admin'].includes(role) ? role : 'instructor',
+        status: "approved", // Admin-created accounts are auto-approved
+        title,
+        department,
+        institution,
+        isActive: true,
+        approvedBy: session.facultyId,
+        approvedAt: new Date()
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+
+      // Create initial user stats
+      await storage.createUserStats({
+        facultyId: faculty.id,
+        loginCount: 0,
+        projectsCreated: 0,
+        templatesUsed: 0,
+        totalTimeSpent: 0,
+        lastActiveAt: new Date(),
+      });
+
+      res.status(201).json({
+        message: "User created successfully",
+        user: {
+          id: faculty.id,
+          name: faculty.name,
+          email: faculty.email,
+          role: faculty.role,
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution,
+          status: faculty.status
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create user", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/admin/users/:id/status", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { status, isActive } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      const updateData: any = { status };
+      if (typeof isActive === 'boolean') {
+        updateData.isActive = isActive;
+      }
+
+      const user = await storage.updateFaculty(userId, updateData);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "User status updated successfully",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          status: user.status,
+          isActive: user.isActive
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update user status", error: getErrorMessage(error) });
     }
   });
 
