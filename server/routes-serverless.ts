@@ -19,6 +19,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
+import * as pdfParse from "pdf-parse";
 
 // Helper function for error messages
 function getErrorMessage(error: unknown): string {
@@ -472,7 +473,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/knowledge-base", async (req, res) => {
     try {
       const validatedData = insertKnowledgeBaseSchema.parse(req.body);
-      const entry = await storage.createKnowledgeBase(validatedData);
+      const entry = await storage.createKnowledgeBaseEntry(validatedData);
       res.status(201).json(entry);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -501,7 +502,7 @@ export async function registerRoutes(app: Express) {
   app.delete("/api/knowledge-base/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.deleteKnowledgeBase(id);
+      const success = await storage.deleteKnowledgeBaseEntry(id);
       
       if (!success) {
         return res.status(404).json({ message: "Knowledge base entry not found" });
@@ -839,6 +840,561 @@ export async function registerRoutes(app: Express) {
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to update user status", error: getErrorMessage(error) });
+    }
+  });
+
+  // Document upload routes
+  app.get("/api/documents/faculty/:facultyId", async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.facultyId);
+      const documents = await storage.getDocumentUploadsByFaculty(facultyId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/documents/upload-url", async (req, res) => {
+    try {
+      const { fileName } = req.body;
+      if (!fileName) {
+        return res.status(400).json({ message: "fileName is required" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL(fileName);
+      res.json({ uploadURL });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate upload URL", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const validatedData = insertDocumentUploadSchema.parse(req.body);
+      const document = await storage.createDocumentUpload(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create document record", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Update download count in database if this is a tracked document
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.path);
+      // Note: In a full implementation, you'd want to track which documents correspond to which object paths
+      
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteDocumentUpload(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document", error: getErrorMessage(error) });
+    }
+  });
+
+  // OpenAI API Key Management Routes
+  app.get("/api/faculty/:id/settings", requireAuth, async (req: any, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      const session = req.session as any;
+      
+      // Strict authorization check - users can only access their own settings
+      if (session.facultyId !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const faculty = await storage.getFaculty(facultyId);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json({
+        hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
+        // Never return the actual API key for security
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      const session = req.session as any;
+      
+      // Strict authorization check - users can only update their own API key
+      if (session.facultyId !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Validate request body
+      const apiKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters").regex(/^sk-/, "API key must start with 'sk-'")
+      });
+      
+      const validatedData = apiKeySchema.parse(req.body);
+      
+      // Encrypt the API key before storing
+      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
+      await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
+      
+      res.json({ message: "API key updated successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid API key", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update API key", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      const session = req.session as any;
+      
+      // Strict authorization check - users can only delete their own API key
+      if (session.facultyId !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.updateFaculty(facultyId, { openaiApiKey: null });
+      
+      res.json({ message: "API key removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Rate limiting middleware for testing (simple in-memory solution)
+  const testKeyLimiter = new Map<string, { count: number; lastReset: number }>();
+  const TEST_LIMIT = 5; // 5 attempts per hour
+  const TEST_WINDOW = 60 * 60 * 1000; // 1 hour
+
+  app.post("/api/openai/test", requireAuth, async (req: any, res) => {
+    try {
+      const session = req.session as any;
+      // Rate limiting
+      const userId = session.facultyId.toString();
+      const now = Date.now();
+      const userLimits = testKeyLimiter.get(userId);
+      
+      if (userLimits) {
+        if (now - userLimits.lastReset > TEST_WINDOW) {
+          // Reset the counter if window passed
+          testKeyLimiter.set(userId, { count: 1, lastReset: now });
+        } else if (userLimits.count >= TEST_LIMIT) {
+          return res.status(429).json({ message: "Too many test attempts. Please try again later." });
+        } else {
+          userLimits.count++;
+        }
+      } else {
+        testKeyLimiter.set(userId, { count: 1, lastReset: now });
+      }
+      
+      // Validate request body
+      const testKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters")
+      });
+      
+      const validatedData = testKeySchema.parse(req.body);
+      
+      // Test the API key by making a simple request
+      const openai = new OpenAI({ apiKey: validatedData.apiKey });
+      
+      try {
+        // Use a very small, inexpensive request to test the key
+        await openai.models.list();
+        res.json({ valid: true, message: "API key is valid" });
+      } catch (openaiError: any) {
+        if (openaiError?.status === 401) {
+          return res.status(400).json({ valid: false, message: "Invalid API key" });
+        }
+        throw openaiError;
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to test API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Admin-only system settings routes
+  app.get("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const setting = await storage.getSystemSetting("default_openai_api_key");
+      res.json({
+        hasDefaultKey: !!(setting?.settingValue && setting.settingValue.length > 0),
+        updatedBy: setting?.updatedBy,
+        updatedAt: setting?.updatedAt
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch system settings", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const apiKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters").startsWith("sk-", "API key must start with 'sk-'")
+      });
+      
+      const validatedData = apiKeySchema.parse(req.body);
+      const session = req.session as any;
+      
+      // Encrypt the system default API key
+      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
+      
+      await storage.setSystemSetting({
+        settingKey: "default_openai_api_key",
+        settingValue: encryptedApiKey,
+        description: "Default OpenAI API key for system-wide operations",
+        category: "openai",
+        isEncrypted: true,
+        updatedBy: session.facultyId
+      });
+      
+      res.json({ message: "System default API key updated successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update system default API key", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteSystemSetting("default_openai_api_key");
+      res.json({ message: "System default API key removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove system default API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Helper function to get available OpenAI API key (user key or system default)
+  async function getOpenAIApiKey(userId: number): Promise<string | null> {
+    try {
+      // First try user's personal API key
+      const faculty = await storage.getFaculty(userId);
+      if (faculty?.openaiApiKey && isApiKeyEncrypted(faculty.openaiApiKey)) {
+        const decryptedKey = decryptApiKey(faculty.openaiApiKey);
+        if (decryptedKey) return decryptedKey;
+      }
+      
+      // Fall back to system default key (admin-only)
+      const systemSetting = await storage.getSystemSetting("default_openai_api_key");
+      if (systemSetting?.settingValue && isApiKeyEncrypted(systemSetting.settingValue)) {
+        const decryptedKey = decryptApiKey(systemSetting.settingValue);
+        if (decryptedKey) return decryptedKey;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to get OpenAI API key:', error);
+      return null;
+    }
+  }
+
+  // Vector search endpoints
+  app.post("/api/documents/:id/vectorize", requireAuth, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const session = req.session as any;
+      const apiKey = await getOpenAIApiKey(session.facultyId);
+      
+      if (!apiKey) {
+        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
+      }
+      
+      const document = await storage.getDocumentUpload(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      let textContent = '';
+      
+      // Extract text content based on file type
+      if (document.mimeType === 'application/pdf') {
+        try {
+          const objectStorageService = new ObjectStorageService();
+          const objectFile = await objectStorageService.getObjectEntityFile(`/objects/${document.fileUrl}`);
+          const buffer = Buffer.from(await objectFile.stream());
+          const pdfData = await pdfParse(Buffer.from(buffer));
+          textContent = pdfData.text;
+        } catch (error) {
+          console.warn("Failed to extract PDF text:", error);
+          textContent = document.fileName; // Fallback to filename
+        }
+      } else if (!textContent) {
+        textContent = document.fileName; // Fallback to filename for other types
+      }
+
+      // Generate embeddings using OpenAI
+      const openai = new OpenAI({ apiKey });
+      
+      try {
+        const response = await openai.embeddings.create({
+          model: "text-embedding-ada-002",
+          input: textContent.slice(0, 8000) // Limit to ~8k characters to stay within token limits
+        });
+        
+        const embeddings = JSON.stringify(response.data[0].embedding);
+        await storage.updateDocumentEmbeddings(documentId, embeddings, textContent);
+        
+        res.json({ message: "Document vectorized successfully", status: "ready" });
+      } catch (openaiError: any) {
+        await storage.updateDocumentEmbeddings(documentId, "", "");
+        if (openaiError?.status === 401) {
+          return res.status(400).json({ message: "Invalid OpenAI API key" });
+        }
+        throw openaiError;
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to vectorize document", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/search/documents", requireAuth, async (req: any, res) => {
+    try {
+      const searchSchema = z.object({
+        query: z.string().min(1, "Search query is required"),
+        limit: z.number().min(1).max(50).optional().default(10)
+      });
+      
+      const validatedData = searchSchema.parse(req.body);
+      const session = req.session as any;
+      const apiKey = await getOpenAIApiKey(session.facultyId);
+      
+      if (!apiKey) {
+        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
+      }
+      
+      // Generate embedding for search query
+      const openai = new OpenAI({ apiKey });
+      const response = await openai.embeddings.create({
+        model: "text-embedding-ada-002",
+        input: validatedData.query
+      });
+      
+      const queryEmbedding = response.data[0].embedding;
+      
+      // Search documents using vector similarity (simplified implementation)
+      const documents = await storage.vectorSearchDocuments(session.facultyId, queryEmbedding, validatedData.limit);
+      
+      res.json({ documents, query: validatedData.query });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to search documents", error: getErrorMessage(error) });
+    }
+  });
+
+  // Integration management routes
+  app.get("/api/integrations", requireAuth, async (req: any, res) => {
+    try {
+      const session = req.session as any;
+      const connections = await storage.getIntegrationConnections(session.facultyId);
+      
+      // Get admin-managed integrations filtered by user's institution
+      const adminConnections = await storage.getAdminIntegrationConnections(session.institution);
+      
+      res.json({ 
+        userConnections: connections, 
+        adminConnections: adminConnections,
+        userRole: session.role // Include user role so frontend knows permission level
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch integrations", error: getErrorMessage(error) });
+    }
+  });
+
+  app.post("/api/integrations/connect", requireAuth, async (req: any, res) => {
+    try {
+      const connectSchema = z.object({
+        integrationId: z.string().min(1),
+        integrationName: z.string().min(1),
+        integrationType: z.string().min(1),
+        parameters: z.record(z.any()).optional(),
+        isAdminManaged: z.boolean().optional().default(false)
+      });
+      
+      const validatedData = connectSchema.parse(req.body);
+      const session = req.session as any;
+      
+      // Only admins can create admin-managed connections
+      if (validatedData.isAdminManaged && session.role !== 'super_admin' && session.role !== 'admin') {
+        return res.status(403).json({ message: "Only admins can create system-wide integrations" });
+      }
+
+      // Access control: Users can only connect if there's an admin connection OR they are admin
+      if (!validatedData.isAdminManaged && session.role !== 'super_admin' && session.role !== 'admin') {
+        const adminConnections = await storage.getAdminIntegrationConnections(session.institution);
+        const hasAdminConnection = adminConnections.some((conn: any) => conn.integrationId === validatedData.integrationId);
+        
+        if (!hasAdminConnection) {
+          return res.status(403).json({ 
+            message: "This service is not available. Please contact your institution administrator to enable this integration." 
+          });
+        }
+      }
+      
+      // Create the integration connection
+      const connection = await storage.createIntegrationConnection({
+        facultyId: validatedData.isAdminManaged ? null : session.facultyId,
+        integrationId: validatedData.integrationId,
+        integrationName: validatedData.integrationName,
+        integrationType: validatedData.integrationType,
+        status: "connected",
+        isAdminManaged: validatedData.isAdminManaged,
+        institution: validatedData.isAdminManaged ? session.institution : null,
+        lastConnectedAt: new Date()
+      });
+      
+      // Add parameters if provided
+      if (validatedData.parameters) {
+        for (const [key, value] of Object.entries(validatedData.parameters)) {
+          await storage.createIntegrationParameter({
+            connectionId: connection.id,
+            parameterKey: key,
+            parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
+            parameterType: typeof value === 'object' ? 'json' : typeof value,
+            isRequired: true
+          });
+        }
+      }
+      
+      res.json({ connection, message: "Integration connected successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to connect integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/integrations/:id/configure", requireAuth, async (req: any, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      const session = req.session as any;
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions - users can only configure their own integrations, admins can configure admin-managed ones from their institution
+      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
+      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
+        return res.status(403).json({ message: "You don't have permission to configure this integration" });
+      }
+      
+      const configSchema = z.object({
+        parameters: z.record(z.any())
+      });
+      
+      const validatedData = configSchema.parse(req.body);
+      
+      // Delete existing parameters
+      const existingParams = await storage.getIntegrationParameters(connectionId);
+      for (const param of existingParams) {
+        await storage.deleteIntegrationParameter(param.id);
+      }
+      
+      // Add new parameters
+      for (const [key, value] of Object.entries(validatedData.parameters)) {
+        await storage.createIntegrationParameter({
+          connectionId: connectionId,
+          parameterKey: key,
+          parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
+          parameterType: typeof value === 'object' ? 'json' : typeof value,
+          isRequired: true
+        });
+      }
+      
+      // Update connection status
+      await storage.updateIntegrationConnection(connectionId, {
+        status: "connected",
+        lastConnectedAt: new Date()
+      });
+      
+      res.json({ message: "Integration configured successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to configure integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/integrations/:id", requireAuth, async (req: any, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      const session = req.session as any;
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions - users can only delete their own integrations, admins can delete admin-managed ones from their institution
+      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
+      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
+        return res.status(403).json({ message: "You don't have permission to delete this integration" });
+      }
+      
+      await storage.deleteIntegrationConnection(connectionId);
+      res.json({ message: "Integration disconnected successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to disconnect integration", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/integrations/:id/parameters", requireAuth, async (req: any, res) => {
+    try {
+      const connectionId = parseInt(req.params.id);
+      const connection = await storage.getIntegrationConnection(connectionId);
+      const session = req.session as any;
+      
+      if (!connection) {
+        return res.status(404).json({ message: "Integration connection not found" });
+      }
+      
+      // Check permissions - users can only view their own integration parameters, admins can view admin-managed ones from their institution  
+      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
+      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
+        return res.status(403).json({ message: "You don't have permission to view this integration's parameters" });
+      }
+      
+      const parameters = await storage.getIntegrationParameters(connectionId);
+      res.json({ parameters });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch integration parameters", error: getErrorMessage(error) });
     }
   });
 
