@@ -394,26 +394,124 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Export toolkit endpoint
+  // Project template endpoints
+  app.get('/api/templates', async (req, res) => {
+    try {
+      const { discipline } = req.query;
+      let templates;
+      
+      // Treat "all" as no filter, only apply discipline filter for specific disciplines
+      if (discipline && typeof discipline === 'string' && discipline !== 'all') {
+        templates = await storage.getProjectTemplatesByDiscipline(discipline);
+      } else {
+        templates = await storage.getProjectTemplates();
+      }
+      
+      res.json(templates);
+    } catch (error) {
+      console.error("Get templates error:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  app.get('/api/templates/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getProjectTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error("Get template error:", error);
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+
+  app.post('/api/templates', requireAuth, async (req, res) => {
+    try {
+      // Basic validation for template creation
+      if (!req.body || !req.body.title || !req.body.discipline) {
+        return res.status(400).json({ message: "Title and discipline are required" });
+      }
+
+      const template = await storage.createProjectTemplate(req.body);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Create template error:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  // Export toolkit endpoint - Enhanced with instructor data
   app.get('/api/export/toolkit', async (req, res) => {
     try {
-      // Basic toolkit export functionality
+      const facultyId = (req.session as any)?.facultyId;
+      const includeInstructorData = req.query.includeInstructor === 'true';
+      
+      // Require auth only for instructor-specific exports
+      if (includeInstructorData && !facultyId) {
+        return res.status(401).json({ message: "Authentication required for instructor data export" });
+      }
+      
+      // Base toolkit data
       const exportData = {
         platform: "PBL Toolkit",
         version: "1.0.0",
         exported_at: new Date().toISOString(),
+        export_type: includeInstructorData ? "instructor_custom" : "general",
         features: [
           "Methodology Wizard",
           "Learning Objectives Converter", 
           "Document Manager",
           "Student Collaboration",
-          "Analytics Dashboard"
-        ],
-        status: "ready_for_export"
+          "Analytics Dashboard",
+          "Knowledge Base",
+          "Pivot Assets",
+          "Project Templates"
+        ]
       };
+
+      // If instructor data requested, include their content
+      if (includeInstructorData && facultyId) {
+        try {
+          // Get instructor's projects
+          const projects = await storage.getProjectsByFaculty(facultyId);
+          
+          // Get instructor's knowledge base
+          const knowledgeBase = await storage.getKnowledgeBaseByFaculty(facultyId);
+          
+          // Get instructor's document uploads
+          const documents = await storage.getDocumentUploadsByFaculty(facultyId);
+          
+          // Add instructor-specific data
+          exportData.instructor_data = {
+            faculty_id: facultyId,
+            projects: projects.map(p => ({
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              discipline: p.discipline,
+              status: p.status,
+              created_at: p.createdAt
+            })),
+            knowledge_base_entries: knowledgeBase.length,
+            documents_uploaded: documents.length,
+            total_content_items: projects.length + knowledgeBase.length + documents.length
+          };
+        } catch (error) {
+          console.error("Error fetching instructor data:", error);
+          // Continue with basic export if instructor data fails
+        }
+      }
       
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 'attachment; filename="pbl-toolkit-export.json"');
+      const filename = includeInstructorData ? 
+        `pbl-toolkit-instructor-${new Date().toISOString().split('T')[0]}.json` :
+        `pbl-toolkit-general-${new Date().toISOString().split('T')[0]}.json`;
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.json(exportData);
     } catch (error) {
       console.error("Export toolkit error:", error);
