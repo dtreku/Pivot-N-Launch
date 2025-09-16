@@ -129,12 +129,35 @@ const RETRIEVAL_ACTIVITIES = [
   }
 ];
 
+// Available disciplines array
+const DISCIPLINES = [
+  { value: "fintech", label: "Fintech" },
+  { value: "information-systems", label: "Information Systems" },
+  { value: "data-science", label: "Data Science" },
+  { value: "knowledge-integration", label: "Knowledge Integration" },
+  { value: "blockchain", label: "Blockchain Technology" },
+  { value: "biochemistry", label: "Biochemistry" },
+  { value: "chemistry", label: "Chemistry" },
+  { value: "biology", label: "Biology" },
+  { value: "literature", label: "Literature & Language Arts" },
+  { value: "history", label: "History" },
+  { value: "philosophy", label: "Philosophy" },
+  { value: "visual-arts", label: "Visual Arts" },
+  { value: "mathematics", label: "Mathematics" },
+  { value: "statistics", label: "Statistics" },
+  { value: "economics", label: "Economics" },
+  { value: "other", label: "Other" }
+];
+
 export default function PivotAssets() {
   const [activeTab, setActiveTab] = useState("cards");
   const [selectedDiscipline, setSelectedDiscipline] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCard, setSelectedCard] = useState<number | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isNewDisciplineDialogOpen, setIsNewDisciplineDialogOpen] = useState(false);
+  const [newDisciplineName, setNewDisciplineName] = useState("");
+  const [availableDisciplines, setAvailableDisciplines] = useState(DISCIPLINES);
   const [newCardData, setNewCardData] = useState({
     title: "",
     discipline: "",
@@ -152,6 +175,40 @@ export default function PivotAssets() {
       card.definition.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesDiscipline && matchesSearch;
   });
+
+  const handleCreateNewDiscipline = () => {
+    if (!newDisciplineName.trim()) {
+      alert("Please enter a discipline name.");
+      return;
+    }
+
+    // Create discipline value from name (lowercase, replace spaces with hyphens)
+    const disciplineValue = newDisciplineName.trim().toLowerCase().replace(/\s+/g, '-');
+    
+    // Check if discipline already exists
+    const disciplineExists = availableDisciplines.some(d => d.value === disciplineValue || d.label.toLowerCase() === newDisciplineName.trim().toLowerCase());
+    if (disciplineExists) {
+      alert("A discipline with this name already exists.");
+      return;
+    }
+
+    // Add new discipline to available disciplines
+    const newDiscipline = {
+      value: disciplineValue,
+      label: newDisciplineName.trim()
+    };
+    
+    setAvailableDisciplines([...availableDisciplines, newDiscipline]);
+    
+    // Auto-select the new discipline for the card being created
+    setNewCardData({...newCardData, discipline: disciplineValue});
+    
+    // Reset and close dialog
+    setNewDisciplineName("");
+    setIsNewDisciplineDialogOpen(false);
+    
+    alert(`Successfully created new discipline: "${newDiscipline.label}"`);
+  };
 
   const handleCreateCard = () => {
     // Validate required fields
@@ -256,9 +313,11 @@ export default function PivotAssets() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Disciplines</SelectItem>
-            <SelectItem value="fintech">Fintech</SelectItem>
-            <SelectItem value="information-systems">Information Systems</SelectItem>
-            <SelectItem value="data-science">Data Science</SelectItem>
+            {availableDisciplines.map(discipline => (
+              <SelectItem key={discipline.value} value={discipline.value}>
+                {discipline.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -313,15 +372,28 @@ export default function PivotAssets() {
                     </div>
                     <div>
                       <Label htmlFor="discipline">Discipline *</Label>
-                      <Select value={newCardData.discipline} onValueChange={(value) => setNewCardData({...newCardData, discipline: value})}>
+                      <Select 
+                        value={newCardData.discipline} 
+                        onValueChange={(value) => {
+                          if (value === "add-new") {
+                            setIsNewDisciplineDialogOpen(true);
+                          } else {
+                            setNewCardData({...newCardData, discipline: value});
+                          }
+                        }}
+                      >
                         <SelectTrigger data-testid="select-card-discipline">
                           <SelectValue placeholder="Select discipline" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="fintech">Fintech</SelectItem>
-                          <SelectItem value="information-systems">Information Systems</SelectItem>
-                          <SelectItem value="data-science">Data Science</SelectItem>
-                          <SelectItem value="knowledge-integration">Knowledge Integration</SelectItem>
+                          {availableDisciplines.map(discipline => (
+                            <SelectItem key={discipline.value} value={discipline.value}>
+                              {discipline.label}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="add-new" className="text-blue-600 font-medium">
+                            + Add New Discipline
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -402,6 +474,47 @@ export default function PivotAssets() {
                       data-testid="button-save-card"
                     >
                       Create Pivot Card
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* New Discipline Dialog */}
+            <Dialog open={isNewDisciplineDialogOpen} onOpenChange={setIsNewDisciplineDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Add New Discipline</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div>
+                    <Label htmlFor="disciplineName">Discipline Name *</Label>
+                    <Input
+                      id="disciplineName"
+                      value={newDisciplineName}
+                      onChange={(e) => setNewDisciplineName(e.target.value)}
+                      placeholder="Enter discipline name (e.g., Computer Science)"
+                      className="mt-1"
+                      data-testid="input-discipline-name"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setNewDisciplineName("");
+                        setIsNewDisciplineDialogOpen(false);
+                      }}
+                      data-testid="button-cancel-discipline"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateNewDiscipline}
+                      className="pbl-button-primary"
+                      data-testid="button-create-discipline"
+                    >
+                      Add Discipline
                     </Button>
                   </div>
                 </div>
