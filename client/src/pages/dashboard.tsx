@@ -1,5 +1,8 @@
 import { useDefaultFaculty } from "@/hooks/use-faculty";
 import { useProjects, useDashboardStats } from "@/hooks/use-projects";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/ui/stats-card";
 import AntiOverloadBanner from "@/components/ui/anti-overload-banner";
@@ -13,7 +16,13 @@ import {
   Upload,
   Presentation,
   MessageSquare,
-  ArrowDown
+  ArrowDown,
+  Brain,
+  Zap,
+  BarChart3,
+  Check,
+  Plug,
+  AlertCircle
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -21,6 +30,88 @@ export default function Dashboard() {
   const { data: faculty } = useDefaultFaculty();
   const { data: projects = [] } = useProjects(faculty?.id);
   const { data: stats } = useDashboardStats(faculty?.id);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch integrations data to show dynamic status
+  const { data: integrationsData } = useQuery<{
+    userConnections: any[];
+    adminConnections: any[];
+    userRole: string;
+  }>({
+    queryKey: ["/api/integrations"],
+  });
+
+  const userConnections = integrationsData?.userConnections || [];
+  const adminConnections = integrationsData?.adminConnections || [];
+  const userRole = integrationsData?.userRole || 'instructor';
+  const isAdmin = userRole === 'super_admin' || userRole === 'admin';
+
+  // AI integration definitions (same as main integrations page)
+  const AI_INTEGRATIONS = [
+    {
+      id: "notebooklm",
+      name: "NotebookLM",
+      icon: Brain,
+      color: "blue",
+    },
+    {
+      id: "copilot", 
+      name: "Copilot",
+      icon: Zap,
+      color: "purple",
+    },
+    {
+      id: "qualtrics",
+      name: "Qualtrics", 
+      icon: BarChart3,
+      color: "orange",
+    }
+  ];
+
+  // Get dynamic status for AI integrations
+  const getIntegrationStatus = (integrationId: string) => {
+    const userConnection = userConnections.find(
+      (conn: any) => conn.integrationId === integrationId
+    );
+    const adminConnection = adminConnections.find(
+      (conn: any) => conn.integrationId === integrationId
+    );
+    return (userConnection || adminConnection) ? "connected" : "available";
+  };
+
+  // Connect integration mutation
+  const connectMutation = useMutation({
+    mutationFn: async (integrationData: {
+      integrationId: string;
+      integrationName: string;
+      integrationType: string;
+    }) => {
+      return await apiRequest("/api/integrations/connect", "POST", integrationData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/integrations"] });
+      toast({
+        title: "Integration Connected",
+        description: "Successfully connected to the integration.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Connection Failed",
+        description: error?.message || "Failed to connect integration",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleConnect = (integrationId: string, integrationName: string) => {
+    connectMutation.mutate({
+      integrationId,
+      integrationName,
+      integrationType: "knowledge",
+    });
+  };
 
   return (
     <div className="anti-overload-container">
@@ -274,52 +365,51 @@ export default function Dashboard() {
             </Link>
           </div>
 
-          {/* Integration Status */}
+          {/* Integration Status - Dynamic Data */}
           <div className="focus-card">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">AI Integrations</h2>
             
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white text-xs font-bold">G</span>
+              {AI_INTEGRATIONS.map(integration => {
+                const Icon = integration.icon;
+                const status = getIntegrationStatus(integration.id);
+                const isConnected = status === "connected";
+                
+                return (
+                  <div key={integration.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div className="flex items-center">
+                      <div className={`w-8 h-8 bg-${integration.color}-600 rounded-lg flex items-center justify-center mr-3`}>
+                        <Icon className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-800 text-sm">{integration.name}</p>
+                        <p className="text-xs text-gray-500 capitalize">{status}</p>
+                      </div>
+                    </div>
+                    {isConnected ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-blue-800"
+                        onClick={() => handleConnect(integration.id, integration.name)}
+                        disabled={connectMutation.isPending}
+                        data-testid={`button-connect-${integration.id}`}
+                      >
+                        Connect
+                      </Button>
+                    )}
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">NotebookLM</p>
-                    <p className="text-xs text-gray-500">Connected</p>
-                  </div>
-                </div>
-                <span className="integration-status connected"></span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white text-xs font-bold">M</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">Copilot</p>
-                    <p className="text-xs text-gray-500">Available</p>
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" className="text-blue-800">
-                  Connect
-                </Button>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                <div className="flex items-center">
-                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
-                    <span className="text-white text-xs font-bold">Q</span>
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800 text-sm">Qualtrics</p>
-                    <p className="text-xs text-gray-500">Connected</p>
-                  </div>
-                </div>
-                <span className="integration-status connected"></span>
-              </div>
+                );
+              })}
             </div>
+            
+            <Link href="/integrations">
+              <Button variant="outline" className="w-full mt-4 text-sm">
+                View All Integrations
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
