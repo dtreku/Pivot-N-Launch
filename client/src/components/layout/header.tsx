@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Download, Lightbulb } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Download, Lightbulb, ChevronDown, FileText, FileType, File } from "lucide-react";
 import FacultyProfile from "@/components/faculty/profile-display";
 import BackButton from "@/components/layout/back-button";
 import { useToast } from "@/hooks/use-toast";
@@ -7,10 +8,10 @@ import { useToast } from "@/hooks/use-toast";
 export default function Header() {
   const { toast } = useToast();
 
-  const handleExportToolkit = async () => {
+  const handleExportToolkit = async (format: 'word' | 'pdf' | 'text') => {
     try {
-      // Call the API endpoint to export general toolkit
-      const response = await fetch('/api/export/toolkit');
+      // Call the API endpoint with format parameter
+      const response = await fetch(`/api/export/toolkit?format=${format}`);
       
       if (!response.ok) {
         throw new Error('Failed to export toolkit');
@@ -18,7 +19,7 @@ export default function Header() {
 
       // Get the filename from the response headers
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'pbl-toolkit-general-guide.json';
+      let filename = `pbl-toolkit-guide.${format === 'word' ? 'docx' : format === 'pdf' ? 'pdf' : 'txt'}`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match) filename = match[1];
@@ -35,9 +36,10 @@ export default function Header() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      const formatNames = { word: 'Word Document', pdf: 'PDF', text: 'Text File' };
       toast({
         title: "Export Successful",
-        description: "PBL Toolkit instructor guide has been downloaded successfully.",
+        description: `PBL Toolkit instructor guide has been downloaded as ${formatNames[format]}.`,
       });
 
     } catch (error) {
@@ -67,14 +69,41 @@ export default function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <Button 
-              onClick={handleExportToolkit}
-              className="bg-blue-800 text-white hover:bg-blue-700"
-              data-testid="button-export-toolkit"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Toolkit
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  className="bg-blue-800 text-white hover:bg-blue-700"
+                  data-testid="button-export-toolkit"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Toolkit
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={() => handleExportToolkit('word')}
+                  data-testid="export-word"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Word Document (.docx)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExportToolkit('pdf')}
+                  data-testid="export-pdf"
+                >
+                  <FileType className="w-4 h-4 mr-2" />
+                  PDF Document (.pdf)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExportToolkit('text')}
+                  data-testid="export-text"
+                >
+                  <File className="w-4 h-4 mr-2" />
+                  Text File (.txt)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
             <FacultyProfile />
           </div>
