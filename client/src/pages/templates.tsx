@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import TemplateCard from "@/components/templates/template-card";
 import { Search, Filter, Plus, FileText, Download } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 import type { TemplateFilters } from "@/types";
 
 const DISCIPLINES = [
@@ -56,6 +58,8 @@ export default function Templates() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
+  const { toast } = useToast();
+  const [location, setLocation] = useLocation();
   const { data: faculty } = useDefaultFaculty();
   const { data: templates = [], isLoading } = useProjectTemplates(filters.discipline);
 
@@ -81,13 +85,70 @@ export default function Templates() {
   };
 
   const handleCreateProject = (templateId: number) => {
-    // This would navigate to project creation with the template pre-loaded
-    console.log("Creating project from template:", templateId);
+    // Navigate to methodology wizard with template pre-loaded
+    setLocation(`/methodology-wizard?templateId=${templateId}`);
+    toast({
+      title: "Redirecting to Methodology Wizard",
+      description: "Setting up your project with the selected template...",
+    });
   };
 
-  const handleExportTemplate = (templateId: number) => {
-    // This would export the template as PDF/DOCX
-    console.log("Exporting template:", templateId);
+  const handleExportTemplate = async (templateId: number) => {
+    try {
+      // Export template via API
+      const response = await fetch(`/api/templates/${templateId}`);
+      if (!response.ok) throw new Error('Failed to fetch template');
+      
+      const template = await response.json();
+      
+      // Create a detailed template export
+      const exportData = {
+        template_id: template.id,
+        name: template.name,
+        description: template.description,
+        discipline: template.discipline,
+        category: template.category,
+        difficulty_level: template.difficultyLevel,
+        pivot_concept: template.pivotConcept,
+        launch_context: template.launchContext,
+        learning_objectives: template.learningObjectives,
+        assessment_rubric: template.assessmentRubric,
+        exported_at: new Date().toISOString(),
+        platform: "PBL Toolkit"
+      };
+
+      // Download as JSON file
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `template-${template.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Template Exported",
+        description: `Template "${template.name}" has been exported successfully.`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Unable to export template. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateCustomTemplate = () => {
+    // Navigate to methodology wizard for custom template creation
+    setLocation('/methodology-wizard?mode=create-template');
+    toast({
+      title: "Create Custom Template",
+      description: "Redirecting to methodology wizard to create your custom template...",
+    });
   };
 
   if (isLoading) {
@@ -235,7 +296,12 @@ export default function Templates() {
             <Download className="w-4 h-4 mr-2" />
             Export All
           </Button>
-          <Button size="sm" className="pbl-button-primary">
+          <Button 
+            size="sm" 
+            className="pbl-button-primary"
+            onClick={handleCreateCustomTemplate}
+            data-testid="button-create-custom-template"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Create Custom Template
           </Button>
@@ -286,7 +352,12 @@ export default function Templates() {
               </p>
               <div className="flex items-center justify-between">
                 <Badge className="bg-red-600 text-white">Trending</Badge>
-                <Button size="sm" className="bg-red-600 text-white hover:bg-red-700">
+                <Button 
+                  size="sm" 
+                  className="bg-red-600 text-white hover:bg-red-700"
+                  onClick={() => handleCreateProject(1)}
+                  data-testid="button-use-blockchain-template"
+                >
                   Use Template
                 </Button>
               </div>
@@ -304,7 +375,12 @@ export default function Templates() {
               </p>
               <div className="flex items-center justify-between">
                 <Badge className="bg-blue-600 text-white">New</Badge>
-                <Button size="sm" className="bg-blue-600 text-white hover:bg-blue-700">
+                <Button 
+                  size="sm" 
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => handleCreateProject(2)}
+                  data-testid="button-use-data-analysis-template"
+                >
                   Use Template
                 </Button>
               </div>
