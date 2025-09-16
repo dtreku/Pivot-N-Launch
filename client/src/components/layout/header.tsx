@@ -9,8 +9,8 @@ export default function Header() {
 
   const handleExportToolkit = async () => {
     try {
-      // Call the API endpoint to export toolkit (with instructor data if logged in)
-      const response = await fetch('/api/export/toolkit?includeInstructor=true');
+      // Call the API endpoint to export general toolkit
+      const response = await fetch('/api/export/toolkit');
       
       if (!response.ok) {
         throw new Error('Failed to export toolkit');
@@ -18,7 +18,7 @@ export default function Header() {
 
       // Get the filename from the response headers
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'pbl-toolkit-export.json';
+      let filename = 'pbl-toolkit-general-guide.json';
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match) filename = match[1];
@@ -37,7 +37,7 @@ export default function Header() {
 
       toast({
         title: "Export Successful",
-        description: "PBL Toolkit has been exported with your instructor data.",
+        description: "PBL Toolkit instructor guide has been downloaded successfully.",
       });
 
     } catch (error) {
