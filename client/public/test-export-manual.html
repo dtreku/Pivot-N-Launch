@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Export Function</title>
+</head>
+<body>
+    <h1>Manual Export Test</h1>
+    <button onclick="testExport('json')">Test JSON Export</button>
+    <button onclick="testExport('word')">Test Word Export</button>
+    
+    <script>
+        async function testExport(format) {
+            console.log(`Testing ${format} export...`);
+            try {
+                const response = await fetch(`/api/export/toolkit?format=${format}`);
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const contentType = response.headers.get('Content-Type');
+                console.log('Content-Type:', contentType);
+                
+                if (format === 'json') {
+                    const text = await response.text();
+                    console.log('Response length:', text.length);
+                    console.log('First 200 chars:', text.substring(0, 200));
+                    
+                    if (text.startsWith('<!DOCTYPE html>')) {
+                        console.error('ERROR: Got HTML instead of JSON!');
+                    } else {
+                        console.log('SUCCESS: Got JSON response');
+                    }
+                } else {
+                    const blob = await response.blob();
+                    console.log('Blob size:', blob.size);
+                    console.log('Blob type:', blob.type);
+                    
+                    const text = await blob.text();
+                    if (text.startsWith('<!DOCTYPE html>') && text.includes('createHotContext')) {
+                        console.error('ERROR: Got Vite HTML instead of export content!');
+                    } else {
+                        console.log('SUCCESS: Got proper export content');
+                        // Create download
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `test-export-${format}.${format === 'word' ? 'html' : format}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                    }
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
