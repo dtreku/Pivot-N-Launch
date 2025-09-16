@@ -517,7 +517,7 @@ export default function KnowledgeBase() {
                   maxFileSize={50 * 1024 * 1024} // 50MB
                   onGetUploadParameters={handleGetUploadParameters}
                   onComplete={handleUploadComplete}
-                  buttonClassName="w-full"
+                  buttonClassName="w-full p-0 h-auto bg-transparent hover:bg-transparent shadow-none ring-0 focus-visible:ring-0 items-stretch justify-stretch text-left border-0"
                 >
                   <div className="border border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-200 cursor-pointer">
                     <div className="flex flex-col items-center justify-center space-y-3">
@@ -535,17 +535,6 @@ export default function KnowledgeBase() {
                     </div>
                   </div>
                 </ObjectUploader>
-                
-                <div className="text-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs"
-                    onClick={() => document.querySelector('input[type="file"]')?.click()}
-                  >
-                    Browse Files
-                  </Button>
-                </div>
                 
                 <div className="text-xs text-gray-500 space-y-1">
                   <p className="font-medium">Supported formats:</p>
