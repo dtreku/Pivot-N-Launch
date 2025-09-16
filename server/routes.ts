@@ -1846,7 +1846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         support_resources: {
           professional_development: [
-            "WPI Faculty Development Center workshops",
+            "WPI Project-Based Learning Institute workshops",
             "PBL Community of Practice meetings", 
             "Online training modules and video tutorials",
             "Peer mentoring network connections"
@@ -1854,7 +1854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           technical_support: [
             "Platform help documentation",
             "Live chat support during business hours",
-            "Email support: pbl-support@wpi.edu",
+            "Email support: dtreku@wpi.edu",
             "Community forums for instructor questions"
           ]
         },
