@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Header() {
   const { toast } = useToast();
 
-  const handleExportToolkit = async (format: 'word' | 'pdf' | 'text') => {
+  const handleExportToolkit = async (format: 'json' | 'text' | 'word' | 'pdf') => {
     try {
       // Call the API endpoint with format parameter
       const response = await fetch(`/api/export/toolkit?format=${format}`);
@@ -19,7 +19,12 @@ export default function Header() {
 
       // Get the filename from the response headers
       const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = `pbl-toolkit-guide.${format === 'word' ? 'docx' : format === 'pdf' ? 'pdf' : 'txt'}`;
+      let filename = `pbl-toolkit-guide.${
+        format === 'json' ? 'json' : 
+        format === 'word' ? 'html' : 
+        format === 'pdf' ? 'html' : 
+        'txt'
+      }`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="(.+)"/);
         if (match) filename = match[1];
@@ -36,7 +41,12 @@ export default function Header() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      const formatNames = { word: 'Word Document', pdf: 'PDF', text: 'Text File' };
+      const formatNames = { 
+        json: 'JSON Data', 
+        text: 'Text File', 
+        word: 'Word-Compatible HTML', 
+        pdf: 'Printable HTML' 
+      };
       toast({
         title: "Export Successful",
         description: `PBL Toolkit instructor guide has been downloaded as ${formatNames[format]}.`,
@@ -80,20 +90,13 @@ export default function Header() {
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem 
-                  onClick={() => handleExportToolkit('word')}
-                  data-testid="export-word"
-                >
-                  <FileText className="w-4 h-4 mr-2" />
-                  Word Document (.docx)
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleExportToolkit('pdf')}
-                  data-testid="export-pdf"
+                  onClick={() => handleExportToolkit('json')}
+                  data-testid="export-json"
                 >
                   <FileType className="w-4 h-4 mr-2" />
-                  PDF Document (.pdf)
+                  JSON Data (.json)
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => handleExportToolkit('text')}
@@ -101,6 +104,20 @@ export default function Header() {
                 >
                   <File className="w-4 h-4 mr-2" />
                   Text File (.txt)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExportToolkit('word')}
+                  data-testid="export-word"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Word-Compatible HTML (.html)
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleExportToolkit('pdf')}
+                  data-testid="export-pdf"
+                >
+                  <FileType className="w-4 h-4 mr-2" />
+                  Printable HTML (.html)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
