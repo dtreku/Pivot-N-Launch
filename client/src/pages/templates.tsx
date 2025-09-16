@@ -85,11 +85,11 @@ export default function Templates() {
   };
 
   const handleCreateProject = (templateId: number) => {
-    // Navigate to methodology wizard with template pre-loaded
-    setLocation(`/methodology-wizard?templateId=${templateId}`);
+    // Navigate to methodology wizard to CREATE A PROJECT with template pre-loaded
+    setLocation(`/methodology-wizard?mode=create-project&templateId=${templateId}`);
     toast({
-      title: "Redirecting to Methodology Wizard",
-      description: "Setting up your project with the selected template...",
+      title: "Creating Project from Template",
+      description: "Setting up your new project with the selected template...",
     });
   };
 
