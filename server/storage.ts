@@ -73,6 +73,7 @@ export interface IStorage {
   createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate>;
 
   // Student contribution methods
+  getAllStudentContributions(): Promise<StudentContribution[]>;
   getStudentContributionsByProject(projectId: number): Promise<StudentContribution[]>;
   createStudentContribution(contribution: InsertStudentContribution): Promise<StudentContribution>;
   updateStudentContributionStatus(id: number, status: string): Promise<StudentContribution | undefined>;
@@ -312,6 +313,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Student contribution methods
+  async getAllStudentContributions(): Promise<StudentContribution[]> {
+    return await db
+      .select()
+      .from(studentContributions)
+      .orderBy(desc(studentContributions.createdAt));
+  }
+
   async getStudentContributionsByProject(projectId: number): Promise<StudentContribution[]> {
     return await db
       .select()
