@@ -3,6 +3,7 @@ import type { Express } from "express";
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { 
@@ -21,8 +22,7 @@ import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
 import pdfParse from "pdf-parse";
 
-// Type declaration for pdf-parse module  
-declare module 'pdf-parse';
+// Type declaration moved to fix build errors
 
 // Helper function for error messages
 function getErrorMessage(error: unknown): string {
@@ -40,21 +40,24 @@ export async function registerRoutes(app: Express) {
     tableName: "sessions",
   });
 
-  app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: sessionTtl,
-    },
-  }));
+  // Session middleware disabled for serverless - using JWT only
+  if (process.env.NODE_ENV === 'development') {
+    app.use(session({
+      secret: process.env.SESSION_SECRET || 'dev-fallback-key',
+      store: sessionStore,
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        secure: false,
+        maxAge: sessionTtl,
+      },
+    }));
+  }
 
-  // Middleware to check if user is authenticated (supports both session cookies and Bearer tokens)
+  // JWT-based authentication middleware for serverless
   const requireAuth = async (req: any, res: any, next: any) => {
-    // Check session cookies first
+    // Check session cookies first (for backward compatibility)
     if (req.session?.facultyId) {
       const faculty = await storage.getFaculty(req.session.facultyId);
       if (faculty && faculty.isActive) {
@@ -63,22 +66,24 @@ export async function registerRoutes(app: Express) {
       }
     }
     
-    // Check Bearer token as fallback
+    // Check JWT Bearer token (primary method for serverless)
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      const sessionId = authHeader.replace('Bearer ', '');
+      const token = authHeader.replace('Bearer ', '');
       try {
-        const session = await storage.getSession(sessionId);
-        if (session) {
-          const faculty = await storage.getFaculty(session.facultyId);
-          if (faculty && faculty.isActive) {
-            (req as any).user = faculty;
-            (req as any).session = session;
-            return next();
-          }
+        const secretKey = process.env.SESSION_SECRET;
+        if (!secretKey) {
+          throw new Error('SESSION_SECRET environment variable is required for JWT authentication');
+        }
+        const decoded = jwt.verify(token, secretKey, { algorithms: ['HS256'] }) as any;
+        
+        const faculty = await storage.getFaculty(decoded.facultyId);
+        if (faculty && faculty.isActive && faculty.status === 'approved') {
+          (req as any).user = faculty;
+          return next();
         }
       } catch (error) {
-        console.error("Bearer token validation error:", error);
+        console.error("JWT token validation error:", error);
       }
     }
     
@@ -87,7 +92,8 @@ export async function registerRoutes(app: Express) {
 
   // Middleware to require admin role
   const requireAdmin = (req: any, res: any, next: any) => {
-    if (req.session?.role === 'super_admin' || req.session?.role === 'admin') {
+    const user = (req as any).user;
+    if (user?.role === 'super_admin' || user?.role === 'admin') {
       return next();
     }
     return res.status(403).json({ message: "Admin access required" });
@@ -95,7 +101,8 @@ export async function registerRoutes(app: Express) {
 
   // Middleware to require super admin role
   const requireSuperAdmin = (req: any, res: any, next: any) => {
-    if (req.session?.role !== 'super_admin') {
+    const user = (req as any).user;
+    if (user?.role !== 'super_admin') {
       return res.status(403).json({ message: "Super admin access required" });
     }
     return next();
@@ -103,7 +110,7 @@ export async function registerRoutes(app: Express) {
 
   // Middleware to check if user is approved
   const requireApproved = (req: any, res: any, next: any) => {
-    const user = req.session;
+    const user = (req as any).user;
     if (user?.status !== 'approved') {
       return res.status(403).json({ message: "Account pending approval" });
     }
@@ -268,22 +275,42 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Create session
+      // Create session for cookie-based auth (backward compatibility)
       (req.session as any).facultyId = faculty.id;
       (req.session as any).role = faculty.role;
       (req.session as any).name = faculty.name;
       (req.session as any).email = faculty.email;
 
+      // Generate JWT token for Bearer auth (primary for serverless)
+      const secretKey = process.env.SESSION_SECRET;
+      if (!secretKey) {
+        throw new Error('SESSION_SECRET environment variable is required for JWT authentication');
+      }
+      const sessionId = jwt.sign(
+        { 
+          facultyId: faculty.id,
+          role: faculty.role,
+          status: faculty.status,
+          email: faculty.email
+        }, 
+        secretKey, 
+        { expiresIn: '7d', algorithm: 'HS256' }
+      );
+
       await storage.updateLastLogin(faculty.id);
 
       res.json({
         success: true,
+        sessionId: sessionId,
         faculty: {
           id: faculty.id,
           name: faculty.name,
           email: faculty.email,
           role: faculty.role,
-          status: faculty.status
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution,
+          teamId: faculty.teamId
         }
       });
     } catch (error) {
@@ -386,7 +413,7 @@ export async function registerRoutes(app: Express) {
   // Team management routes
   app.get("/api/teams", requireAuth, async (req: any, res) => {
     try {
-      const teams = await storage.getTeamsByAdmin((req.session as any).facultyId);
+      const teams = await storage.getTeamsByAdmin((req as any).user.id);
       res.json(teams);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch teams", error: getErrorMessage(error) });
@@ -397,7 +424,7 @@ export async function registerRoutes(app: Express) {
     try {
       const validatedData = insertTeamSchema.parse({
         ...req.body,
-        adminId: (req.session as any).facultyId,
+        adminId: (req as any).user.id,
       });
       const team = await storage.createTeam(validatedData);
       res.status(201).json(team);
@@ -672,7 +699,7 @@ export async function registerRoutes(app: Express) {
   app.post('/api/admin/approve-user/:id', requireAuth, requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const adminId = (req.session as any).facultyId;
+      const adminId = (req as any).user.id;
       
       const approvedUser = await storage.approveFaculty(userId, adminId);
       if (!approvedUser) {
@@ -746,8 +773,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const session = req.session as any;
-      const user = await storage.approveFaculty(userId, session.facultyId);
+      const user = await storage.approveFaculty(userId, (req as any).user.id);
       
       if (!user) {
         return res.status(404).json({ message: "User not found" });
@@ -810,7 +836,7 @@ export async function registerRoutes(app: Express) {
 
       // Hash password
       const passwordHash = await bcrypt.hash(password, 10);
-      const session = req.session as any;
+      const currentUser = (req as any).user;
 
       const facultyData = {
         name,
@@ -822,7 +848,7 @@ export async function registerRoutes(app: Express) {
         department,
         institution,
         isActive: true,
-        approvedBy: session.facultyId,
+        approvedBy: currentUser.id,
         approvedAt: new Date()
       };
 
@@ -968,10 +994,10 @@ export async function registerRoutes(app: Express) {
   app.get("/api/faculty/:id/settings", requireAuth, async (req: any, res) => {
     try {
       const facultyId = parseInt(req.params.id);
-      const session = req.session as any;
+      const user = (req as any).user;
       
       // Strict authorization check - users can only access their own settings
-      if (session.facultyId !== facultyId) {
+      if (user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -992,10 +1018,10 @@ export async function registerRoutes(app: Express) {
   app.put("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
     try {
       const facultyId = parseInt(req.params.id);
-      const session = req.session as any;
+      const user = (req as any).user;
       
       // Strict authorization check - users can only update their own API key
-      if (session.facultyId !== facultyId) {
+      if (user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -1022,10 +1048,10 @@ export async function registerRoutes(app: Express) {
   app.delete("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
     try {
       const facultyId = parseInt(req.params.id);
-      const session = req.session as any;
+      const user = (req as any).user;
       
       // Strict authorization check - users can only delete their own API key
-      if (session.facultyId !== facultyId) {
+      if (user.id !== facultyId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -1044,9 +1070,9 @@ export async function registerRoutes(app: Express) {
 
   app.post("/api/openai/test", requireAuth, async (req: any, res) => {
     try {
-      const session = req.session as any;
+      const user = (req as any).user;
       // Rate limiting
-      const userId = session.facultyId.toString();
+      const userId = user.id.toString();
       const now = Date.now();
       const userLimits = testKeyLimiter.get(userId);
       
@@ -1123,7 +1149,7 @@ export async function registerRoutes(app: Express) {
         description: "Default OpenAI API key for system-wide operations",
         category: "openai",
         isEncrypted: true,
-        updatedBy: session.facultyId
+        updatedBy: user.id
       });
       
       res.json({ message: "System default API key updated successfully" });
@@ -1172,8 +1198,8 @@ export async function registerRoutes(app: Express) {
   app.post("/api/documents/:id/vectorize", requireAuth, async (req: any, res) => {
     try {
       const documentId = parseInt(req.params.id);
-      const session = req.session as any;
-      const apiKey = await getOpenAIApiKey(session.facultyId);
+      const user = (req as any).user;
+      const apiKey = await getOpenAIApiKey(user.id);
       
       if (!apiKey) {
         return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
@@ -1235,8 +1261,8 @@ export async function registerRoutes(app: Express) {
       });
       
       const validatedData = searchSchema.parse(req.body);
-      const session = req.session as any;
-      const apiKey = await getOpenAIApiKey(session.facultyId);
+      const user = (req as any).user;
+      const apiKey = await getOpenAIApiKey(user.id);
       
       if (!apiKey) {
         return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
@@ -1252,7 +1278,7 @@ export async function registerRoutes(app: Express) {
       const queryEmbedding = response.data[0].embedding;
       
       // Search documents using vector similarity (simplified implementation)
-      const documents = await storage.vectorSearchDocuments(session.facultyId, queryEmbedding, validatedData.limit);
+      const documents = await storage.vectorSearchDocuments(user.id, queryEmbedding, validatedData.limit);
       
       res.json({ documents, query: validatedData.query });
     } catch (error) {
@@ -1266,16 +1292,16 @@ export async function registerRoutes(app: Express) {
   // Integration management routes
   app.get("/api/integrations", requireAuth, async (req: any, res) => {
     try {
-      const session = req.session as any;
-      const connections = await storage.getIntegrationConnections(session.facultyId);
+      const user = (req as any).user;
+      const connections = await storage.getIntegrationConnections(user.id);
       
       // Get admin-managed integrations filtered by user's institution
-      const adminConnections = await storage.getAdminIntegrationConnections(session.institution);
+      const adminConnections = await storage.getAdminIntegrationConnections(user.institution);
       
       res.json({ 
         userConnections: connections, 
         adminConnections: adminConnections,
-        userRole: session.role // Include user role so frontend knows permission level
+        userRole: user.role // Include user role so frontend knows permission level
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch integrations", error: getErrorMessage(error) });
@@ -1293,16 +1319,16 @@ export async function registerRoutes(app: Express) {
       });
       
       const validatedData = connectSchema.parse(req.body);
-      const session = req.session as any;
+      const user = (req as any).user;
       
       // Only admins can create admin-managed connections
-      if (validatedData.isAdminManaged && session.role !== 'super_admin' && session.role !== 'admin') {
+      if (validatedData.isAdminManaged && user.role !== 'super_admin' && user.role !== 'admin') {
         return res.status(403).json({ message: "Only admins can create system-wide integrations" });
       }
 
       // Access control: Users can only connect if there's an admin connection OR they are admin
-      if (!validatedData.isAdminManaged && session.role !== 'super_admin' && session.role !== 'admin') {
-        const adminConnections = await storage.getAdminIntegrationConnections(session.institution);
+      if (!validatedData.isAdminManaged && user.role !== 'super_admin' && user.role !== 'admin') {
+        const adminConnections = await storage.getAdminIntegrationConnections(user.institution);
         const hasAdminConnection = adminConnections.some((conn: any) => conn.integrationId === validatedData.integrationId);
         
         if (!hasAdminConnection) {
@@ -1314,7 +1340,7 @@ export async function registerRoutes(app: Express) {
       
       // Create the integration connection
       const connection = await storage.createIntegrationConnection({
-        facultyId: validatedData.isAdminManaged ? null : session.facultyId,
+        facultyId: validatedData.isAdminManaged ? null : user.id,
         integrationId: validatedData.integrationId,
         integrationName: validatedData.integrationName,
         integrationType: validatedData.integrationType,
