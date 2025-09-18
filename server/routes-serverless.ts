@@ -58,7 +58,7 @@ export async function registerRoutes(app: Express) {
     if (req.session?.facultyId) {
       const faculty = await storage.getFaculty(req.session.facultyId);
       if (faculty && faculty.isActive) {
-        req.user = faculty;
+        (req as any).user = faculty;
         return next();
       }
     }
@@ -72,8 +72,8 @@ export async function registerRoutes(app: Express) {
         if (session) {
           const faculty = await storage.getFaculty(session.facultyId);
           if (faculty && faculty.isActive) {
-            req.user = faculty;
-            req.session = session;
+            (req as any).user = faculty;
+            (req as any).session = session;
             return next();
           }
         }
@@ -304,7 +304,7 @@ export async function registerRoutes(app: Express) {
 
   app.get('/api/auth/me', requireAuth, async (req, res) => {
     try {
-      const faculty = req.user; // Use authenticated user from middleware
+      const faculty = (req as any).user; // Use authenticated user from middleware
       if (!faculty) {
         return res.status(404).json({ message: "Faculty not found" });
       }
