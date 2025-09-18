@@ -1,0 +1,273 @@
+
+Skip to main content
+
+
+P
+Switch teams
+Projects
+Builds
+Extensions
+Domains
+Members
+Audit log
+Security Scorecard
+Usage & billing
+Team settings
+Visual editor dashboard
+Upgrade
+
+
+Projects
+pnltoolkit.professordtreku.com
+Switch projects
+
+News
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Support
+Project navigation
+Project overview
+Project configuration
+Deploys
+Preview Servers
+Logs
+Metrics
+Domain management
+Forms
+Blobs
+Extensions
+Neon
+Deploy detailsYour deploy failed due to an error
+Deploy failed for pivot-n-launch
+A failure prevented us from deploying your project.
+Why did it fail?
+Update signin.tsx
+Today at 5:12 AM, by dtrekudtreku on GitHub
+
+Production: main@e7eae11
+
+Functions
+Retry
+Deploy settings
+Delete deploy
+Deploy log
+Why did it fail?
+
+
+
+
+Maximize log
+Initializing
+Complete
+Building
+Failed
+5:12:43 AM: Netlify Build                                                 
+5:12:43 AM: ────────────────────────────────────────────────────────────────
+5:12:43 AM: ​
+5:12:43 AM: ❯ Version
+5:12:43 AM:   @netlify/build 35.1.6
+5:12:43 AM: ​
+5:12:43 AM: ❯ Flags
+5:12:43 AM:   accountId: 68b185be9b63ad3bccac437f
+5:12:43 AM:   baseRelDir: true
+5:12:43 AM:   buildId: 68cbcce7b123ff0008f66aa6
+5:12:43 AM:   deployId: 68cbcce7b123ff0008f66aa8
+5:12:43 AM: ​
+5:12:43 AM: ❯ Current directory
+5:12:43 AM:   /opt/build/repo
+5:12:43 AM: ​
+5:12:43 AM: ❯ Config file
+5:12:43 AM:   /opt/build/repo/netlify.toml
+5:12:43 AM: ​
+5:12:43 AM: ❯ Context
+5:12:43 AM:   production
+5:12:43 AM: ​
+5:12:43 AM: ❯ Installing extensions
+5:12:43 AM:    - neon
+5:12:45 AM: ​
+5:12:45 AM: ❯ Loading extensions
+5:12:45 AM:    - neon
+5:12:46 AM: ​
+5:12:46 AM: build.command from netlify.toml                               
+5:12:46 AM: ────────────────────────────────────────────────────────────────
+5:12:46 AM: ​
+5:12:46 AM: $ npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes.js
+5:12:52 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+5:12:52 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+5:12:59 AM: added 639 packages, and audited 640 packages in 13s
+5:12:59 AM: 85 packages are looking for funding
+5:12:59 AM:   run `npm fund` for details
+5:12:59 AM: 10 vulnerabilities (3 low, 7 moderate)
+5:12:59 AM: To address issues that do not require attention, run:
+5:12:59 AM:   npm audit fix
+5:12:59 AM: To address all issues (including breaking changes), run:
+5:12:59 AM:   npm audit fix --force
+5:12:59 AM: Run `npm audit` for details.
+5:12:59 AM: vite v5.4.19 building for production...
+5:13:00 AM: transforming...
+5:13:00 AM: Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+5:13:00 AM:   npx update-browserslist-db@latest
+5:13:00 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+5:13:04 AM: ✓ 2016 modules transformed.
+5:13:04 AM: rendering chunks...
+5:13:04 AM: computing gzip size...
+5:13:04 AM: ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+5:13:04 AM: ../dist/public/assets/index-DDrODsLK.css  147.03 kB │ gzip:  23.71 kB
+5:13:04 AM: ../dist/public/assets/index-CaSkiSru.js   880.34 kB │ gzip: 260.06 kB
+5:13:04 AM: 
+5:13:04 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+5:13:04 AM: - Using dynamic import() to code-split the application
+5:13:04 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+5:13:04 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+5:13:04 AM: ✓ built in 4.71s
+5:13:05 AM:   dist/routes.js  132.6kb
+5:13:05 AM: ⚡ Done in 8ms
+5:13:05 AM: ​
+5:13:05 AM: (build.command completed in 18.9s)
+5:13:05 AM: ​
+5:13:05 AM: Functions bundling                                            
+5:13:05 AM: ────────────────────────────────────────────────────────────────
+5:13:05 AM: ​
+5:13:05 AM: Packaging Functions from netlify/functions directory:
+5:13:05 AM:  - server.js
+5:13:05 AM: ​
+5:13:05 AM: ​
+5:13:05 AM: Dependencies installation error                               
+5:13:05 AM: ────────────────────────────────────────────────────────────────
+5:13:05 AM: ​
+5:13:05 AM:   Error message
+5:13:05 AM:   A Netlify Function failed to require one of its dependencies.
+5:13:05 AM:   Please make sure it is present in the site's top-level "package.json".
+​
+5:13:05 AM:   In file "/opt/build/repo/netlify/functions/server.js"
+5:13:05 AM:   Cannot find module 'jsonwebtoken'
+5:13:05 AM:   Require stack:
+5:13:05 AM:   - /opt/buildhome/node-deps/node_modules/@netlify/zip-it-and-ship-it/dist/runtimes/node/bundlers/zisi/resolve.js
+5:13:05 AM: ​
+5:13:05 AM:   Resolved config
+5:13:05 AM:   build:
+5:13:05 AM:     command: npm ci --include=dev && npx vite build --config vite.config.prod.ts &&
+5:13:05 AM:       npx esbuild server/routes-serverless.ts --platform=node --packages=external
+5:13:05 AM:       --bundle --format=cjs --outfile=dist/routes.js
+5:13:05 AM:     commandOrigin: config
+5:13:05 AM:     environment:
+5:13:05 AM:       - DATABASE_URL
+5:13:05 AM:       - NETLIFY_DATABASE_URL
+5:13:05 AM:       - NETLIFY_DATABASE_URL_UNPOOLED
+5:13:05 AM:       - NODE_ENV
+5:13:05 AM:       - SESSION_SECRET
+5:13:05 AM:       - NODE_VERSION
+5:13:05 AM:       - NPM_FLAGS
+5:13:05 AM:     publish: /opt/build/repo/dist/public
+5:13:05 AM:     publishOrigin: config
+5:13:05 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+5:13:05 AM:   redirects:
+5:13:06 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+5:13:06 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+5:13:06 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+5:13:06 AM: Failing build: Failed to build site
+5:13:07 AM: Finished processing build request in 53.691s
+Deploying
+Skipped
+Cleanup
+Skipped
+Post-processing
+Skipped
+Docs
+Pricing
+Support
+Blog
+Changelog
+Terms
+© 2025 Netlify
+
