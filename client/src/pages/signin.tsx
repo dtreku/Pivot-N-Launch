@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ interface SigninProps {
 }
 
 export default function Signin({ onSignin }: SigninProps) {
+  const [, setLocation] = useLocation();
   const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +76,9 @@ export default function Signin({ onSignin }: SigninProps) {
       localStorage.setItem("faculty", JSON.stringify(response.faculty));
       
       onSignin(response.sessionId, response.faculty);
+      
+      // Navigate to dashboard after successful sign-in
+      setLocation("/dashboard");
     } catch (error: any) {
       setError(error.message || "Sign in failed. Please check your credentials.");
     } finally {
