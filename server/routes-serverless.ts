@@ -52,12 +52,37 @@ export async function registerRoutes(app: Express) {
     },
   }));
 
-  // Middleware to check if user is authenticated
-  const requireAuth = (req: any, res: any, next: any) => {
+  // Middleware to check if user is authenticated (supports both session cookies and Bearer tokens)
+  const requireAuth = async (req: any, res: any, next: any) => {
+    // Check session cookies first
     if (req.session?.facultyId) {
-      return next();
+      const faculty = await storage.getFaculty(req.session.facultyId);
+      if (faculty && faculty.isActive) {
+        req.user = faculty;
+        return next();
+      }
     }
-    return res.status(401).json({ message: "Unauthorized" });
+    
+    // Check Bearer token as fallback
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const sessionId = authHeader.replace('Bearer ', '');
+      try {
+        const session = await storage.getSession(sessionId);
+        if (session) {
+          const faculty = await storage.getFaculty(session.facultyId);
+          if (faculty && faculty.isActive) {
+            req.user = faculty;
+            req.session = session;
+            return next();
+          }
+        }
+      } catch (error) {
+        console.error("Bearer token validation error:", error);
+      }
+    }
+    
+    return res.status(401).json({ message: "Authentication required" });
   };
 
   // Middleware to require admin role
@@ -279,11 +304,31 @@ export async function registerRoutes(app: Express) {
 
   app.get('/api/auth/me', requireAuth, async (req, res) => {
     try {
-      const faculty = await storage.getFaculty((req.session as any).facultyId);
+      const faculty = req.user; // Use authenticated user from middleware
       if (!faculty) {
         return res.status(404).json({ message: "Faculty not found" });
       }
-      res.json(faculty);
+      
+      // Get user stats
+      const stats = await storage.getDashboardStats(faculty.id);
+      
+      res.json({
+        faculty: {
+          id: faculty.id,
+          name: faculty.name,
+          email: faculty.email,
+          role: faculty.role,
+          status: faculty.status,
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution
+        },
+        stats: stats || {
+          totalProjects: 0,
+          activeProjects: 0,
+          completedProjects: 0
+        }
+      });
     } catch (error) {
       console.error("Get faculty error:", error);
       res.status(500).json({ message: "Internal server error" });
