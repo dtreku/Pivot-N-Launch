@@ -26,7 +26,7 @@ const conversionSchema = z.object({
 type ConversionForm = z.infer<typeof conversionSchema>;
 
 interface ConversionResult {
-  convertedFramework: string;
+  converted: string;
   pivotElements: string[];
   launchApplications: string[];
   implementationTips: string[];
