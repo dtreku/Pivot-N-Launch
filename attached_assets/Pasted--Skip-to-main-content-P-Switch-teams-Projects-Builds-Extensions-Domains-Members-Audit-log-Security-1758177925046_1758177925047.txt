@@ -1,0 +1,284 @@
+
+Skip to main content
+
+
+P
+Switch teams
+Projects
+Builds
+Extensions
+Domains
+Members
+Audit log
+Security Scorecard
+Usage & billing
+Team settings
+Visual editor dashboard
+Upgrade
+
+
+Projects
+pnltoolkit.professordtreku.com
+Switch projects
+
+News
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Support
+Project navigation
+Project overview
+Project configuration
+Deploys
+Preview Servers
+Logs
+Metrics
+Domain management
+Forms
+Blobs
+Extensions
+Neon
+Deploy detailsYour deploy failed due to an error
+Deploy failed for pivot-n-launch
+A failure prevented us from deploying your project.
+Why did it fail?
+Update netlify.toml
+Today at 2:43 AM, by dtrekudtreku on GitHub
+
+Production: main@60a6d90
+
+Functions
+Retry
+Deploy settings
+Delete deploy
+Deploy log
+Why did it fail?
+
+
+
+
+Maximize log
+Initializing
+Complete
+Building
+Failed
+2:43:50 AM: Netlify Build                                                 
+2:43:50 AM: ────────────────────────────────────────────────────────────────
+2:43:50 AM: ​
+2:43:50 AM: ❯ Version
+2:43:50 AM:   @netlify/build 35.1.6
+2:43:50 AM: ​
+2:43:50 AM: ❯ Flags
+2:43:50 AM:   accountId: 68b185be9b63ad3bccac437f
+2:43:50 AM:   baseRelDir: true
+2:43:50 AM:   buildId: 68cbaa17203955000807f159
+2:43:50 AM:   deployId: 68cbaa17203955000807f15b
+2:43:50 AM: ​
+2:43:50 AM: ❯ Current directory
+2:43:50 AM:   /opt/build/repo
+2:43:50 AM: ​
+2:43:50 AM: ❯ Config file
+2:43:50 AM:   /opt/build/repo/netlify.toml
+2:43:50 AM: ​
+2:43:50 AM: ❯ Context
+2:43:50 AM:   production
+2:43:50 AM: ​
+2:43:50 AM: ❯ Installing extensions
+2:43:50 AM:    - neon
+2:43:51 AM: ​
+2:43:51 AM: ❯ Loading extensions
+2:43:51 AM:    - neon
+2:43:52 AM: ​
+2:43:52 AM: build.command from netlify.toml                               
+2:43:52 AM: ────────────────────────────────────────────────────────────────
+2:43:52 AM: ​
+2:43:52 AM: $ npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes.js
+2:43:56 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2:43:56 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2:43:59 AM: added 635 packages, and audited 636 packages in 7s
+2:43:59 AM: 85 packages are looking for funding
+2:43:59 AM:   run `npm fund` for details
+2:43:59 AM: 10 vulnerabilities (3 low, 7 moderate)
+2:43:59 AM: To address issues that do not require attention, run:
+2:43:59 AM:   npm audit fix
+2:43:59 AM: To address all issues (including breaking changes), run:
+2:43:59 AM:   npm audit fix --force
+2:43:59 AM: Run `npm audit` for details.
+2:44:00 AM: vite v5.4.19 building for production...
+2:44:00 AM: transforming...
+2:44:00 AM: Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+2:44:00 AM:   npx update-browserslist-db@latest
+2:44:00 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2:44:04 AM: ✓ 2016 modules transformed.
+2:44:04 AM: rendering chunks...
+2:44:04 AM: computing gzip size...
+2:44:04 AM: ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+2:44:04 AM: ../dist/public/assets/index-DDrODsLK.css  147.03 kB │ gzip:  23.71 kB
+2:44:04 AM: ../dist/public/assets/index-dVWe1OV_.js   880.31 kB │ gzip: 260.06 kB
+2:44:04 AM: 
+2:44:04 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+2:44:04 AM: - Using dynamic import() to code-split the application
+2:44:04 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2:44:04 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2:44:04 AM: ✓ built in 4.47s
+2:44:05 AM: ▲ [WARNING] Calling "pdfParse" will crash at run-time because it's an import namespace object, not a function [call-import-namespace]
+2:44:05 AM:     server/routes-serverless.ts:1150:32:
+2:44:05 AM:       1150 │           const pdfData = await pdfParse(Buffer.from(buffer));
+2:44:05 AM:            ╵                                 ~~~~~~~~
+2:44:05 AM:   Consider changing "pdfParse" to a default import instead:
+2:44:05 AM:     server/routes-serverless.ts:22:7:
+2:44:05 AM:       22 │ import * as pdfParse from "pdf-parse";
+2:44:05 AM:          │        ~~~~~~~~~~~~~
+2:44:05 AM:          ╵        pdfParse
+2:44:05 AM:   Make sure to enable TypeScript's "esModuleInterop" setting so that TypeScript's type checker generates an error when you try to do this. You can read more about this setting here: https://www.typescriptlang.org/tsconfig#esModuleInterop
+2:44:05 AM: 1 warning
+2:44:05 AM:   dist/routes.js  130.6kb
+2:44:05 AM: ⚡ Done in 7ms
+2:44:05 AM: ​
+2:44:05 AM: (build.command completed in 12.4s)
+2:44:05 AM: ​
+2:44:05 AM: Functions bundling                                            
+2:44:05 AM: ────────────────────────────────────────────────────────────────
+2:44:05 AM: ​
+2:44:05 AM: Packaging Functions from netlify/functions directory:
+2:44:05 AM:  - server.js
+2:44:05 AM: ​
+2:44:05 AM: ​
+2:44:05 AM: Dependencies installation error                               
+2:44:05 AM: ────────────────────────────────────────────────────────────────
+2:44:05 AM: ​
+2:44:05 AM:   Error message
+2:44:05 AM:   A Netlify Function failed to require one of its dependencies.
+2:44:05 AM:   Please make sure it is present in the site's top-level "package.json".
+​
+2:44:05 AM:   In file "/opt/build/repo/netlify/functions/server.js"
+2:44:05 AM:   Cannot find module 'pdf-parse'
+2:44:05 AM:   Require stack:
+2:44:05 AM:   - /opt/buildhome/node-deps/node_modules/@netlify/zip-it-and-ship-it/dist/runtimes/node/bundlers/zisi/resolve.js
+2:44:05 AM: ​
+2:44:05 AM:   Resolved config
+2:44:05 AM:   build:
+2:44:05 AM:     command: npm ci --include=dev && npx vite build --config vite.config.prod.ts &&
+2:44:05 AM:       npx esbuild server/routes-serverless.ts --platform=node --packages=external
+2:44:05 AM:       --bundle --format=cjs --outfile=dist/routes.js
+2:44:05 AM:     commandOrigin: config
+2:44:05 AM:     environment:
+2:44:05 AM:       - DATABASE_URL
+2:44:05 AM:       - NETLIFY_DATABASE_URL
+2:44:05 AM:       - NETLIFY_DATABASE_URL_UNPOOLED
+2:44:05 AM:       - NODE_ENV
+2:44:05 AM:       - SESSION_SECRET
+2:44:05 AM:       - NODE_VERSION
+2:44:05 AM:       - NPM_FLAGS
+2:44:05 AM:     publish: /opt/build/repo/dist/public
+2:44:05 AM:     publishOrigin: config
+2:44:05 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+2:44:05 AM:   redirects:
+2:44:05 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+2:44:05 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+2:44:06 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+2:44:06 AM: Failing build: Failed to build site
+2:44:06 AM: Finished processing build request in 29.444s
+Deploying
+Skipped
+Cleanup
+Skipped
+Post-processing
+Skipped
+Docs
+Pricing
+Support
+Blog
+Changelog
+Terms
+© 2025 Netlify
+
