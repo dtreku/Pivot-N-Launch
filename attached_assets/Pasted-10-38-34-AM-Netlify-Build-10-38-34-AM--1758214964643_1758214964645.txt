@@ -1,0 +1,113 @@
+10:38:34 AM: Netlify Build                                                 
+10:38:34 AM: ────────────────────────────────────────────────────────────────
+10:38:34 AM: ​
+10:38:34 AM: ❯ Version
+10:38:34 AM:   @netlify/build 35.1.6
+10:38:34 AM: ​
+10:38:34 AM: ❯ Flags
+10:38:34 AM:   accountId: 68b185be9b63ad3bccac437f
+10:38:34 AM:   baseRelDir: true
+10:38:34 AM:   buildId: 68cc1943c6f6970008ccd8db
+10:38:34 AM:   deployId: 68cc1943c6f6970008ccd8dd
+10:38:34 AM: ​
+10:38:34 AM: ❯ Current directory
+10:38:34 AM:   /opt/build/repo
+10:38:34 AM: ​
+10:38:34 AM: ❯ Config file
+10:38:34 AM:   /opt/build/repo/netlify.toml
+10:38:34 AM: ​
+10:38:34 AM: ❯ Context
+10:38:34 AM:   production
+10:38:34 AM: ​
+10:38:34 AM: ❯ Installing extensions
+10:38:34 AM:    - neon
+10:38:36 AM: ​
+10:38:36 AM: ❯ Loading extensions
+10:38:36 AM:    - neon
+10:38:37 AM: ​
+10:38:37 AM: build.command from netlify.toml                               
+10:38:37 AM: ────────────────────────────────────────────────────────────────
+10:38:37 AM: ​
+10:38:37 AM: $ npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --outfile=dist/routes.js
+10:38:43 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+10:38:43 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+10:38:46 AM: added 651 packages, and audited 652 packages in 10s
+10:38:46 AM: 85 packages are looking for funding
+10:38:46 AM:   run `npm fund` for details
+10:38:47 AM: 10 vulnerabilities (3 low, 7 moderate)
+10:38:47 AM: To address issues that do not require attention, run:
+10:38:47 AM:   npm audit fix
+10:38:47 AM: To address all issues (including breaking changes), run:
+10:38:47 AM:   npm audit fix --force
+10:38:47 AM: Run `npm audit` for details.
+10:38:47 AM: vite v5.4.19 building for production...
+10:38:47 AM: transforming...
+10:38:48 AM: Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+10:38:48 AM:   npx update-browserslist-db@latest
+10:38:48 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+10:38:52 AM: ✓ 2016 modules transformed.
+10:38:53 AM: rendering chunks...
+10:38:53 AM: computing gzip size...
+10:38:53 AM: ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+10:38:53 AM: ../dist/public/assets/index-DDrODsLK.css  147.03 kB │ gzip:  23.71 kB
+10:38:53 AM: ../dist/public/assets/index-CaSkiSru.js   880.34 kB │ gzip: 260.06 kB
+10:38:53 AM: 
+10:38:53 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+10:38:53 AM: - Using dynamic import() to code-split the application
+10:38:53 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+10:38:53 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+10:38:53 AM: ✓ built in 5.26s
+10:38:53 AM:   dist/routes.js  13.6mb ⚠️
+10:38:53 AM: ⚡ Done in 312ms
+10:38:53 AM: ​
+10:38:53 AM: (build.command completed in 16.8s)
+10:38:53 AM: ​
+10:38:53 AM: Functions bundling                                            
+10:38:53 AM: ────────────────────────────────────────────────────────────────
+10:38:53 AM: ​
+10:38:53 AM: Packaging Functions from netlify/functions directory:
+10:38:53 AM:  - server.js
+10:38:53 AM: ​
+10:38:58 AM: ​
+10:38:58 AM: Dependencies installation error                               
+10:38:58 AM: ────────────────────────────────────────────────────────────────
+10:38:58 AM: ​
+10:38:58 AM:   Error message
+10:38:58 AM:   A Netlify Function failed to require one of its dependencies.
+10:38:58 AM:   Please make sure it is present in the site's top-level "package.json".
+​
+10:38:58 AM:   In file "/opt/build/repo/netlify/functions/server.js"
+10:38:58 AM:   Cannot find module 'encoding'
+10:38:58 AM:   Require stack:
+10:38:58 AM:   - /opt/buildhome/node-deps/node_modules/@netlify/zip-it-and-ship-it/dist/runtimes/node/bundlers/zisi/resolve.js
+10:38:58 AM: ​
+10:38:58 AM:   Resolved config
+10:38:58 AM:   build:
+10:38:58 AM:     command: npm ci --include=dev && npx vite build --config vite.config.prod.ts &&
+10:38:58 AM:       npx esbuild server/routes-serverless.ts --platform=node --bundle
+10:38:58 AM:       --format=cjs --external:pg-native --outfile=dist/routes.js
+10:38:58 AM:     commandOrigin: config
+10:38:58 AM:     environment:
+10:38:58 AM:       - DATABASE_URL
+10:38:58 AM:       - NETLIFY_DATABASE_URL
+10:38:58 AM:       - NETLIFY_DATABASE_URL_UNPOOLED
+10:38:58 AM:       - NODE_ENV
+10:38:58 AM:       - SESSION_SECRET
+10:38:58 AM:       - NODE_VERSION
+10:38:58 AM:       - NPM_FLAGS
+10:38:58 AM:     publish: /opt/build/repo/dist/public
+10:38:58 AM:     publishOrigin: config
+10:38:58 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+10:38:58 AM:   redirects:
+10:38:59 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+10:38:59 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+10:38:59 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+10:38:59 AM: Failing build: Failed to build site
+10:39:00 AM: Finished processing build request in 40.348s
