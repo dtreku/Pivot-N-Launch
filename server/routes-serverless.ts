@@ -19,7 +19,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
-import * as pdfParse from "pdf-parse";
+import pdfParse from "pdf-parse";
 
 // Type declaration for pdf-parse module  
 declare module 'pdf-parse';
