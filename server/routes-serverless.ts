@@ -1,38 +1,9 @@
 // Serverless-compatible routes for Netlify Functions
 import type { Express } from "express";
 import { storage } from "./storage";
-import { z } from "zod";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
-import { 
-  insertFacultySchema,
-  insertProjectSchema,
-  insertStudentContributionSchema,
-  insertKnowledgeBaseSchema,
-  insertObjectiveConversionSchema,
-  insertSurveyResponseSchema,
-  insertAnalyticsEventSchema,
-  insertDocumentUploadSchema,
-  insertTeamSchema
-} from "@shared/schema";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import OpenAI from "openai";
-import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
-import pdfParse from "pdf-parse";
-
-// Type declaration moved to fix build errors
-
-// Helper function for error messages
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Unknown error";
-}
-
-// Import serverless-http for creating handlers  
-import serverlessHttp from "serverless-http";
-import express from "express";
-import path from "path";
 
 export async function registerRoutes(app: Express) {
   // Configure session middleware for serverless
@@ -45,81 +16,32 @@ export async function registerRoutes(app: Express) {
     tableName: "sessions",
   });
 
-  // Session middleware disabled for serverless - using JWT only
-  if (process.env.NODE_ENV === 'development') {
-    app.use(session({
-      secret: process.env.SESSION_SECRET || 'dev-fallback-key',
-      store: sessionStore,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        httpOnly: true,
-        secure: false,
-        maxAge: sessionTtl,
-      },
-    }));
-  }
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    store: sessionStore,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: sessionTtl,
+    },
+  }));
 
-  // JWT-based authentication middleware for serverless
-  const requireAuth = async (req: any, res: any, next: any) => {
-    // Check session cookies first (for backward compatibility)
+  // Middleware to check if user is authenticated
+  const requireAuth = (req: any, res: any, next: any) => {
     if (req.session?.facultyId) {
-      const faculty = await storage.getFaculty(req.session.facultyId);
-      if (faculty && faculty.isActive) {
-        (req as any).user = faculty;
-        return next();
-      }
+      return next();
     }
-    
-    // Check JWT Bearer token (primary method for serverless)
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '');
-      try {
-        const secretKey = process.env.SESSION_SECRET;
-        if (!secretKey) {
-          throw new Error('SESSION_SECRET environment variable is required for JWT authentication');
-        }
-        const decoded = jwt.verify(token, secretKey, { algorithms: ['HS256'] }) as any;
-        
-        const faculty = await storage.getFaculty(decoded.facultyId);
-        if (faculty && faculty.isActive && faculty.status === 'approved') {
-          (req as any).user = faculty;
-          return next();
-        }
-      } catch (error) {
-        console.error("JWT token validation error:", error);
-      }
-    }
-    
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ message: "Unauthorized" });
   };
 
   // Middleware to require admin role
   const requireAdmin = (req: any, res: any, next: any) => {
-    const user = (req as any).user;
-    if (user?.role === 'super_admin' || user?.role === 'admin') {
+    if (req.session?.role === 'super_admin' || req.session?.role === 'admin') {
       return next();
     }
     return res.status(403).json({ message: "Admin access required" });
-  };
-
-  // Middleware to require super admin role
-  const requireSuperAdmin = (req: any, res: any, next: any) => {
-    const user = (req as any).user;
-    if (user?.role !== 'super_admin') {
-      return res.status(403).json({ message: "Super admin access required" });
-    }
-    return next();
-  };
-
-  // Middleware to check if user is approved
-  const requireApproved = (req: any, res: any, next: any) => {
-    const user = (req as any).user;
-    if (user?.status !== 'approved') {
-      return res.status(403).json({ message: "Account pending approval" });
-    }
-    return next();
   };
   // Seed endpoint for database initialization - ADMIN ONLY
   app.post('/api/seed', requireAuth, requireAdmin, async (req, res) => {
@@ -194,69 +116,6 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Faculty routes
-  app.get("/api/faculty/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const faculty = await storage.getFaculty(id);
-      
-      if (!faculty) {
-        return res.status(404).json({ message: "Faculty not found" });
-      }
-      
-      res.json(faculty);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/faculty/email/:email", async (req, res) => {
-    try {
-      const email = req.params.email;
-      const faculty = await storage.getFacultyByEmail(email);
-      
-      if (!faculty) {
-        return res.status(404).json({ message: "Faculty not found" });
-      }
-      
-      res.json(faculty);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/faculty", async (req, res) => {
-    try {
-      const validatedData = insertFacultySchema.parse(req.body);
-      const faculty = await storage.createFaculty(validatedData);
-      res.status(201).json(faculty);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create faculty", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/faculty/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertFacultySchema.partial().parse(req.body);
-      const faculty = await storage.updateFaculty(id, validatedData);
-      
-      if (!faculty) {
-        return res.status(404).json({ message: "Faculty not found" });
-      }
-      
-      res.json(faculty);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update faculty", error: getErrorMessage(error) });
-    }
-  });
-
   // Authentication endpoints
   app.post('/api/auth/login', async (req, res) => {
     try {
@@ -280,42 +139,22 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Create session for cookie-based auth (backward compatibility)
+      // Create session
       (req.session as any).facultyId = faculty.id;
       (req.session as any).role = faculty.role;
       (req.session as any).name = faculty.name;
       (req.session as any).email = faculty.email;
 
-      // Generate JWT token for Bearer auth (primary for serverless)
-      const secretKey = process.env.SESSION_SECRET;
-      if (!secretKey) {
-        throw new Error('SESSION_SECRET environment variable is required for JWT authentication');
-      }
-      const sessionId = jwt.sign(
-        { 
-          facultyId: faculty.id,
-          role: faculty.role,
-          status: faculty.status,
-          email: faculty.email
-        }, 
-        secretKey, 
-        { expiresIn: '7d', algorithm: 'HS256' }
-      );
-
       await storage.updateLastLogin(faculty.id);
 
       res.json({
         success: true,
-        sessionId: sessionId,
         faculty: {
           id: faculty.id,
           name: faculty.name,
           email: faculty.email,
           role: faculty.role,
-          title: faculty.title,
-          department: faculty.department,
-          institution: faculty.institution,
-          teamId: faculty.teamId
+          status: faculty.status
         }
       });
     } catch (error) {
@@ -336,31 +175,11 @@ export async function registerRoutes(app: Express) {
 
   app.get('/api/auth/me', requireAuth, async (req, res) => {
     try {
-      const faculty = (req as any).user; // Use authenticated user from middleware
+      const faculty = await storage.getFaculty((req.session as any).facultyId);
       if (!faculty) {
         return res.status(404).json({ message: "Faculty not found" });
       }
-      
-      // Get user stats
-      const stats = await storage.getDashboardStats(faculty.id);
-      
-      res.json({
-        faculty: {
-          id: faculty.id,
-          name: faculty.name,
-          email: faculty.email,
-          role: faculty.role,
-          status: faculty.status,
-          title: faculty.title,
-          department: faculty.department,
-          institution: faculty.institution
-        },
-        stats: stats || {
-          totalProjects: 0,
-          activeProjects: 0,
-          completedProjects: 0
-        }
-      });
+      res.json(faculty);
     } catch (error) {
       console.error("Get faculty error:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -415,281 +234,6 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Team management routes
-  app.get("/api/teams", requireAuth, async (req: any, res) => {
-    try {
-      const teams = await storage.getTeamsByAdmin((req as any).user.id);
-      res.json(teams);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch teams", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/teams", requireAuth, async (req: any, res) => {
-    try {
-      const validatedData = insertTeamSchema.parse({
-        ...req.body,
-        adminId: (req as any).user.id,
-      });
-      const team = await storage.createTeam(validatedData);
-      res.status(201).json(team);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid team data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create team", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/teams/:id/members", requireAuth, async (req, res) => {
-    try {
-      const teamId = parseInt(req.params.id);
-      const members = await storage.getTeamMembers(teamId);
-      res.json(members);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch team members", error: getErrorMessage(error) });
-    }
-  });
-
-  // Project routes
-  app.get("/api/projects/faculty/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const projects = await storage.getProjectsByFaculty(facultyId);
-      res.json(projects);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch projects", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/projects/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const project = await storage.getProject(id);
-      
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-      
-      res.json(project);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch project", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/projects", async (req, res) => {
-    try {
-      const validatedData = insertProjectSchema.parse(req.body);
-      const project = await storage.createProject(validatedData);
-      
-      // Track analytics event
-      await storage.createAnalyticsEvent({
-        facultyId: project.facultyId,
-        eventType: "project_created",
-        eventData: { projectId: project.id, discipline: project.discipline },
-      });
-      
-      res.status(201).json(project);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create project", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/projects/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertProjectSchema.partial().parse(req.body);
-      const project = await storage.updateProject(id, validatedData);
-      
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-      
-      // Track analytics event
-      await storage.createAnalyticsEvent({
-        facultyId: project.facultyId,
-        eventType: "project_updated",
-        eventData: { projectId: project.id, status: project.status },
-      });
-      
-      res.json(project);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update project", error: getErrorMessage(error) });
-    }
-  });
-
-  app.delete("/api/projects/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteProject(id);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-      
-      res.json({ message: "Project deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete project", error: getErrorMessage(error) });
-    }
-  });
-
-  // Knowledge base routes
-  app.get("/api/knowledge-base/faculty/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const entries = await storage.getKnowledgeBaseByFaculty(facultyId);
-      res.json(entries);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch knowledge base", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/knowledge-base", async (req, res) => {
-    try {
-      const validatedData = insertKnowledgeBaseSchema.parse(req.body);
-      const entry = await storage.createKnowledgeBaseEntry(validatedData);
-      res.status(201).json(entry);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid knowledge base data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create knowledge base entry", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/knowledge-base/search/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const { query } = req.query;
-      
-      if (!query || typeof query !== 'string') {
-        return res.status(400).json({ message: "Search query is required" });
-      }
-      
-      const results = await storage.searchKnowledgeBase(facultyId, query);
-      res.json(results);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to search knowledge base", error: getErrorMessage(error) });
-    }
-  });
-
-  app.delete("/api/knowledge-base/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const success = await storage.deleteKnowledgeBaseEntry(id);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Knowledge base entry not found" });
-      }
-      
-      res.json({ message: "Knowledge base entry deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete knowledge base entry", error: getErrorMessage(error) });
-    }
-  });
-
-  // Objective conversion routes
-  app.get("/api/objective-conversions/faculty/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const conversions = await storage.getObjectiveConversionsByFaculty(facultyId);
-      res.json(conversions);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch objective conversions", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/objective-conversions", async (req, res) => {
-    try {
-      const validatedData = insertObjectiveConversionSchema.parse(req.body);
-      const conversion = await storage.createObjectiveConversion(validatedData);
-      
-      // Track analytics event
-      await storage.createAnalyticsEvent({
-        facultyId: conversion.facultyId,
-        eventType: "objective_converted",
-        eventData: { discipline: conversion.discipline },
-      });
-      
-      res.status(201).json(conversion);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid conversion data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create objective conversion", error: getErrorMessage(error) });
-    }
-  });
-
-  // Survey response routes
-  app.post("/api/survey-responses", async (req, res) => {
-    try {
-      const validatedData = insertSurveyResponseSchema.parse(req.body);
-      const response = await storage.createSurveyResponse(validatedData);
-      res.status(201).json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid survey response data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create survey response", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/survey-responses/project/:projectId", async (req, res) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      const responses = await storage.getSurveyResponsesByProject(projectId);
-      res.json(responses);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch survey responses", error: getErrorMessage(error) });
-    }
-  });
-
-  // Analytics routes
-  app.post("/api/analytics", async (req, res) => {
-    try {
-      const validatedData = insertAnalyticsEventSchema.parse(req.body);
-      const event = await storage.createAnalyticsEvent(validatedData);
-      res.status(201).json(event);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid analytics data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create analytics event", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/analytics/faculty/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const { eventType } = req.query;
-      
-      const events = await storage.getAnalyticsByFaculty(
-        facultyId, 
-        eventType as string || undefined
-      );
-      res.json(events);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch analytics", error: getErrorMessage(error) });
-    }
-  });
-
-  // Dashboard stats route
-  app.get("/api/dashboard/stats/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const stats = await storage.getDashboardStats(facultyId);
-      res.json(stats);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch dashboard stats", error: getErrorMessage(error) });
-    }
-  });
-
   // Admin endpoints for user management
   app.get('/api/admin/pending-users', requireAuth, requireAdmin, async (req, res) => {
     try {
@@ -704,7 +248,7 @@ export async function registerRoutes(app: Express) {
   app.post('/api/admin/approve-user/:id', requireAuth, requireAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      const adminId = (req as any).user.id;
+      const adminId = (req.session as any).facultyId;
       
       const approvedUser = await storage.approveFaculty(userId, adminId);
       if (!approvedUser) {
@@ -731,749 +275,6 @@ export async function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Reject user error:", error);
       res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  // Extended Admin User Management Routes  
-  app.get("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const users = await storage.getAllFaculty();
-      res.json(users.map((user: any) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        title: user.title,
-        department: user.department,
-        institution: user.institution,
-        isActive: user.isActive,
-        createdAt: user.createdAt,
-        approvedAt: user.approvedAt
-      })));
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch users", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/admin/users/pending", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const pendingUsers = await storage.getPendingFaculty();
-      res.json(pendingUsers.map((user: any) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        title: user.title,
-        department: user.department,
-        institution: user.institution,
-        createdAt: user.createdAt
-      })));
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pending users", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const user = await storage.approveFaculty(userId, (req as any).user.id);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Set user as active after approval
-      await storage.setFacultyStatus(userId, "approved");
-      await storage.updateFaculty(userId, { isActive: true });
-
-      res.json({
-        message: "User approved successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          status: user.status
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to approve user", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/admin/users/:id/reject", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const user = await storage.rejectFaculty(userId);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({
-        message: "User rejected successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          status: user.status
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to reject user", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
-
-      if (!name || !email || !password || !title || !department || !institution) {
-        return res.status(400).json({ message: "All fields are required" });
-      }
-
-      // Check if email already exists
-      const existingFaculty = await storage.getFacultyByEmail(email);
-      if (existingFaculty) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-
-      // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
-      const currentUser = (req as any).user;
-
-      const facultyData = {
-        name,
-        email,
-        passwordHash,
-        role: ['student', 'instructor', 'admin'].includes(role) ? role : 'instructor',
-        status: "approved", // Admin-created accounts are auto-approved
-        title,
-        department,
-        institution,
-        isActive: true,
-        approvedBy: currentUser.id,
-        approvedAt: new Date()
-      };
-
-      const faculty = await storage.createFaculty(facultyData);
-
-      // Create initial user stats
-      await storage.createUserStats({
-        facultyId: faculty.id,
-        loginCount: 0,
-        projectsCreated: 0,
-        templatesUsed: 0,
-        totalTimeSpent: 0,
-        lastActiveAt: new Date(),
-      });
-
-      res.status(201).json({
-        message: "User created successfully",
-        user: {
-          id: faculty.id,
-          name: faculty.name,
-          email: faculty.email,
-          role: faculty.role,
-          title: faculty.title,
-          department: faculty.department,
-          institution: faculty.institution,
-          status: faculty.status
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create user", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/admin/users/:id/status", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const userId = parseInt(req.params.id);
-      const { status, isActive } = req.body;
-
-      if (!status) {
-        return res.status(400).json({ message: "Status is required" });
-      }
-
-      const updateData: any = { status };
-      if (typeof isActive === 'boolean') {
-        updateData.isActive = isActive;
-      }
-
-      const user = await storage.updateFaculty(userId, updateData);
-      
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      res.json({
-        message: "User status updated successfully",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          status: user.status,
-          isActive: user.isActive
-        }
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to update user status", error: getErrorMessage(error) });
-    }
-  });
-
-  // Document upload routes
-  app.get("/api/documents/faculty/:facultyId", async (req, res) => {
-    try {
-      const facultyId = parseInt(req.params.facultyId);
-      const documents = await storage.getDocumentUploadsByFaculty(facultyId);
-      res.json(documents);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch documents", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/documents/upload-url", async (req, res) => {
-    try {
-      const { fileName } = req.body;
-      if (!fileName) {
-        return res.status(400).json({ message: "fileName is required" });
-      }
-
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL(fileName);
-      res.json({ uploadURL });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to generate upload URL", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/documents", async (req, res) => {
-    try {
-      const validatedData = insertDocumentUploadSchema.parse(req.body);
-      const document = await storage.createDocumentUpload(validatedData);
-      res.status(201).json(document);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid document data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create document record", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/objects/:objectPath(*)", async (req, res) => {
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
-      // Update download count in database if this is a tracked document
-      const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.path);
-      // Note: In a full implementation, you'd want to track which documents correspond to which object paths
-      
-      objectStorageService.downloadObject(objectFile, res);
-    } catch (error) {
-      console.error("Error downloading document:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.sendStatus(404);
-      }
-      return res.sendStatus(500);
-    }
-  });
-
-  app.delete("/api/documents/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const deleted = await storage.deleteDocumentUpload(id);
-      
-      if (!deleted) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-      
-      res.json({ message: "Document deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete document", error: getErrorMessage(error) });
-    }
-  });
-
-  // OpenAI API Key Management Routes
-  app.get("/api/faculty/:id/settings", requireAuth, async (req: any, res) => {
-    try {
-      const facultyId = parseInt(req.params.id);
-      const user = (req as any).user;
-      
-      // Strict authorization check - users can only access their own settings
-      if (user.id !== facultyId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      const faculty = await storage.getFaculty(facultyId);
-      if (!faculty) {
-        return res.status(404).json({ message: "Faculty not found" });
-      }
-      
-      res.json({
-        hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
-        // Never return the actual API key for security
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch settings", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
-    try {
-      const facultyId = parseInt(req.params.id);
-      const user = (req as any).user;
-      
-      // Strict authorization check - users can only update their own API key
-      if (user.id !== facultyId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      // Validate request body
-      const apiKeySchema = z.object({
-        apiKey: z.string().min(20, "API key must be at least 20 characters").regex(/^sk-/, "API key must start with 'sk-'")
-      });
-      
-      const validatedData = apiKeySchema.parse(req.body);
-      
-      // Encrypt the API key before storing
-      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
-      await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
-      
-      res.json({ message: "API key updated successfully" });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid API key", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update API key", error: getErrorMessage(error) });
-    }
-  });
-
-  app.delete("/api/faculty/:id/api-key", requireAuth, async (req: any, res) => {
-    try {
-      const facultyId = parseInt(req.params.id);
-      const user = (req as any).user;
-      
-      // Strict authorization check - users can only delete their own API key
-      if (user.id !== facultyId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-      
-      await storage.updateFaculty(facultyId, { openaiApiKey: null });
-      
-      res.json({ message: "API key removed successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove API key", error: getErrorMessage(error) });
-    }
-  });
-
-  // Rate limiting middleware for testing (simple in-memory solution)
-  const testKeyLimiter = new Map<string, { count: number; lastReset: number }>();
-  const TEST_LIMIT = 5; // 5 attempts per hour
-  const TEST_WINDOW = 60 * 60 * 1000; // 1 hour
-
-  app.post("/api/openai/test", requireAuth, async (req: any, res) => {
-    try {
-      const user = (req as any).user;
-      // Rate limiting
-      const userId = user.id.toString();
-      const now = Date.now();
-      const userLimits = testKeyLimiter.get(userId);
-      
-      if (userLimits) {
-        if (now - userLimits.lastReset > TEST_WINDOW) {
-          // Reset the counter if window passed
-          testKeyLimiter.set(userId, { count: 1, lastReset: now });
-        } else if (userLimits.count >= TEST_LIMIT) {
-          return res.status(429).json({ message: "Too many test attempts. Please try again later." });
-        } else {
-          userLimits.count++;
-        }
-      } else {
-        testKeyLimiter.set(userId, { count: 1, lastReset: now });
-      }
-      
-      // Validate request body
-      const testKeySchema = z.object({
-        apiKey: z.string().min(20, "API key must be at least 20 characters")
-      });
-      
-      const validatedData = testKeySchema.parse(req.body);
-      
-      // Test the API key by making a simple request
-      const openai = new OpenAI({ apiKey: validatedData.apiKey });
-      
-      try {
-        // Use a very small, inexpensive request to test the key
-        await openai.models.list();
-        res.json({ valid: true, message: "API key is valid" });
-      } catch (openaiError: any) {
-        if (openaiError?.status === 401) {
-          return res.status(400).json({ valid: false, message: "Invalid API key" });
-        }
-        throw openaiError;
-      }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to test API key", error: getErrorMessage(error) });
-    }
-  });
-
-  // Admin-only system settings routes
-  app.get("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const setting = await storage.getSystemSetting("default_openai_api_key");
-      res.json({
-        hasDefaultKey: !!(setting?.settingValue && setting.settingValue.length > 0),
-        updatedBy: setting?.updatedBy,
-        updatedAt: setting?.updatedAt
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch system settings", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req: any, res) => {
-    try {
-      const apiKeySchema = z.object({
-        apiKey: z.string().min(20, "API key must be at least 20 characters").startsWith("sk-", "API key must start with 'sk-'")
-      });
-      
-      const validatedData = apiKeySchema.parse(req.body);
-      const session = req.session as any;
-      
-      // Encrypt the system default API key
-      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
-      
-      await storage.setSystemSetting({
-        settingKey: "default_openai_api_key",
-        settingValue: encryptedApiKey,
-        description: "Default OpenAI API key for system-wide operations",
-        category: "openai",
-        isEncrypted: true,
-        updatedBy: user.id
-      });
-      
-      res.json({ message: "System default API key updated successfully" });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update system default API key", error: getErrorMessage(error) });
-    }
-  });
-
-  app.delete("/api/admin/settings/openai-key", requireAuth, requireAdmin, async (req, res) => {
-    try {
-      await storage.deleteSystemSetting("default_openai_api_key");
-      res.json({ message: "System default API key removed successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to remove system default API key", error: getErrorMessage(error) });
-    }
-  });
-
-  // Helper function to get available OpenAI API key (user key or system default)
-  async function getOpenAIApiKey(userId: number): Promise<string | null> {
-    try {
-      // First try user's personal API key
-      const faculty = await storage.getFaculty(userId);
-      if (faculty?.openaiApiKey && isApiKeyEncrypted(faculty.openaiApiKey)) {
-        const decryptedKey = decryptApiKey(faculty.openaiApiKey);
-        if (decryptedKey) return decryptedKey;
-      }
-      
-      // Fall back to system default key (admin-only)
-      const systemSetting = await storage.getSystemSetting("default_openai_api_key");
-      if (systemSetting?.settingValue && isApiKeyEncrypted(systemSetting.settingValue)) {
-        const decryptedKey = decryptApiKey(systemSetting.settingValue);
-        if (decryptedKey) return decryptedKey;
-      }
-      
-      return null;
-    } catch (error) {
-      console.error('Failed to get OpenAI API key:', error);
-      return null;
-    }
-  }
-
-  // Vector search endpoints
-  app.post("/api/documents/:id/vectorize", requireAuth, async (req: any, res) => {
-    try {
-      const documentId = parseInt(req.params.id);
-      const user = (req as any).user;
-      const apiKey = await getOpenAIApiKey(user.id);
-      
-      if (!apiKey) {
-        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
-      }
-      
-      const document = await storage.getDocumentUpload(documentId);
-      if (!document) {
-        return res.status(404).json({ message: "Document not found" });
-      }
-
-      let textContent = '';
-      
-      // Extract text content based on file type
-      if (document.mimeType === 'application/pdf') {
-        try {
-          const objectStorageService = new ObjectStorageService();
-          const objectFile = await objectStorageService.getObjectEntityFile(`/objects/${document.fileUrl}`);
-          const buffer = Buffer.from(await objectFile.arrayBuffer());
-          const pdfData = await pdfParse(Buffer.from(buffer));
-          textContent = pdfData.text;
-        } catch (error) {
-          console.warn("Failed to extract PDF text:", error);
-          textContent = document.fileName; // Fallback to filename
-        }
-      } else if (!textContent) {
-        textContent = document.fileName; // Fallback to filename for other types
-      }
-
-      // Generate embeddings using OpenAI
-      const openai = new OpenAI({ apiKey });
-      
-      try {
-        const response = await openai.embeddings.create({
-          model: "text-embedding-ada-002",
-          input: textContent.slice(0, 8000) // Limit to ~8k characters to stay within token limits
-        });
-        
-        const embeddings = JSON.stringify(response.data[0].embedding);
-        await storage.updateDocumentEmbeddings(documentId, embeddings, textContent);
-        
-        res.json({ message: "Document vectorized successfully", status: "ready" });
-      } catch (openaiError: any) {
-        await storage.updateDocumentEmbeddings(documentId, "", "");
-        if (openaiError?.status === 401) {
-          return res.status(400).json({ message: "Invalid OpenAI API key" });
-        }
-        throw openaiError;
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Failed to vectorize document", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/search/documents", requireAuth, async (req: any, res) => {
-    try {
-      const searchSchema = z.object({
-        query: z.string().min(1, "Search query is required"),
-        limit: z.number().min(1).max(50).optional().default(10)
-      });
-      
-      const validatedData = searchSchema.parse(req.body);
-      const user = (req as any).user;
-      const apiKey = await getOpenAIApiKey(user.id);
-      
-      if (!apiKey) {
-        return res.status(400).json({ message: "No OpenAI API key configured. Please set your personal API key in settings." });
-      }
-      
-      // Generate embedding for search query
-      const openai = new OpenAI({ apiKey });
-      const response = await openai.embeddings.create({
-        model: "text-embedding-ada-002",
-        input: validatedData.query
-      });
-      
-      const queryEmbedding = response.data[0].embedding;
-      
-      // Search documents using vector similarity (simplified implementation)
-      const documents = await storage.vectorSearchDocuments(user.id, queryEmbedding, validatedData.limit);
-      
-      res.json({ documents, query: validatedData.query });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to search documents", error: getErrorMessage(error) });
-    }
-  });
-
-  // Integration management routes
-  app.get("/api/integrations", requireAuth, async (req: any, res) => {
-    try {
-      const user = (req as any).user;
-      const connections = await storage.getIntegrationConnections(user.id);
-      
-      // Get admin-managed integrations filtered by user's institution
-      const adminConnections = await storage.getAdminIntegrationConnections(user.institution);
-      
-      res.json({ 
-        userConnections: connections, 
-        adminConnections: adminConnections,
-        userRole: user.role // Include user role so frontend knows permission level
-      });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch integrations", error: getErrorMessage(error) });
-    }
-  });
-
-  app.post("/api/integrations/connect", requireAuth, async (req: any, res) => {
-    try {
-      const connectSchema = z.object({
-        integrationId: z.string().min(1),
-        integrationName: z.string().min(1),
-        integrationType: z.string().min(1),
-        parameters: z.record(z.any()).optional(),
-        isAdminManaged: z.boolean().optional().default(false)
-      });
-      
-      const validatedData = connectSchema.parse(req.body);
-      const user = (req as any).user;
-      
-      // Only admins can create admin-managed connections
-      if (validatedData.isAdminManaged && user.role !== 'super_admin' && user.role !== 'admin') {
-        return res.status(403).json({ message: "Only admins can create system-wide integrations" });
-      }
-
-      // Access control: Users can only connect if there's an admin connection OR they are admin
-      if (!validatedData.isAdminManaged && user.role !== 'super_admin' && user.role !== 'admin') {
-        const adminConnections = await storage.getAdminIntegrationConnections(user.institution);
-        const hasAdminConnection = adminConnections.some((conn: any) => conn.integrationId === validatedData.integrationId);
-        
-        if (!hasAdminConnection) {
-          return res.status(403).json({ 
-            message: "This service is not available. Please contact your institution administrator to enable this integration." 
-          });
-        }
-      }
-      
-      // Create the integration connection
-      const connection = await storage.createIntegrationConnection({
-        facultyId: validatedData.isAdminManaged ? null : user.id,
-        integrationId: validatedData.integrationId,
-        integrationName: validatedData.integrationName,
-        integrationType: validatedData.integrationType,
-        status: "connected",
-        isAdminManaged: validatedData.isAdminManaged,
-        institution: validatedData.isAdminManaged ? session.institution : null,
-        lastConnectedAt: new Date()
-      });
-      
-      // Add parameters if provided
-      if (validatedData.parameters) {
-        for (const [key, value] of Object.entries(validatedData.parameters)) {
-          await storage.createIntegrationParameter({
-            connectionId: connection.id,
-            parameterKey: key,
-            parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
-            parameterType: typeof value === 'object' ? 'json' : typeof value,
-            isRequired: true
-          });
-        }
-      }
-      
-      res.json({ connection, message: "Integration connected successfully" });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to connect integration", error: getErrorMessage(error) });
-    }
-  });
-
-  app.put("/api/integrations/:id/configure", requireAuth, async (req: any, res) => {
-    try {
-      const connectionId = parseInt(req.params.id);
-      const connection = await storage.getIntegrationConnection(connectionId);
-      const session = req.session as any;
-      
-      if (!connection) {
-        return res.status(404).json({ message: "Integration connection not found" });
-      }
-      
-      // Check permissions - users can only configure their own integrations, admins can configure admin-managed ones from their institution
-      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
-      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
-        return res.status(403).json({ message: "You don't have permission to configure this integration" });
-      }
-      
-      const configSchema = z.object({
-        parameters: z.record(z.any())
-      });
-      
-      const validatedData = configSchema.parse(req.body);
-      
-      // Delete existing parameters
-      const existingParams = await storage.getIntegrationParameters(connectionId);
-      for (const param of existingParams) {
-        await storage.deleteIntegrationParameter(param.id);
-      }
-      
-      // Add new parameters
-      for (const [key, value] of Object.entries(validatedData.parameters)) {
-        await storage.createIntegrationParameter({
-          connectionId: connectionId,
-          parameterKey: key,
-          parameterValue: typeof value === 'string' ? value : JSON.stringify(value),
-          parameterType: typeof value === 'object' ? 'json' : typeof value,
-          isRequired: true
-        });
-      }
-      
-      // Update connection status
-      await storage.updateIntegrationConnection(connectionId, {
-        status: "connected",
-        lastConnectedAt: new Date()
-      });
-      
-      res.json({ message: "Integration configured successfully" });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid request", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to configure integration", error: getErrorMessage(error) });
-    }
-  });
-
-  app.delete("/api/integrations/:id", requireAuth, async (req: any, res) => {
-    try {
-      const connectionId = parseInt(req.params.id);
-      const connection = await storage.getIntegrationConnection(connectionId);
-      const session = req.session as any;
-      
-      if (!connection) {
-        return res.status(404).json({ message: "Integration connection not found" });
-      }
-      
-      // Check permissions - users can only delete their own integrations, admins can delete admin-managed ones from their institution
-      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
-      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
-        return res.status(403).json({ message: "You don't have permission to delete this integration" });
-      }
-      
-      await storage.deleteIntegrationConnection(connectionId);
-      res.json({ message: "Integration disconnected successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to disconnect integration", error: getErrorMessage(error) });
-    }
-  });
-
-  app.get("/api/integrations/:id/parameters", requireAuth, async (req: any, res) => {
-    try {
-      const connectionId = parseInt(req.params.id);
-      const connection = await storage.getIntegrationConnection(connectionId);
-      const session = req.session as any;
-      
-      if (!connection) {
-        return res.status(404).json({ message: "Integration connection not found" });
-      }
-      
-      // Check permissions - users can only view their own integration parameters, admins can view admin-managed ones from their institution  
-      const isAdmin = session.role === 'super_admin' || session.role === 'admin';
-      if (connection.facultyId !== session.facultyId && !(isAdmin && connection.isAdminManaged && connection.institution === session.institution)) {
-        return res.status(403).json({ message: "You don't have permission to view this integration's parameters" });
-      }
-      
-      const parameters = await storage.getIntegrationParameters(connectionId);
-      res.json({ parameters });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch integration parameters", error: getErrorMessage(error) });
     }
   });
 
@@ -2312,55 +1113,302 @@ export async function registerRoutes(app: Express) {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Helper function to generate text content
+  function generateTextContent(data: any): string {
+    let content = `${data.title}\n${data.subtitle}\nVersion: ${data.version}\nExported: ${data.exported_at}\n\n`;
+    
+    content += `${'='.repeat(60)}\n`;
+    content += `${data.methodology_overview.title.toUpperCase()}\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `${data.methodology_overview.description}\n\n`;
+    content += `Core Principles:\n`;
+    data.methodology_overview.core_principles.forEach((principle: string, index: number) => {
+      content += `${index + 1}. ${principle}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `IMPLEMENTATION FRAMEWORK\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    
+    // Implementation phases
+    Object.values(data.implementation_framework).forEach((phase: any) => {
+      content += `${phase.title}\n`;
+      content += `${'-'.repeat(phase.title.length)}\n`;
+      content += `${phase.description}\n\n`;
+      content += `Activities:\n`;
+      phase.activities.forEach((activity: string) => {
+        content += `• ${activity}\n`;
+      });
+      content += `\n`;
+    });
+    
+    content += `${'='.repeat(60)}\n`;
+    content += `COGNITIVE LOAD STRATEGIES\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `${data.cognitive_load_strategies.title}\n\n`;
+    content += `Techniques:\n`;
+    data.cognitive_load_strategies.techniques.forEach((technique: string) => {
+      content += `• ${technique}\n`;
+    });
+    content += `\nAttention Budgeting:\n`;
+    data.cognitive_load_strategies.attention_budgeting.forEach((item: string) => {
+      content += `• ${item}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `ASSESSMENT STRATEGIES\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `Formative Assessment:\n`;
+    data.assessment_strategies.formative_assessment.forEach((item: string) => {
+      content += `• ${item}\n`;
+    });
+    content += `\nSummative Assessment:\n`;
+    data.assessment_strategies.summative_assessment.forEach((item: string) => {
+      content += `• ${item}\n`;
+    });
+    content += `\nRubric Design:\n`;
+    data.assessment_strategies.rubric_design.forEach((item: string) => {
+      content += `• ${item}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `TECHNOLOGY INTEGRATION\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `Platform Features:\n`;
+    data.technology_integration.platform_features.forEach((feature: string) => {
+      content += `• ${feature}\n`;
+    });
+    content += `\nBest Practices:\n`;
+    data.technology_integration.best_practices.forEach((practice: string) => {
+      content += `• ${practice}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `TROUBLESHOOTING GUIDE\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    data.troubleshooting_guide.common_challenges.forEach((challenge: any, index: number) => {
+      content += `${index + 1}. Issue: ${challenge.issue}\n`;
+      content += `   Solution: ${challenge.solution}\n\n`;
+    });
+    
+    content += `${'='.repeat(60)}\n`;
+    content += `QUICK START CHECKLIST\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    data.quick_start_checklist.forEach((item: string) => {
+      content += `${item}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `SUPPORT RESOURCES\n`;
+    content += `${'='.repeat(60)}\n\n`;
+    content += `Professional Development:\n`;
+    data.support_resources.professional_development.forEach((resource: string) => {
+      content += `• ${resource}\n`;
+    });
+    content += `\nTechnical Support:\n`;
+    data.support_resources.technical_support.forEach((support: string) => {
+      content += `• ${support}\n`;
+    });
+    
+    content += `\n${'='.repeat(60)}\n`;
+    content += `Generated by: ${data.generated_by}\n`;
+    content += `Platform: ${data.platform_url}\n`;
+    content += `Contact: ${data.contact}\n`;
+    
+    return content;
+  }
+
+  // Helper function to generate HTML content for Word/PDF
+  function generateHTMLContent(data: any): string {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${data.title}</title>
+    <style>
+        body { 
+            font-family: 'Times New Roman', serif; 
+            line-height: 1.6; 
+            margin: 40px; 
+            color: #333;
+            max-width: 800px;
+        }
+        h1 { 
+            color: #2c3e50; 
+            border-bottom: 3px solid #3498db; 
+            padding-bottom: 15px; 
+            text-align: center;
+            font-size: 24px;
+        }
+        h2 { 
+            color: #34495e; 
+            margin-top: 40px; 
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        h3 { 
+            color: #7f8c8d; 
+            margin-top: 25px;
+        }
+        ul { 
+            margin-left: 20px; 
+            padding-left: 0;
+        }
+        li { 
+            margin-bottom: 8px; 
+        }
+        .overview { 
+            background-color: #f8f9fa; 
+            padding: 25px; 
+            border-radius: 8px; 
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+        .phase { 
+            margin: 25px 0; 
+            padding: 20px; 
+            border-left: 4px solid #3498db; 
+            background-color: #fdfdfd;
+        }
+        .checklist { 
+            background-color: #e8f5e8; 
+            padding: 20px; 
+            border-radius: 8px;
+            border-left: 5px solid #27ae60;
+        }
+        .troubleshooting { 
+            background-color: #fff3cd; 
+            padding: 15px; 
+            border-radius: 8px;
+            border-left: 5px solid #ffc107;
+            margin: 15px 0;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        @media print {
+            body { margin: 20px; }
+            .page-break { page-break-before: always; }
+        }
+    </style>
+</head>
+<body>
+    <h1>${data.title}</h1>
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="border: none; margin: 10px 0;">${data.subtitle}</h2>
+        <p><strong>Version:</strong> ${data.version} | <strong>Exported:</strong> ${new Date(data.exported_at).toLocaleDateString()}</p>
+    </div>
+    
+    <div class="overview">
+        <h2>${data.methodology_overview.title}</h2>
+        <p><strong>${data.methodology_overview.description}</strong></p>
+        <h3>Core Principles:</h3>
+        <ul>
+            ${data.methodology_overview.core_principles.map((principle: string) => `<li>${principle}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <div class="page-break"></div>
+    <h2>Implementation Framework</h2>
+    
+    ${Object.values(data.implementation_framework).map((phase: any) => `
+        <div class="phase">
+            <h3>${phase.title}</h3>
+            <p><em>${phase.description}</em></p>
+            <h4>Activities:</h4>
+            <ul>
+                ${phase.activities.map((activity: string) => `<li>${activity}</li>`).join('')}
+            </ul>
+        </div>
+    `).join('')}
+    
+    <div class="page-break"></div>
+    <h2>Cognitive Load Strategies</h2>
+    <div class="phase">
+        <h3>${data.cognitive_load_strategies.title}</h3>
+        <h4>Techniques:</h4>
+        <ul>
+            ${data.cognitive_load_strategies.techniques.map((technique: string) => `<li>${technique}</li>`).join('')}
+        </ul>
+        <h4>Attention Budgeting:</h4>
+        <ul>
+            ${data.cognitive_load_strategies.attention_budgeting.map((item: string) => `<li>${item}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <h2>Assessment Strategies</h2>
+    <div class="phase">
+        <h3>Formative Assessment</h3>
+        <ul>
+            ${data.assessment_strategies.formative_assessment.map((item: string) => `<li>${item}</li>`).join('')}
+        </ul>
+        <h3>Summative Assessment</h3>
+        <ul>
+            ${data.assessment_strategies.summative_assessment.map((item: string) => `<li>${item}</li>`).join('')}
+        </ul>
+        <h3>Rubric Design</h3>
+        <ul>
+            ${data.assessment_strategies.rubric_design.map((item: string) => `<li>${item}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <h2>Technology Integration</h2>
+    <div class="phase">
+        <h3>Platform Features</h3>
+        <ul>
+            ${data.technology_integration.platform_features.map((feature: string) => `<li>${feature}</li>`).join('')}
+        </ul>
+        <h3>Best Practices</h3>
+        <ul>
+            ${data.technology_integration.best_practices.map((practice: string) => `<li>${practice}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <div class="page-break"></div>
+    <h2>Troubleshooting Guide</h2>
+    ${data.troubleshooting_guide.common_challenges.map((challenge: any, index: number) => `
+        <div class="troubleshooting">
+            <h4>${index + 1}. Issue: ${challenge.issue}</h4>
+            <p><strong>Solution:</strong> ${challenge.solution}</p>
+        </div>
+    `).join('')}
+    
+    <h2>Quick Start Checklist</h2>
+    <div class="checklist">
+        <ul style="list-style-type: none; margin-left: 0;">
+            ${data.quick_start_checklist.map((item: string) => `<li style="margin-bottom: 10px;">${item}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <h2>Support Resources</h2>
+    <div class="phase">
+        <h3>Professional Development</h3>
+        <ul>
+            ${data.support_resources.professional_development.map((resource: string) => `<li>${resource}</li>`).join('')}
+        </ul>
+        <h3>Technical Support</h3>
+        <ul>
+            ${data.support_resources.technical_support.map((support: string) => `<li>${support}</li>`).join('')}
+        </ul>
+    </div>
+    
+    <div class="footer">
+        <p><strong>Generated by:</strong> ${data.generated_by}</p>
+        <p><strong>Platform:</strong> <a href="${data.platform_url}">${data.platform_url}</a></p>
+        <p>${data.contact}</p>
+    </div>
+</body>
+</html>`;
+  }
+
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
 
   return app;
 }
-
-// Create and export serverless handler  
-const createHandler = async () => {
-  const app = express();
-  
-  // Configure basic middleware
-  app.use(express.json({ limit: '50mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-  
-  // Serve static files in production
-  if (process.env.NODE_ENV === 'production') {
-    const staticPath = path.join(__dirname, 'public');
-    app.use(express.static(staticPath));
-  }
-  
-  // Register all API routes
-  await registerRoutes(app);
-  
-  // Handle client-side routing for SPA
-  app.get('*', (req, res) => {
-    // Don't handle API routes
-    if (req.path.startsWith('/api')) {
-      return res.status(404).json({ message: 'API endpoint not found' });
-    }
-    
-    // Serve index.html for all other routes (SPA routing)
-    if (process.env.NODE_ENV === 'production') {
-      const indexPath = path.join(__dirname, 'public', 'index.html');
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).send('Not found - development mode');
-    }
-  });
-  
-  return serverlessHttp(app);
-};
-
-// Initialize handler once
-let handlerPromise: Promise<any> | null = null;
-
-export const handler = async (event: any, context: any) => {
-  if (!handlerPromise) {
-    handlerPromise = createHandler();
-  }
-  const serverlessHandler = await handlerPromise;
-  return serverlessHandler(event, context);
-};
