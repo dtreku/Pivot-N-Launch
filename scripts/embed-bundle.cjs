@@ -7,7 +7,16 @@ const path = require('path');
 
 // Read the bundled routes
 const bundlePath = path.join(__dirname, '../dist/routes.js');
-const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+let bundleContent = fs.readFileSync(bundlePath, 'utf8');
+
+// Patch problematic debug mode code that tries to read test files
+// This happens in pdf-parse library when module.parent is falsy (serverless context)
+bundleContent = bundleContent.replace(
+  /var isDebugMode = !module2\.parent;/g,
+  'var isDebugMode = false; // Patched: disable debug mode in serverless'
+);
+
+console.log('✅ Patched bundle to disable pdf-parse debug mode');
 
 // Escape the bundle content for embedding as a string
 const escapedBundle = bundleContent
