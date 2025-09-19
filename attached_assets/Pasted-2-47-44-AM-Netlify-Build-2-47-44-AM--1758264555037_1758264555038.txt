@@ -1,0 +1,117 @@
+2:47:44 AM: Netlify Build                                                 
+2:47:44 AM: ────────────────────────────────────────────────────────────────
+2:47:44 AM: ​
+2:47:44 AM: ❯ Version
+2:47:44 AM:   @netlify/build 35.1.6
+2:47:44 AM: ​
+2:47:44 AM: ❯ Flags
+2:47:44 AM:   accountId: 68b185be9b63ad3bccac437f
+2:47:44 AM:   baseRelDir: true
+2:47:44 AM:   buildId: 68ccfc6dba47100008fd2aa3
+2:47:44 AM:   deployId: 68ccfc6dba47100008fd2aa5
+2:47:45 AM: ​
+2:47:45 AM: ❯ Current directory
+2:47:45 AM:   /opt/build/repo
+2:47:45 AM: ​
+2:47:45 AM: ❯ Config file
+2:47:45 AM:   /opt/build/repo/netlify.toml
+2:47:45 AM: ​
+2:47:45 AM: ❯ Context
+2:47:45 AM:   production
+2:47:45 AM: ​
+2:47:45 AM: ❯ Installing extensions
+2:47:45 AM:    - neon
+2:47:46 AM: ​
+2:47:46 AM: ❯ Loading extensions
+2:47:46 AM:    - neon
+2:47:47 AM: ​
+2:47:47 AM: build.command from netlify.toml                               
+2:47:47 AM: ────────────────────────────────────────────────────────────────
+2:47:47 AM: ​
+2:47:47 AM: $ npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --external:encoding --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js && node scripts/embed-bundle.cjs
+2:47:58 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2:47:58 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2:48:10 AM: added 651 packages, and audited 652 packages in 23s
+2:48:10 AM: 85 packages are looking for funding
+2:48:10 AM:   run `npm fund` for details
+2:48:10 AM: 10 vulnerabilities (3 low, 7 moderate)
+2:48:10 AM: To address issues that do not require attention, run:
+2:48:10 AM:   npm audit fix
+2:48:10 AM: To address all issues (including breaking changes), run:
+2:48:10 AM:   npm audit fix --force
+2:48:10 AM: Run `npm audit` for details.
+2:48:11 AM: vite v5.4.19 building for production...
+2:48:11 AM: transforming...
+2:48:12 AM: Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+2:48:12 AM:   npx update-browserslist-db@latest
+2:48:12 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2:48:17 AM: ✓ 2016 modules transformed.
+2:48:17 AM: rendering chunks...
+2:48:17 AM: computing gzip size...
+2:48:17 AM: ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+2:48:17 AM: ../dist/public/assets/index-DDrODsLK.css  147.03 kB │ gzip:  23.71 kB
+2:48:17 AM: ../dist/public/assets/index-CaSkiSru.js   880.34 kB │ gzip: 260.06 kB
+2:48:17 AM: 
+2:48:17 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+2:48:17 AM: - Using dynamic import() to code-split the application
+2:48:17 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2:48:17 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2:48:17 AM: ✓ built in 6.27s
+2:48:18 AM:   dist/routes.js  14.8mb ⚠️
+2:48:18 AM: ⚡ Done in 612ms
+2:48:18 AM: /opt/build/repo/scripts/embed-bundle.cjs:1
+2:48:18 AM: import type { Express } from "express";
+2:48:18 AM: ^^^^^^
+2:48:18 AM: SyntaxError: Cannot use import statement outside a module
+2:48:18 AM:     at internalCompileFunction (node:internal/vm:76:18)
+2:48:18 AM:     at wrapSafe (node:internal/modules/cjs/loader:1283:20)
+2:48:18 AM:     at Module._compile (node:internal/modules/cjs/loader:1328:27)
+2:48:18 AM:     at Module._extensions..js (node:internal/modules/cjs/loader:1422:10)
+2:48:18 AM:     at Module.load (node:internal/modules/cjs/loader:1203:32)
+2:48:18 AM:     at Module._load (node:internal/modules/cjs/loader:1019:12)
+2:48:18 AM:     at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:128:12)
+2:48:18 AM:     at node:internal/main/run_main_module:28:49
+2:48:18 AM: Node.js v18.20.8
+2:48:19 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+2:48:19 AM: ​
+2:48:19 AM: "build.command" failed                                        
+2:48:19 AM: ────────────────────────────────────────────────────────────────
+2:48:19 AM: ​
+2:48:19 AM:   Error message
+2:48:19 AM:   Command failed with exit code 1: npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --external:encoding --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js && node scripts/embed-bundle.cjs (https://ntl.fyi/exit-code-1)
+2:48:19 AM: ​
+2:48:19 AM:   Error location
+2:48:19 AM:   In build.command from netlify.toml:
+2:48:19 AM:   npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --external:encoding --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js && node scripts/embed-bundle.cjs
+2:48:19 AM: ​
+2:48:19 AM:   Resolved config
+2:48:19 AM:   build:
+2:48:19 AM:     command: npm ci --include=dev && npx vite build --config vite.config.prod.ts &&
+2:48:19 AM:       npx esbuild server/routes-serverless.ts --platform=node --bundle
+2:48:19 AM:       --format=cjs --external:pg-native --external:encoding
+2:48:19 AM:       --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js &&
+2:48:19 AM:       node scripts/embed-bundle.cjs
+2:48:19 AM:     commandOrigin: config
+2:48:19 AM:     environment:
+2:48:19 AM:       - DATABASE_URL
+2:48:19 AM:       - NETLIFY_DATABASE_URL
+2:48:19 AM:       - NETLIFY_DATABASE_URL_UNPOOLED
+2:48:19 AM:       - NODE_ENV
+2:48:19 AM:       - SESSION_SECRET
+2:48:19 AM:       - NODE_VERSION
+2:48:19 AM:       - NPM_FLAGS
+2:48:19 AM:     publish: /opt/build/repo/dist/public
+2:48:19 AM:     publishOrigin: config
+2:48:19 AM:   functionsDirectory: /opt/build/repo/netlify/functions
+2:48:19 AM:   redirects:
+2:48:19 AM:     - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+2:48:19 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+2:48:19 AM: Failing build: Failed to build site
+2:48:21 AM: Finished processing build request in 1m9.445s
