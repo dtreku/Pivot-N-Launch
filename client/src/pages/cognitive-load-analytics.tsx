@@ -89,7 +89,7 @@ export default function CognitiveLoadAnalytics() {
           <div>
             <h3 className="text-lg font-semibold text-purple-900 mb-3">Cognitive Load Theory Application</h3>
             <p className="text-purple-800 leading-relaxed mb-3">
-              Based on Sweller's (1998) cognitive load theory and research by Paas, Leppink, and others. We measure intrinsic load (essential complexity), extraneous load (poor design), and germane load (schema construction) to optimize learning conditions.
+              Based on Sweller's cognitive load theory and research by Paas, Leppink, and others. We measure intrinsic load (essential complexity), extraneous load (poor design), and germane load (schema construction) to optimize learning conditions.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div>
