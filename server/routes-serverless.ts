@@ -1115,6 +1115,145 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Faculty management routes
+  app.get("/api/faculty/:id", async (req, res) => {
+    try {
+      const faculty = await storage.getFaculty(parseInt(req.params.id));
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      res.json(faculty);
+    } catch (error) {
+      console.error("Error fetching faculty:", error);
+      res.status(500).json({ message: "Failed to fetch faculty" });
+    }
+  });
+
+  app.get("/api/faculty/email/:email", async (req, res) => {
+    try {
+      const faculty = await storage.getFacultyByEmail(req.params.email);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      res.json(faculty);
+    } catch (error) {
+      console.error("Error fetching faculty by email:", error);
+      res.status(500).json({ message: "Failed to fetch faculty" });
+    }
+  });
+
+  app.post("/api/faculty", async (req, res) => {
+    try {
+      const faculty = await storage.createFaculty(req.body);
+      res.status(201).json(faculty);
+    } catch (error) {
+      console.error("Error creating faculty:", error);
+      res.status(500).json({ message: "Failed to create faculty" });
+    }
+  });
+
+  app.put("/api/faculty/:id", async (req, res) => {
+    try {
+      const faculty = await storage.updateFaculty(parseInt(req.params.id), req.body);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      res.json(faculty);
+    } catch (error) {
+      console.error("Error updating faculty:", error);
+      res.status(500).json({ message: "Failed to update faculty" });
+    }
+  });
+
+  // Team management routes
+  app.get("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teams = await storage.getTeamsForFaculty(req.session.facultyId);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.post("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teamData = { ...req.body, facultyId: req.session.facultyId };
+      const team = await storage.createTeam(teamData);
+      res.status(201).json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+
+  app.get("/api/teams/:id/members", requireAuth, async (req, res) => {
+    try {
+      const members = await storage.getTeamMembers(parseInt(req.params.id));
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Project management routes
+  app.get("/api/projects/faculty/:facultyId", async (req, res) => {
+    try {
+      const projects = await storage.getProjectsForFaculty(parseInt(req.params.facultyId));
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ message: "Failed to fetch project" });
+    }
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const project = await storage.createProject(req.body);
+      res.status(201).json(project);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  app.put("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.updateProject(parseInt(req.params.id), req.body);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      res.status(500).json({ message: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      await storage.deleteProject(parseInt(req.params.id));
+      res.json({ message: "Project deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
