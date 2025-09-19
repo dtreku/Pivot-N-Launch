@@ -9,7 +9,9 @@ module.exports.handler = async (event, context) => {
   if (!handlerCache) {
     try {
       // Import the bundled routes using eval to avoid static analysis
-      const bundlePath = path.join(__dirname, '../../dist/routes.js');
+      // The bundle is copied to the functions directory during build
+      const bundlePath = path.join(__dirname, 'routes.js');
+      console.log('Loading bundle from:', bundlePath);
       const routesModule = eval('require')(bundlePath);
       handlerCache = routesModule.handler || routesModule.default;
       
