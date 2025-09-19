@@ -1,6 +1,6 @@
 [build]
   publish = "dist/public"
-  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --external:encoding --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js"
+  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --bundle --format=cjs --external:pg-native --external:encoding --external:utf-8-validate --external:bufferutil --outfile=dist/routes.js && cp dist/routes.js netlify/functions/routes.js"
 
 [build.environment]
   NODE_VERSION = "18"
