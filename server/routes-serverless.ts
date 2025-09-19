@@ -29,6 +29,11 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Unknown error";
 }
 
+// Import serverless-http for creating handlers  
+import serverlessHttp from "serverless-http";
+import express from "express";
+import path from "path";
+
 export async function registerRoutes(app: Express) {
   // Configure session middleware for serverless
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
@@ -2312,3 +2317,50 @@ export async function registerRoutes(app: Express) {
 
   return app;
 }
+
+// Create and export serverless handler  
+const createHandler = async () => {
+  const app = express();
+  
+  // Configure basic middleware
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+  
+  // Serve static files in production
+  if (process.env.NODE_ENV === 'production') {
+    const staticPath = path.join(__dirname, 'public');
+    app.use(express.static(staticPath));
+  }
+  
+  // Register all API routes
+  await registerRoutes(app);
+  
+  // Handle client-side routing for SPA
+  app.get('*', (req, res) => {
+    // Don't handle API routes
+    if (req.path.startsWith('/api')) {
+      return res.status(404).json({ message: 'API endpoint not found' });
+    }
+    
+    // Serve index.html for all other routes (SPA routing)
+    if (process.env.NODE_ENV === 'production') {
+      const indexPath = path.join(__dirname, 'public', 'index.html');
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send('Not found - development mode');
+    }
+  });
+  
+  return serverlessHttp(app);
+};
+
+// Initialize handler once
+let handlerPromise: Promise<any> | null = null;
+
+export const handler = async (event: any, context: any) => {
+  if (!handlerPromise) {
+    handlerPromise = createHandler();
+  }
+  const serverlessHandler = await handlerPromise;
+  return serverlessHandler(event, context);
+};
