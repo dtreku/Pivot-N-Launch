@@ -1260,6 +1260,353 @@ export async function registerRoutes(app: Express) {
   });
 
   // GitHub Integration Routes
+  // Contributions routes
+  app.get("/api/contributions/project/:projectId", async (req, res) => {
+    try {
+      const contributions = await storage.getContributionsForProject(parseInt(req.params.projectId));
+      res.json(contributions);
+    } catch (error) {
+      console.error("Error fetching contributions:", error);
+      res.status(500).json({ message: "Failed to fetch contributions" });
+    }
+  });
+
+  app.post("/api/contributions", async (req, res) => {
+    try {
+      const contribution = await storage.createContribution(req.body);
+      res.status(201).json(contribution);
+    } catch (error) {
+      console.error("Error creating contribution:", error);
+      res.status(500).json({ message: "Failed to create contribution" });
+    }
+  });
+
+  app.put("/api/contributions/:id/status", async (req, res) => {
+    try {
+      const contribution = await storage.updateContributionStatus(
+        parseInt(req.params.id),
+        req.body.status,
+        req.body.reviewedBy
+      );
+      if (!contribution) {
+        return res.status(404).json({ message: "Contribution not found" });
+      }
+      res.json(contribution);
+    } catch (error) {
+      console.error("Error updating contribution status:", error);
+      res.status(500).json({ message: "Failed to update contribution status" });
+    }
+  });
+
+  // Knowledge base routes
+  app.get("/api/knowledge-base/faculty/:facultyId", async (req, res) => {
+    try {
+      const items = await storage.getKnowledgeBaseForFaculty(parseInt(req.params.facultyId));
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching knowledge base:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge base" });
+    }
+  });
+
+  app.post("/api/knowledge-base", async (req, res) => {
+    try {
+      const item = await storage.createKnowledgeBaseItem(req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating knowledge base item:", error);
+      res.status(500).json({ message: "Failed to create knowledge base item" });
+    }
+  });
+
+  app.get("/api/knowledge-base/search/:facultyId", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const category = req.query.category as string;
+      const items = await storage.searchKnowledgeBase(
+        parseInt(req.params.facultyId),
+        query,
+        category
+      );
+      res.json(items);
+    } catch (error) {
+      console.error("Error searching knowledge base:", error);
+      res.status(500).json({ message: "Failed to search knowledge base" });
+    }
+  });
+
+  app.delete("/api/knowledge-base/:id", async (req, res) => {
+    try {
+      await storage.deleteKnowledgeBaseItem(parseInt(req.params.id));
+      res.json({ message: "Knowledge base item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting knowledge base item:", error);
+      res.status(500).json({ message: "Failed to delete knowledge base item" });
+    }
+  });
+
+  // Analytics routes
+  app.get("/api/dashboard/stats/:facultyId", async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats(parseInt(req.params.facultyId));
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.post("/api/analytics", async (req, res) => {
+    try {
+      const event = await storage.logAnalyticsEvent(req.body);
+      res.status(201).json(event);
+    } catch (error) {
+      console.error("Error logging analytics:", error);
+      res.status(500).json({ message: "Failed to log analytics" });
+    }
+  });
+
+  app.get("/api/analytics/faculty/:facultyId", async (req, res) => {
+    try {
+      const events = await storage.getAnalyticsForFaculty(parseInt(req.params.facultyId));
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Admin user management routes
+  app.get("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/users/pending", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const pendingUsers = await storage.getPendingUsers();
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error("Error fetching pending users:", error);
+      res.status(500).json({ message: "Failed to fetch pending users" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.approveUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User approved successfully", user });
+    } catch (error) {
+      console.error("Error approving user:", error);
+      res.status(500).json({ message: "Failed to approve user" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/reject", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.rejectUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User rejected successfully", user });
+    } catch (error) {
+      console.error("Error rejecting user:", error);
+      res.status(500).json({ message: "Failed to reject user" });
+    }
+  });
+
+  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role,
+        title,
+        department,
+        institution,
+        isActive: true,
+        status: "approved"
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+      res.status(201).json({
+        id: faculty.id,
+        name: faculty.name,
+        email: faculty.email,
+        role: faculty.role,
+        status: faculty.status
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Document management routes
+  app.get("/api/documents/faculty/:facultyId", async (req, res) => {
+    try {
+      const documents = await storage.getDocumentsForFaculty(parseInt(req.params.facultyId));
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.post("/api/documents/upload-url", async (req, res) => {
+    try {
+      const { fileName, fileType, fileSize } = req.body;
+      const uploadUrl = await storage.generateUploadUrl(fileName, fileType, fileSize);
+      res.json(uploadUrl);
+    } catch (error) {
+      console.error("Error generating upload URL:", error);
+      res.status(500).json({ message: "Failed to generate upload URL" });
+    }
+  });
+
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const document = await storage.createDocument(req.body);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating document:", error);
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      await storage.deleteDocument(parseInt(req.params.id));
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ message: "Failed to delete document" });
+    }
+  });
+
+  // Faculty settings routes
+  app.get("/api/faculty/:id/settings", requireAuth, async (req, res) => {
+    try {
+      const settings = await storage.getFacultySettings(parseInt(req.params.id));
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching faculty settings:", error);
+      res.status(500).json({ message: "Failed to fetch faculty settings" });
+    }
+  });
+
+  app.put("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      const { openaiApiKey } = req.body;
+      await storage.updateFacultyApiKey(parseInt(req.params.id), openaiApiKey);
+      res.json({ message: "API key updated successfully" });
+    } catch (error) {
+      console.error("Error updating API key:", error);
+      res.status(500).json({ message: "Failed to update API key" });
+    }
+  });
+
+  app.delete("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteFacultyApiKey(parseInt(req.params.id));
+      res.json({ message: "API key deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting API key:", error);
+      res.status(500).json({ message: "Failed to delete API key" });
+    }
+  });
+
+  // OpenAI integration routes
+  app.post("/api/openai/test", requireAuth, async (req, res) => {
+    try {
+      const { apiKey } = req.body;
+      const testResult = await storage.testOpenAIKey(apiKey);
+      res.json(testResult);
+    } catch (error) {
+      console.error("Error testing OpenAI key:", error);
+      res.status(500).json({ message: "Failed to test OpenAI key" });
+    }
+  });
+
+  // Search routes
+  app.post("/api/search/documents", requireAuth, async (req, res) => {
+    try {
+      const { query, facultyId } = req.body;
+      const results = await storage.searchDocuments(query, facultyId);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching documents:", error);
+      res.status(500).json({ message: "Failed to search documents" });
+    }
+  });
+
+  // Integration management routes
+  app.get("/api/integrations", requireAuth, async (req, res) => {
+    try {
+      const integrations = await storage.getIntegrations();
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+      res.status(500).json({ message: "Failed to fetch integrations" });
+    }
+  });
+
+  app.post("/api/integrations/connect", requireAuth, async (req, res) => {
+    try {
+      const integration = await storage.connectIntegration(req.body);
+      res.status(201).json(integration);
+    } catch (error) {
+      console.error("Error connecting integration:", error);
+      res.status(500).json({ message: "Failed to connect integration" });
+    }
+  });
+
+  app.put("/api/integrations/:id/configure", requireAuth, async (req, res) => {
+    try {
+      const integration = await storage.configureIntegration(parseInt(req.params.id), req.body);
+      res.json(integration);
+    } catch (error) {
+      console.error("Error configuring integration:", error);
+      res.status(500).json({ message: "Failed to configure integration" });
+    }
+  });
+
+  app.delete("/api/integrations/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteIntegration(parseInt(req.params.id));
+      res.json({ message: "Integration deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting integration:", error);
+      res.status(500).json({ message: "Failed to delete integration" });
+    }
+  });
+
   app.get('/api/github/repositories', requireAuth, requireAdmin, async (req, res) => {
     try {
       const repositories = await getUserRepositories();
