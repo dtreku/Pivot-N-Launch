@@ -17,6 +17,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
+import { GitHubDeploymentService, getUserRepositories, parseGitHubUrl, type GitHubUpdateFile } from "./github-service";
 
 // Middleware to check authentication
 async function requireAuth(req: any, res: any, next: any) {
@@ -2185,6 +2186,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
 </body>
 </html>`;
   }
+
+  // GitHub Integration Routes
+  app.get('/api/github/repositories', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const repositories = await getUserRepositories();
+      res.json({ repositories });
+    } catch (error) {
+      console.error('Error fetching GitHub repositories:', error);
+      res.status(500).json({ message: 'Failed to fetch repositories', error: getErrorMessage(error) });
+    }
+  });
+
+  app.post('/api/github/deploy', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { repositoryUrl, deploymentMessage } = req.body;
+      
+      if (!repositoryUrl) {
+        return res.status(400).json({ message: 'Repository URL is required' });
+      }
+
+      const parsedRepo = parseGitHubUrl(repositoryUrl);
+      if (!parsedRepo) {
+        return res.status(400).json({ message: 'Invalid GitHub repository URL' });
+      }
+
+      const deploymentService = new GitHubDeploymentService(parsedRepo.owner, parsedRepo.repo);
+      
+      // Read the current routes-serverless.ts file
+      const fs = await import('fs/promises');
+      const routesServerlessContent = await fs.readFile('server/routes-serverless.ts', 'utf8');
+      
+      const filesToUpdate: GitHubUpdateFile[] = [
+        {
+          path: 'server/routes-serverless.ts',
+          content: routesServerlessContent,
+          message: deploymentMessage || 'Update production routes via PBL Toolkit'
+        }
+      ];
+
+      const results = await deploymentService.updateMultipleFiles(filesToUpdate);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+
+      res.json({
+        success: failureCount === 0,
+        message: `Deployment completed: ${successCount} files updated successfully${failureCount > 0 ? `, ${failureCount} failed` : ''}`,
+        results,
+        repository: parsedRepo
+      });
+
+    } catch (error) {
+      console.error('GitHub deployment error:', error);
+      res.status(500).json({ message: 'Deployment failed', error: getErrorMessage(error) });
+    }
+  });
+
+  app.post('/api/github/deploy-full', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { repositoryUrl, deploymentMessage } = req.body;
+      
+      if (!repositoryUrl) {
+        return res.status(400).json({ message: 'Repository URL is required' });
+      }
+
+      const parsedRepo = parseGitHubUrl(repositoryUrl);
+      if (!parsedRepo) {
+        return res.status(400).json({ message: 'Invalid GitHub repository URL' });
+      }
+
+      const deploymentService = new GitHubDeploymentService(parsedRepo.owner, parsedRepo.repo);
+      
+      // Read multiple production files
+      const fs = await import('fs/promises');
+      const [routesServerlessContent, netlifyTomlContent] = await Promise.all([
+        fs.readFile('server/routes-serverless.ts', 'utf8'),
+        fs.readFile('netlify.toml', 'utf8').catch(() => '')
+      ]);
+      
+      const filesToUpdate: GitHubUpdateFile[] = [
+        {
+          path: 'server/routes-serverless.ts',
+          content: routesServerlessContent,
+          message: deploymentMessage || 'Update production routes with latest changes'
+        }
+      ];
+
+      // Add netlify.toml if it exists
+      if (netlifyTomlContent) {
+        filesToUpdate.push({
+          path: 'netlify.toml',
+          content: netlifyTomlContent,
+          message: 'Update Netlify configuration'
+        });
+      }
+
+      const results = await deploymentService.updateMultipleFiles(filesToUpdate);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+
+      res.json({
+        success: failureCount === 0,
+        message: `Full deployment completed: ${successCount} files updated successfully${failureCount > 0 ? `, ${failureCount} failed` : ''}`,
+        results,
+        repository: parsedRepo,
+        filesDeployed: filesToUpdate.map(f => f.path)
+      });
+
+    } catch (error) {
+      console.error('GitHub full deployment error:', error);
+      res.status(500).json({ message: 'Full deployment failed', error: getErrorMessage(error) });
+    }
+  });
+
+  app.get('/api/github/repository/:owner/:repo/info', requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const { owner, repo } = req.params;
+      const deploymentService = new GitHubDeploymentService(owner, repo);
+      
+      const repoInfo = await deploymentService.getRepositoryInfo();
+      if (!repoInfo) {
+        return res.status(404).json({ message: 'Repository not found or access denied' });
+      }
+
+      res.json(repoInfo);
+    } catch (error) {
+      console.error('Error fetching repository info:', error);
+      res.status(500).json({ message: 'Failed to fetch repository information', error: getErrorMessage(error) });
+    }
+  });
 
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
