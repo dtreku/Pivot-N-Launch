@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -32,19 +32,21 @@ export default function Settings() {
   const [systemApiKey, setSystemApiKey] = useState("");
   const [systemApiKeyStatus, setSystemApiKeyStatus] = useState<"none" | "valid" | "loading">("loading");
 
-  const isAdmin = faculty?.role === 'super_admin' || faculty?.role === 'admin';
+  const isAdmin = faculty?.role === 'super_admin';
 
   // Load current API key status
   const { data: userSettings, isLoading } = useQuery({
     queryKey: ["/api/faculty/settings", faculty?.id],
     queryFn: () => apiRequest(`/api/faculty/${faculty?.id}/settings`, "GET"),
-    enabled: !!faculty?.id,
-    onSuccess: (data: any) => {
-      if (data.hasApiKey) {
-        setApiKeyStatus("valid");
-      }
-    }
+    enabled: !!faculty?.id
   });
+
+  // Handle API key status updates
+  useEffect(() => {
+    if (userSettings?.hasApiKey) {
+      setApiKeyStatus("valid");
+    }
+  }, [userSettings]);
 
   const updateApiKeyMutation = useMutation({
     mutationFn: (newApiKey: string) => {
@@ -94,17 +96,20 @@ export default function Settings() {
   });
 
   // Load system default API key status (admin only)
-  const { data: systemSettings } = useQuery({
+  const { data: systemSettings, error: systemError } = useQuery({
     queryKey: ["/api/admin/settings/openai-key"],
     queryFn: () => apiRequest("/api/admin/settings/openai-key", "GET"),
-    enabled: isAdmin,
-    onSuccess: (data: any) => {
-      setSystemApiKeyStatus(data.hasDefaultKey ? "valid" : "none");
-    },
-    onError: () => {
+    enabled: isAdmin
+  });
+
+  // Handle system API key status updates
+  useEffect(() => {
+    if (systemSettings) {
+      setSystemApiKeyStatus(systemSettings.hasDefaultKey ? "valid" : "none");
+    } else if (systemError) {
       setSystemApiKeyStatus("none");
     }
-  });
+  }, [systemSettings, systemError]);
 
   const updateSystemApiKeyMutation = useMutation({
     mutationFn: (newSystemKey: string) => {
