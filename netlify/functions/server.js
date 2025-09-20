@@ -30,6 +30,23 @@ const initializeRoutes = async () => {
       }
       
       await registerRoutes(app);
+      
+      // Register SPA catch-all AFTER API routes to avoid intercepting /api requests
+      app.get("*", (req, res) => {
+        // Don't handle API routes (they should have been handled above)
+        if (req.path.startsWith("/api")) {
+          return res.status(404).json({ message: "API endpoint not found" });
+        }
+        
+        // Serve index.html for all other routes (SPA routing)
+        if (process.env.NODE_ENV === "production") {
+          const indexPath = path.join(__dirname, "../../dist/public/index.html");
+          res.sendFile(indexPath);
+        } else {
+          res.status(404).send("Not found - development mode");
+        }
+      });
+      
       routesInitialized = true;
       console.log("✅ Serverless routes registered successfully from routes-serverless.ts");
     } catch (err) {
@@ -39,21 +56,7 @@ const initializeRoutes = async () => {
   }
 };
 
-// Handle client-side routing for SPA
-app.get("*", (req, res) => {
-  // Don't handle API routes
-  if (req.path.startsWith("/api")) {
-    return res.status(404).json({ message: "API endpoint not found" });
-  }
-  
-  // Serve index.html for all other routes (SPA routing)
-  if (process.env.NODE_ENV === "production") {
-    const indexPath = path.join(__dirname, "../../dist/public/index.html");
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).send("Not found - development mode");
-  }
-});
+// SPA catch-all will be registered after API routes in initializeRoutes()
 
 // Create serverless handler with route initialization
 const handler = serverless(app);

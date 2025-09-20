@@ -6,6 +6,9 @@
   NODE_VERSION = "18"
   NPM_FLAGS = "--include=dev"
 
+[functions]
+  included_files = ["dist/**"]
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
