@@ -46,7 +46,7 @@ function getErrorMessage(error: unknown): string {
   return String(error);
 }
 
-export async function registerRoutes(app: Express) {
+async function registerRoutes(app: Express) {
   // Override storage validateCredentials to use static bcrypt import for serverless
   const originalValidateCredentials = storage.validateCredentials.bind(storage);
   storage.validateCredentials = async (email: string, password: string) => {
@@ -2022,3 +2022,7 @@ export async function registerRoutes(app: Express) {
 
   return app;
 }
+
+// Export as default for esbuild CommonJS compatibility
+export default registerRoutes;
+export { registerRoutes };

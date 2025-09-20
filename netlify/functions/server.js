@@ -21,9 +21,9 @@ let routesInitialized = false;
 const initializeRoutes = async () => {
   if (!routesInitialized) {
     try {
-      // Import the serverless routes build
-      const routesModule = require("../../dist/routes-serverless.js");
-      const registerRoutes = routesModule.registerRoutes || routesModule.default?.registerRoutes;
+      // Import the serverless routes build as ES module
+      const routesModule = await import("../../dist/routes-serverless.mjs");
+      const registerRoutes = routesModule.default || routesModule.registerRoutes;
       
       if (!registerRoutes) {
         throw new Error("registerRoutes function not found in routes module");
