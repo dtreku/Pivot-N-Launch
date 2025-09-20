@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown, User, LogOut, Settings } from "lucide-react";
+import { Link } from "wouter";
 
 export default function FacultyProfile() {
   const { faculty, isLoading, signout } = useAuth();
@@ -44,13 +45,17 @@ export default function FacultyProfile() {
           <p className="text-xs text-gray-500">{faculty.email}</p>
           <p className="text-xs text-gray-400">{faculty.institution}</p>
         </div>
-        <DropdownMenuItem>
-          <User className="w-4 h-4 mr-2" />
-          Profile
+        <DropdownMenuItem asChild>
+          <Link href="/settings" className="flex items-center cursor-pointer">
+            <User className="w-4 h-4 mr-2" />
+            Profile
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Settings className="w-4 h-4 mr-2" />
-          Settings
+        <DropdownMenuItem asChild>
+          <Link href="/settings" className="flex items-center cursor-pointer">
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignout} className="text-red-600">
