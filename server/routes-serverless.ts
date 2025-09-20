@@ -29,21 +29,22 @@ function getErrorMessage(error: unknown): string {
 
 export async function registerRoutes(app: Express) {
   // Override storage validateCredentials to use static bcrypt import for serverless
+  const originalValidateCredentials = storage.validateCredentials.bind(storage);
   storage.validateCredentials = async (email: string, password: string) => {
-    const { neon } = await import('@neondatabase/serverless');
-    const { drizzle } = await import('drizzle-orm/neon-http');
-    const { faculty } = await import('@shared/schema');
-    const { eq } = await import('drizzle-orm');
-    
-    const db = drizzle(neon(process.env.DATABASE_URL!));
-    const [user] = await db.select().from(faculty).where(eq(faculty.email, email));
-    
-    if (!user || !user.passwordHash) {
+    try {
+      // Use the original method but catch any bcrypt import errors
+      const user = await storage.getFacultyByEmail(email);
+      
+      if (!user || !user.passwordHash) {
+        return null;
+      }
+      
+      const isValid = await bcrypt.compare(password, user.passwordHash);
+      return isValid ? user : null;
+    } catch (error) {
+      console.error("Serverless validateCredentials error:", error);
       return null;
     }
-    
-    const isValid = await bcrypt.compare(password, user.passwordHash);
-    return isValid ? user : null;
   };
 
   // Configure session middleware for serverless
