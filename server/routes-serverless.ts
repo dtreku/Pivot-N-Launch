@@ -1869,9 +1869,10 @@ export async function registerRoutes(app: Express) {
       
       // Read multiple production files
       const fs = await import('fs/promises');
-      const [routesServerlessContent, netlifyTomlContent] = await Promise.all([
+      const [routesServerlessContent, netlifyTomlContent, netlifyFunctionContent] = await Promise.all([
         fs.readFile('server/routes-serverless.ts', 'utf8'),
-        fs.readFile('netlify.toml', 'utf8').catch(() => '')
+        fs.readFile('netlify.toml', 'utf8').catch(() => ''),
+        fs.readFile('netlify/functions/server.js', 'utf8').catch(() => '')
       ]);
       
       const filesToUpdate: GitHubUpdateFile[] = [
@@ -1888,6 +1889,15 @@ export async function registerRoutes(app: Express) {
           path: 'netlify.toml',
           content: netlifyTomlContent,
           message: 'Update Netlify configuration'
+        });
+      }
+
+      // Add netlify function if it exists
+      if (netlifyFunctionContent) {
+        filesToUpdate.push({
+          path: 'netlify/functions/server.js',
+          content: netlifyFunctionContent,
+          message: 'Update Netlify function to import routes-serverless.js'
         });
       }
 
