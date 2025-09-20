@@ -195,6 +195,23 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Test endpoint to check database connection
+  app.get('/api/test/faculty', async (req, res) => {
+    try {
+      const faculty = await storage.getFacultyByEmail('dtreku@wpi.edu');
+      res.json({
+        found: !!faculty,
+        email: faculty?.email,
+        role: faculty?.role,
+        status: faculty?.status,
+        hasPasswordHash: !!faculty?.passwordHash,
+        passwordHashLength: faculty?.passwordHash?.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
   // Authentication endpoints
   app.post('/api/auth/login', async (req, res) => {
     try {
