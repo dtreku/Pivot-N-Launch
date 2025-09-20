@@ -28,6 +28,20 @@ function getErrorMessage(error: unknown): string {
 }
 
 export async function registerRoutes(app: Express) {
+  // Override storage validateCredentials to use static bcrypt import for serverless
+  const originalValidateCredentials = storage.validateCredentials.bind(storage);
+  storage.validateCredentials = async (email: string, password: string) => {
+    const { db, faculty, eq } = await import("./storage");
+    const [user] = await db.select().from(faculty).where(eq(faculty.email, email));
+    
+    if (!user || !user.passwordHash) {
+      return null;
+    }
+    
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    return isValid ? user : null;
+  };
+
   // Configure session middleware for serverless
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
