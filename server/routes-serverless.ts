@@ -23,6 +23,14 @@ import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
 // TODO: Re-enable after resolving esbuild dependency issues
 // import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service";
 
+// Import database connection for serverless database operations
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
 // Helper function for error handling
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
