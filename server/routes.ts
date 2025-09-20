@@ -241,7 +241,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update password in database
       await storage.updateFaculty(faculty.id, { passwordHash: newPasswordHash });
 
-      res.json({ message: "Password changed successfully" });
+      // CRITICAL SECURITY: Revoke all other sessions for this user
+      const revokedCount = await storage.deleteAllSessionsForFaculty(faculty.id);
+      
+      res.json({ 
+        message: "Password changed successfully", 
+        revokedSessions: revokedCount - 1 // Don't count current session
+      });
     } catch (error) {
       console.error("Password change error:", error);
       res.status(500).json({ message: "Password change failed", error: getErrorMessage(error) });
@@ -275,8 +281,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update password in database
       await storage.updateFaculty(targetFaculty.id, { passwordHash: newPasswordHash });
 
+      // CRITICAL SECURITY: Revoke ALL sessions for the target user (security reset)
+      const revokedCount = await storage.deleteAllSessionsForFaculty(targetFaculty.id);
+
       res.json({ 
         message: `Password reset successfully for ${email}`,
+        revokedSessions: revokedCount,
         faculty: {
           id: targetFaculty.id,
           name: targetFaculty.name,

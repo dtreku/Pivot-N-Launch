@@ -117,6 +117,7 @@ export interface IStorage {
   createSession(facultyId: number): Promise<Session>;
   getSession(sessionId: string): Promise<Session | undefined>;
   deleteSession(sessionId: string): Promise<boolean>;
+  deleteAllSessionsForFaculty(facultyId: number): Promise<number>;
   updateLastLogin(facultyId: number): Promise<void>;
 
   // Team management methods
@@ -576,6 +577,11 @@ export class DatabaseStorage implements IStorage {
   async deleteSession(sessionId: string): Promise<boolean> {
     const result = await db.delete(sessions).where(eq(sessions.id, sessionId));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  async deleteAllSessionsForFaculty(facultyId: number): Promise<number> {
+    const result = await db.delete(sessions).where(eq(sessions.facultyId, facultyId));
+    return result.rowCount ?? 0;
   }
 
   async updateLastLogin(facultyId: number): Promise<void> {
