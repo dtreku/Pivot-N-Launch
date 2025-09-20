@@ -29,9 +29,13 @@ function getErrorMessage(error: unknown): string {
 
 export async function registerRoutes(app: Express) {
   // Override storage validateCredentials to use static bcrypt import for serverless
-  const originalValidateCredentials = storage.validateCredentials.bind(storage);
   storage.validateCredentials = async (email: string, password: string) => {
-    const { db, faculty, eq } = await import("./storage");
+    const { neon } = await import('@neondatabase/serverless');
+    const { drizzle } = await import('drizzle-orm/neon-http');
+    const { faculty } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const db = drizzle(neon(process.env.DATABASE_URL!));
     const [user] = await db.select().from(faculty).where(eq(faculty.email, email));
     
     if (!user || !user.passwordHash) {
