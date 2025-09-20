@@ -19,7 +19,7 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
-import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service";
+import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service.js";
 
 // Helper function for error handling
 function getErrorMessage(error: unknown): string {
