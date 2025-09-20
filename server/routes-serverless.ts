@@ -230,29 +230,10 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
-      // TEMPORARY: Bypass validation for admin user to debug database access
-      let faculty;
-      
-      if (email === "dtreku@wpi.edu" && password === "admin1234!") {
-        console.log("TEMP BYPASS: Using temporary authentication bypass");
-        faculty = await storage.getFacultyByEmail(email);
-        console.log("Faculty found via bypass:", {
-          found: !!faculty,
-          email: faculty?.email,
-          role: faculty?.role,
-          status: faculty?.status
-        });
-        
-        if (!faculty) {
-          console.log("TEMP BYPASS FAIL: No faculty found in database");
-          return res.status(401).json({ message: "Account not found in database" });
-        }
-      } else {
-        // Regular validation for other users
-        faculty = await storage.validateCredentials(email, password);
-        if (!faculty) {
-          return res.status(401).json({ message: "Invalid credentials" });
-        }
+      // Use regular authentication flow
+      const faculty = await storage.validateCredentials(email, password);
+      if (!faculty) {
+        return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Check if user is approved
