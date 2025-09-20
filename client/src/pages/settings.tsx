@@ -239,42 +239,83 @@ export default function Settings() {
       <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-2">
           <SettingsIcon className="w-8 h-8" />
-          Account Settings
+          Settings
         </h1>
         <p className="text-lg text-gray-600">
-          Manage your account preferences and API integrations
+          Manage your account security and API integrations
         </p>
       </div>
 
-      {/* Profile Information */}
+      {/* Account Security */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            Profile Information
+            <Shield className="w-5 h-5" />
+            Account Security
           </CardTitle>
           <CardDescription>
-            Your account details and institutional information
+            Update your password and email address for enhanced security
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <Label className="text-sm font-medium">Name</Label>
-              <p className="text-gray-800">{faculty?.name}</p>
+        <CardContent className="space-y-6">
+          {/* Password Change Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Change Password</h3>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Current Password</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  placeholder="Enter current password"
+                  data-testid="input-current-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New Password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  placeholder="Enter new password"
+                  data-testid="input-new-password"
+                />
+              </div>
             </div>
-            <div>
-              <Label className="text-sm font-medium">Email</Label>
-              <p className="text-gray-600">{faculty?.email}</p>
+            <Button className="w-fit" data-testid="button-change-password">
+              <Save className="w-4 h-4 mr-2" />
+              Update Password
+            </Button>
+          </div>
+
+          <Separator />
+
+          {/* Email Change Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Update Email Address</h3>
+            <div className="space-y-2">
+              <Label htmlFor="current-email">Current Email</Label>
+              <Input
+                id="current-email"
+                type="email"
+                value={faculty?.email || ''}
+                disabled
+                className="bg-gray-50"
+                data-testid="input-current-email"
+              />
             </div>
-            <div>
-              <Label className="text-sm font-medium">Role</Label>
-              <p className="text-gray-600 capitalize">{faculty?.role?.replace('_', ' ')}</p>
+            <div className="space-y-2">
+              <Label htmlFor="new-email">New Email Address</Label>
+              <Input
+                id="new-email"
+                type="email"
+                placeholder="Enter new email address"
+                data-testid="input-new-email"
+              />
             </div>
-            <div>
-              <Label className="text-sm font-medium">Institution</Label>
-              <p className="text-gray-600">{faculty?.institution}</p>
-            </div>
+            <Button className="w-fit" data-testid="button-change-email">
+              <Save className="w-4 h-4 mr-2" />
+              Update Email
+            </Button>
           </div>
         </CardContent>
       </Card>
