@@ -58,6 +58,11 @@ export const projectTemplates = pgTable("project_templates", {
   estimatedDuration: varchar("estimated_duration", { length: 50 }),
   difficultyLevel: varchar("difficulty_level", { length: 50 }).default("intermediate"),
   isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").references(() => faculty.id),
+  status: varchar("status", { length: 50 }).default("approved").notNull(),
+  approvedBy: integer("approved_by").references(() => faculty.id),
+  approvedAt: timestamp("approved_at"),
+  isFeatured: boolean("is_featured").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
