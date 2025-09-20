@@ -1,6 +1,6 @@
 [build]
   publish = "dist/public"
-  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes-serverless.js"
+  command = "npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx tsx server/routes-serverless.ts --build-only && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/routes-serverless.mjs"
 
 [build.environment]
   NODE_VERSION = "18"
