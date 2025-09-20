@@ -32,14 +32,18 @@ export async function registerRoutes(app: Express) {
   const originalValidateCredentials = storage.validateCredentials.bind(storage);
   storage.validateCredentials = async (email: string, password: string) => {
     try {
-      // Use the original method but catch any bcrypt import errors
+      console.log("Serverless validateCredentials called for:", email);
       const user = await storage.getFacultyByEmail(email);
+      console.log("User found:", !!user, "has password:", !!user?.passwordHash);
       
       if (!user || !user.passwordHash) {
+        console.log("No user or password hash found");
         return null;
       }
       
+      console.log("Comparing password with hash length:", user.passwordHash.length);
       const isValid = await bcrypt.compare(password, user.passwordHash);
+      console.log("Password comparison result:", isValid);
       return isValid ? user : null;
     } catch (error) {
       console.error("Serverless validateCredentials error:", error);
@@ -191,6 +195,32 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Simple test endpoint to verify routing
+  app.get('/api/test/hello', (req, res) => {
+    res.json({ 
+      message: "Hello from production!", 
+      timestamp: new Date().toISOString(),
+      environment: "serverless"
+    });
+  });
+
+  // Test endpoint to check database connection
+  app.get('/api/test/faculty', async (req, res) => {
+    try {
+      const faculty = await storage.getFacultyByEmail('dtreku@wpi.edu');
+      res.json({
+        found: !!faculty,
+        email: faculty?.email,
+        role: faculty?.role,
+        status: faculty?.status,
+        hasPasswordHash: !!faculty?.passwordHash,
+        passwordHashLength: faculty?.passwordHash?.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: String(error) });
+    }
+  });
+
   // Authentication endpoints
   app.post('/api/auth/login', async (req, res) => {
     try {
@@ -200,6 +230,7 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
+      // Use regular authentication flow
       const faculty = await storage.validateCredentials(email, password);
       if (!faculty) {
         return res.status(401).json({ message: "Invalid credentials" });
