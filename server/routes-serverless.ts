@@ -1,5 +1,14 @@
 // Serverless-compatible routes for Netlify Functions
 import type { Express } from "express";
+
+// Extend Express Request type to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -1465,8 +1474,7 @@ export async function registerRoutes(app: Express) {
     try {
       const contribution = await storage.updateStudentContributionStatus(
         parseInt(req.params.id),
-        req.body.status,
-        req.body.reviewedBy
+        req.body.status
       );
       if (!contribution) {
         return res.status(404).json({ message: "Contribution not found" });
@@ -1505,8 +1513,7 @@ export async function registerRoutes(app: Express) {
       const category = req.query.category as string;
       const items = await storage.searchKnowledgeBase(
         parseInt(req.params.facultyId),
-        query,
-        category
+        query
       );
       res.json(items);
     } catch (error) {
@@ -1814,7 +1821,7 @@ export async function registerRoutes(app: Express) {
     try {
       const { query, facultyId } = req.body;
       // TODO: Implement searchDocuments in storage
-      const results = [];
+      const results: any[] = [];
       res.json(results);
     } catch (error) {
       console.error("Error searching documents:", error);
@@ -1826,7 +1833,7 @@ export async function registerRoutes(app: Express) {
   app.get("/api/integrations", requireAuth, async (req, res) => {
     try {
       // TODO: Implement getIntegrations in storage
-      const integrations = [];
+      const integrations: any[] = [];
       res.json(integrations);
     } catch (error) {
       console.error("Error fetching integrations:", error);
