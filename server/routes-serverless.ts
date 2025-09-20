@@ -325,21 +325,20 @@ export async function registerRoutes(app: Express) {
       }
 
       // Create session
-      (req.session as any).facultyId = faculty.id;
-      (req.session as any).role = faculty.role;
-      (req.session as any).name = faculty.name;
-      (req.session as any).email = faculty.email;
-
+      const session = await storage.createSession(faculty.id);
+      
       await storage.updateLastLogin(faculty.id);
 
       res.json({
-        success: true,
+        sessionId: session.id,
         faculty: {
           id: faculty.id,
           name: faculty.name,
           email: faculty.email,
           role: faculty.role,
-          status: faculty.status
+          title: faculty.title,
+          department: faculty.department,
+          institution: faculty.institution
         }
       });
     } catch (error) {
