@@ -1,0 +1,109 @@
+2:46:04 AM: Netlify Build                                                 
+2:46:04 AM: ────────────────────────────────────────────────────────────────
+2:46:04 AM: ​
+2:46:04 AM: ❯ Version
+2:46:04 AM:   @netlify/build 35.1.6
+2:46:04 AM: ​
+2:46:04 AM: ❯ Flags
+2:46:04 AM:   accountId: 68b185be9b63ad3bccac437f
+2:46:04 AM:   baseRelDir: true
+2:46:04 AM:   buildId: 68ce4d75b24edc0007d61ad1
+2:46:04 AM:   deployId: 68ce4d75b24edc0007d61ad3
+2:46:05 AM: ​
+2:46:05 AM: ❯ Current directory
+2:46:05 AM:   /opt/build/repo
+2:46:05 AM: ​
+2:46:05 AM: ❯ Config file
+2:46:05 AM:   /opt/build/repo/netlify.toml
+2:46:05 AM: ​
+2:46:05 AM: ❯ Context
+2:46:05 AM:   production
+2:46:05 AM: ​
+2:46:05 AM: ❯ Installing extensions
+2:46:05 AM:    - neon
+2:46:06 AM: ​
+2:46:06 AM: ❯ Loading extensions
+2:46:06 AM:    - neon
+2:46:07 AM: ​
+2:46:07 AM: build.command from netlify.toml                               
+2:46:07 AM: ────────────────────────────────────────────────────────────────
+2:46:07 AM: ​
+2:46:07 AM: $ npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes-serverless.js
+2:46:12 AM: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+2:46:12 AM: npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+2:46:22 AM: added 651 packages, and audited 652 packages in 15s
+2:46:22 AM: 85 packages are looking for funding
+2:46:22 AM:   run `npm fund` for details
+2:46:22 AM: 10 vulnerabilities (3 low, 7 moderate)
+2:46:22 AM: To address issues that do not require attention, run:
+2:46:22 AM:   npm audit fix
+2:46:22 AM: To address all issues (including breaking changes), run:
+2:46:22 AM:   npm audit fix --force
+2:46:22 AM: Run `npm audit` for details.
+2:46:23 AM: vite v5.4.19 building for production...
+2:46:23 AM: transforming...
+2:46:23 AM: Browserslist: browsers data (caniuse-lite) is 11 months old. Please run:
+2:46:23 AM:   npx update-browserslist-db@latest
+2:46:23 AM:   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+2:46:30 AM: ✓ 2016 modules transformed.
+2:46:31 AM: rendering chunks...
+2:46:31 AM: computing gzip size...
+2:46:31 AM: ../dist/public/index.html                   0.63 kB │ gzip:   0.38 kB
+2:46:31 AM: ../dist/public/assets/index-DDrODsLK.css  147.03 kB │ gzip:  23.71 kB
+2:46:31 AM: ../dist/public/assets/index-CaSkiSru.js   880.34 kB │ gzip: 260.06 kB
+2:46:31 AM: 
+2:46:31 AM: (!) Some chunks are larger than 500 kB after minification. Consider:
+2:46:31 AM: - Using dynamic import() to code-split the application
+2:46:31 AM: - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2:46:31 AM: - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2:46:31 AM: ✓ built in 8.01s
+2:46:31 AM: ✘ [ERROR] Could not resolve "./github-service"
+2:46:31 AM:     server/routes-serverless.ts:22:100:
+2:46:31 AM:       22 │ ...eploymentService, type GitHubUpdateFile } from "./github-service";
+2:46:31 AM:          ╵                                                   ~~~~~~~~~~~~~~~~~~
+2:46:31 AM: 1 error
+2:46:32 AM: Failed during stage 'building site': Build script returned non-zero exit code: 2 (https://ntl.fyi/exit-code-2)
+2:46:32 AM: ​
+2:46:32 AM: "build.command" failed                                        
+2:46:32 AM: ────────────────────────────────────────────────────────────────
+2:46:32 AM: ​
+2:46:32 AM:   Error message
+2:46:32 AM:   Command failed with exit code 1: npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes-serverless.js (https://ntl.fyi/exit-code-1)
+2:46:32 AM: ​
+2:46:32 AM:   Error location
+2:46:32 AM:   In build.command from netlify.toml:
+2:46:32 AM:   npm ci --include=dev && npx vite build --config vite.config.prod.ts && npx esbuild server/routes-serverless.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/routes-serverless.js
+2:46:32 AM: ​
+2:46:32 AM:   Resolved config
+2:46:32 AM:   build:
+2:46:32 AM:     command: npm ci --include=dev && npx vite build --config vite.config.prod.ts &&
+2:46:32 AM:       npx esbuild server/routes-serverless.ts --platform=node --packages=external
+2:46:32 AM:       --bundle --format=cjs --outfile=dist/routes-serverless.js
+2:46:32 AM:     commandOrigin: config
+2:46:32 AM:     environment:
+2:46:32 AM:       - DATABASE_URL
+2:46:32 AM:       - NETLIFY_DATABASE_URL
+2:46:32 AM:       - NETLIFY_DATABASE_URL_UNPOOLED
+2:46:32 AM:       - NODE_ENV
+2:46:32 AM:       - SESSION_SECRET
+2:46:32 AM:       - NODE_VERSION
+2:46:32 AM:       - NPM_FLAGS
+2:46:32 AM:     publish: /opt/build/repo/dist/public
+2:46:32 AM:     publishOrigin: config
+2:46:32 AM:   functions:
+2:46:32 AM:     "*":
+2:46:32 AM:       included_files:
+2:46:32 AM:         - dist/**
+  functionsDirectory: /opt/build/repo/netlify/functions
+  redirects:
+    - from: /api/*
+      status: 200
+      to: /.netlify/functions/server/:splat
+    - from: /*
+      status: 200
+      to: /index.html
+  redirectsOrigin: config
+2:46:32 AM: Build failed due to a user error: Build script returned non-zero exit code: 2
+2:46:32 AM: Failing build: Failed to build site
+2:46:33 AM: Finished processing build request in 44.276s
