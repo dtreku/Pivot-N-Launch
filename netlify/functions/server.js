@@ -22,7 +22,7 @@ const initializeRoutes = async () => {
   if (!routesInitialized) {
     try {
       // Import the serverless routes build
-      const routesModule = require("../../dist/routes.js");
+      const routesModule = require("../../dist/routes-serverless.js");
       const registerRoutes = routesModule.registerRoutes || routesModule.default?.registerRoutes;
       
       if (!registerRoutes) {
@@ -31,7 +31,7 @@ const initializeRoutes = async () => {
       
       await registerRoutes(app);
       routesInitialized = true;
-      console.log("Routes registered successfully");
+      console.log("✅ Serverless routes registered successfully from routes-serverless.ts");
     } catch (err) {
       console.error("Error registering routes:", err);
       throw err;
