@@ -69,8 +69,21 @@ export interface IStorage {
   // Project template methods
   getProjectTemplates(): Promise<ProjectTemplate[]>;
   getProjectTemplatesByDiscipline(discipline: string): Promise<ProjectTemplate[]>;
+  searchProjectTemplates(filters: {
+    status?: string;
+    discipline?: string;
+    q?: string;
+    featuredOnly?: boolean;
+    createdBy?: number;
+  }): Promise<ProjectTemplate[]>;
   getProjectTemplate(id: number): Promise<ProjectTemplate | undefined>;
+  getProjectTemplatesByIds(ids: number[]): Promise<ProjectTemplate[]>;
   createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate>;
+  updateProjectTemplate(id: number, template: Partial<InsertProjectTemplate>): Promise<ProjectTemplate | undefined>;
+  deleteProjectTemplate(id: number): Promise<boolean>;
+  approveProjectTemplate(id: number, approvedBy: number, notes?: string): Promise<ProjectTemplate | undefined>;
+  rejectProjectTemplate(id: number, approvedBy: number, notes?: string): Promise<ProjectTemplate | undefined>;
+  setTemplateStatus(id: number, status: string): Promise<ProjectTemplate | undefined>;
 
   // Student contribution methods
   getAllStudentContributions(): Promise<StudentContribution[]>;
