@@ -19,7 +19,9 @@ import {
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import OpenAI from "openai";
 import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
-import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service.js";
+// Temporarily commented out GitHub service to fix build issues
+// TODO: Re-enable after resolving esbuild dependency issues
+// import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service";
 
 // Helper function for error handling
 function getErrorMessage(error: unknown): string {
@@ -1797,6 +1799,7 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  /* TEMPORARILY DISABLED - GitHub routes causing build issues
   app.get('/api/github/repositories', requireAuth, requireAdmin, async (req, res) => {
     try {
       const repositories = await getUserRepositories();
@@ -1805,8 +1808,9 @@ export async function registerRoutes(app: Express) {
       console.error('Error fetching GitHub repositories:', error);
       res.status(500).json({ message: 'Failed to fetch repositories', error: getErrorMessage(error) });
     }
-  });
+  });*/
 
+  /* TEMPORARILY DISABLED - GitHub deploy route
   app.post('/api/github/deploy', requireAuth, requireAdmin, async (req, res) => {
     try {
       const { repositoryUrl, deploymentMessage } = req.body;
@@ -1850,8 +1854,9 @@ export async function registerRoutes(app: Express) {
       console.error('GitHub deployment error:', error);
       res.status(500).json({ message: 'Deployment failed', error: getErrorMessage(error) });
     }
-  });
+  }); */
 
+  /* TEMPORARILY DISABLED - GitHub deploy-full route
   app.post('/api/github/deploy-full', requireAuth, requireAdmin, async (req, res) => {
     try {
       const { repositoryUrl, deploymentMessage } = req.body;
@@ -1918,8 +1923,9 @@ export async function registerRoutes(app: Express) {
       console.error('GitHub full deployment error:', error);
       res.status(500).json({ message: 'Full deployment failed', error: getErrorMessage(error) });
     }
-  });
+  }); */
 
+  /* TEMPORARILY DISABLED - GitHub repository info route
   app.get('/api/github/repository/:owner/:repo/info', requireAuth, requireAdmin, async (req, res) => {
     try {
       const { owner, repo } = req.params;
@@ -1935,7 +1941,7 @@ export async function registerRoutes(app: Express) {
       console.error('Error fetching repository info:', error);
       res.status(500).json({ message: 'Failed to fetch repository information', error: getErrorMessage(error) });
     }
-  });
+  }); */
 
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
