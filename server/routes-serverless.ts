@@ -221,21 +221,45 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
-      // Direct validation for serverless compatibility
-      console.log("Direct login validation for:", email);
-      const faculty = await storage.getFacultyByEmail(email);
-      console.log("Faculty found:", !!faculty, "has hash:", !!faculty?.passwordHash);
-      
-      if (!faculty || !faculty.passwordHash) {
-        console.log("No faculty or password hash");
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
+      // Direct validation for serverless compatibility with extensive logging
+      try {
+        console.log("=== SERVERLESS LOGIN DEBUG ===");
+        console.log("Email:", email);
+        console.log("Password length:", password.length);
+        console.log("bcrypt available:", typeof bcrypt.compare === 'function');
+        
+        const faculty = await storage.getFacultyByEmail(email);
+        console.log("Faculty lookup result:", {
+          found: !!faculty,
+          hasEmail: !!faculty?.email,
+          hasPasswordHash: !!faculty?.passwordHash,
+          hashLength: faculty?.passwordHash?.length,
+          role: faculty?.role,
+          status: faculty?.status
+        });
+        
+        if (!faculty) {
+          console.log("FAIL: No faculty found");
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+        
+        if (!faculty.passwordHash) {
+          console.log("FAIL: No password hash");
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
 
-      console.log("Comparing with hash length:", faculty.passwordHash.length);
-      const isValid = await bcrypt.compare(password, faculty.passwordHash);
-      console.log("Password valid:", isValid);
-      
-      if (!isValid) {
+        console.log("Hash first 10 chars:", faculty.passwordHash.substring(0, 10));
+        console.log("About to compare password...");
+        const isValid = await bcrypt.compare(password, faculty.passwordHash);
+        console.log("Password comparison result:", isValid);
+        console.log("=== END LOGIN DEBUG ===");
+        
+        if (!isValid) {
+          console.log("FAIL: Password mismatch");
+          return res.status(401).json({ message: "Invalid credentials" });
+        }
+      } catch (validationError) {
+        console.error("VALIDATION ERROR:", validationError);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
