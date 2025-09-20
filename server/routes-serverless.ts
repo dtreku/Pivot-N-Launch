@@ -195,6 +195,15 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Simple test endpoint to verify routing
+  app.get('/api/test/hello', (req, res) => {
+    res.json({ 
+      message: "Hello from production!", 
+      timestamp: new Date().toISOString(),
+      environment: "serverless"
+    });
+  });
+
   // Test endpoint to check database connection
   app.get('/api/test/faculty', async (req, res) => {
     try {
