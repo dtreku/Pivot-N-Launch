@@ -1,5 +1,14 @@
 // Serverless-compatible routes for Netlify Functions
 import type { Express } from "express";
+
+// Extend Express Request type to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
 import { storage } from "./storage";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -22,6 +31,14 @@ import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
 // Temporarily commented out GitHub service to fix build issues
 // TODO: Re-enable after resolving esbuild dependency issues
 // import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service";
+
+// Import database connection for serverless database operations
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from "ws";
+
+neonConfig.webSocketConstructor = ws;
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 // Helper function for error handling
 function getErrorMessage(error: unknown): string {
@@ -124,6 +141,66 @@ export async function registerRoutes(app: Express) {
     }
     next();
   };
+
+  // Database initialization endpoint - creates tables (NO AUTH REQUIRED for first setup)
+  app.post('/api/init-db', async (req, res) => {
+    try {
+      console.log("Initializing database tables...");
+      
+      // Create tables using raw SQL since Drizzle push isn't available in serverless
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "faculty" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "name" varchar(255) NOT NULL,
+          "email" varchar(255) NOT NULL UNIQUE,
+          "password_hash" varchar(255),
+          "role" varchar(50) DEFAULT 'instructor' NOT NULL,
+          "status" varchar(50) DEFAULT 'pending' NOT NULL,
+          "is_active" boolean DEFAULT true NOT NULL,
+          "title" varchar(255) NOT NULL,
+          "department" varchar(255) NOT NULL,
+          "institution" varchar(255) NOT NULL,
+          "photo_url" text,
+          "bio" text,
+          "expertise" jsonb DEFAULT '[]',
+          "team_id" integer,
+          "last_login_at" timestamp,
+          "approved_by" integer,
+          "approved_at" timestamp,
+          "created_at" timestamp DEFAULT now() NOT NULL,
+          "updated_at" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "sessions" (
+          "sid" varchar PRIMARY KEY,
+          "sess" jsonb NOT NULL,
+          "expire" timestamp NOT NULL
+        );
+      `);
+
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions" ("expire");
+      `);
+
+      console.log("Database tables created successfully");
+      
+      res.json({
+        success: true,
+        message: "Database initialized successfully"
+      });
+      
+    } catch (error) {
+      console.error("Database initialization error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Database initialization failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Seed endpoint for database initialization - SUPER ADMIN ONLY
   app.post('/api/seed', requireAuth, requireSuperAdmin, async (req, res) => {
     try {
@@ -1397,8 +1474,7 @@ export async function registerRoutes(app: Express) {
     try {
       const contribution = await storage.updateStudentContributionStatus(
         parseInt(req.params.id),
-        req.body.status,
-        req.body.reviewedBy
+        req.body.status
       );
       if (!contribution) {
         return res.status(404).json({ message: "Contribution not found" });
@@ -1437,8 +1513,7 @@ export async function registerRoutes(app: Express) {
       const category = req.query.category as string;
       const items = await storage.searchKnowledgeBase(
         parseInt(req.params.facultyId),
-        query,
-        category
+        query
       );
       res.json(items);
     } catch (error) {
@@ -1746,7 +1821,7 @@ export async function registerRoutes(app: Express) {
     try {
       const { query, facultyId } = req.body;
       // TODO: Implement searchDocuments in storage
-      const results = [];
+      const results: any[] = [];
       res.json(results);
     } catch (error) {
       console.error("Error searching documents:", error);
@@ -1758,7 +1833,7 @@ export async function registerRoutes(app: Express) {
   app.get("/api/integrations", requireAuth, async (req, res) => {
     try {
       // TODO: Implement getIntegrations in storage
-      const integrations = [];
+      const integrations: any[] = [];
       res.json(integrations);
     } catch (error) {
       console.error("Error fetching integrations:", error);
