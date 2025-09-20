@@ -71,7 +71,7 @@ export default function Templates() {
       const params = new URLSearchParams();
       if (filters.discipline !== 'all') params.append('discipline', filters.discipline);
       if (searchQuery) params.append('q', searchQuery);
-      if (showPendingOnly && faculty?.role === 'super_admin') params.append('status', 'pending');
+      if (showPendingOnly && (faculty?.role === 'super_admin' || faculty?.role === 'admin')) params.append('status', 'pending');
       
       const response = await fetch(`/api/templates/search?${params}`);
       if (!response.ok) throw new Error('Failed to search templates');
@@ -79,7 +79,7 @@ export default function Templates() {
     }
   });
   
-  // Get featured templates
+  // Get featured templates using working search endpoint
   const { data: featuredTemplates = [] } = useQuery({
     queryKey: ['templates', 'featured'],
     queryFn: async () => {
@@ -393,7 +393,7 @@ export default function Templates() {
       </Card>
 
       {/* Admin Panel for Pending Templates */}
-      {faculty?.role === 'super_admin' && (
+      {(faculty?.role === 'super_admin' || faculty?.role === 'admin') && (
         <Card className="focus-card p-0 mb-6 border-amber-200 bg-amber-50">
           <CardHeader>
             <CardTitle className="text-amber-800">
@@ -517,7 +517,7 @@ export default function Templates() {
                 onExportTemplate={() => handleExportTemplate(template.id)}
                 isSelected={selectedTemplates.has(template.id)}
                 onSelect={() => handleTemplateSelect(template.id, !selectedTemplates.has(template.id))}
-                showApprovalActions={faculty?.role === 'super_admin' && template.status === 'pending'}
+                showApprovalActions={(faculty?.role === 'super_admin' || faculty?.role === 'admin') && template.status === 'pending'}
                 onApprove={() => handleApproveTemplate(template.id)}
                 onReject={() => handleRejectTemplate(template.id)}
               />

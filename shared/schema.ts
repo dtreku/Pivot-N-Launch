@@ -59,7 +59,7 @@ export const projectTemplates = pgTable("project_templates", {
   difficultyLevel: varchar("difficulty_level", { length: 50 }).default("intermediate"),
   isActive: boolean("is_active").default(true),
   createdBy: integer("created_by").references(() => faculty.id),
-  status: varchar("status", { length: 50 }).default("approved").notNull(),
+  status: varchar("status", { length: 50 }).default("pending").notNull(),
   approvedBy: integer("approved_by").references(() => faculty.id),
   approvedAt: timestamp("approved_at"),
   isFeatured: boolean("is_featured").default(false),
