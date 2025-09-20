@@ -21,9 +21,9 @@ let routesInitialized = false;
 const initializeRoutes = async () => {
   if (!routesInitialized) {
     try {
-      // Import the serverless routes build as ES module
-      const routesModule = await import("../../dist/routes-serverless.mjs");
-      const registerRoutes = routesModule.default || routesModule.registerRoutes;
+      // Use the wrapper to load routes safely
+      const wrapper = require("../../server/netlify-wrapper.js");
+      const registerRoutes = await wrapper.createRegisterRoutesFunction();
       
       if (!registerRoutes) {
         throw new Error("registerRoutes function not found in routes module");

@@ -2023,6 +2023,5 @@ async function registerRoutes(app: Express) {
   return app;
 }
 
-// Export as default for esbuild CommonJS compatibility
+// Simple export that should work with esbuild
 export default registerRoutes;
-export { registerRoutes };
