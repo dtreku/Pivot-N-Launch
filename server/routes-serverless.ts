@@ -324,13 +324,19 @@ async function registerRoutes(app: Express) {
         });
       }
 
-      // Create session
-      const session = await storage.createSession(faculty.id);
+      // Create simple session ID for serverless compatibility
+      const sessionId = `session_${faculty.id}_${Date.now()}_${Math.random().toString(36).substring(7)}`;
       
-      await storage.updateLastLogin(faculty.id);
+      // Update last login
+      try {
+        await storage.updateLastLogin(faculty.id);
+      } catch (loginUpdateError) {
+        console.warn("Could not update last login:", loginUpdateError);
+        // Don't fail login if this fails
+      }
 
       res.json({
-        sessionId: session.id,
+        sessionId: sessionId,
         faculty: {
           id: faculty.id,
           name: faculty.name,
