@@ -248,8 +248,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const revokedCount = await storage.deleteAllSessionsForFaculty(faculty.id);
       
       res.json({ 
-        message: "Password changed successfully", 
-        revokedSessions: revokedCount - 1 // Don't count current session
+        message: "Password changed successfully - please log in again", 
+        revokedSessions: revokedCount,
+        requiresReauth: true
       });
     } catch (error) {
       console.error("Password change error:", error);
