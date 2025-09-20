@@ -204,8 +204,21 @@ export async function registerRoutes(app: Express) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
-      const faculty = await storage.validateCredentials(email, password);
-      if (!faculty) {
+      // Direct validation for serverless compatibility
+      console.log("Direct login validation for:", email);
+      const faculty = await storage.getFacultyByEmail(email);
+      console.log("Faculty found:", !!faculty, "has hash:", !!faculty?.passwordHash);
+      
+      if (!faculty || !faculty.passwordHash) {
+        console.log("No faculty or password hash");
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      console.log("Comparing with hash length:", faculty.passwordHash.length);
+      const isValid = await bcrypt.compare(password, faculty.passwordHash);
+      console.log("Password valid:", isValid);
+      
+      if (!isValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
