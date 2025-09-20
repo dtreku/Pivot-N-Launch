@@ -28,6 +28,24 @@ function getErrorMessage(error: unknown): string {
 }
 
 export async function registerRoutes(app: Express) {
+  // Override storage validateCredentials to use static bcrypt import for serverless
+  storage.validateCredentials = async (email: string, password: string) => {
+    const { neon } = await import('@neondatabase/serverless');
+    const { drizzle } = await import('drizzle-orm/neon-http');
+    const { faculty } = await import('@shared/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    const db = drizzle(neon(process.env.DATABASE_URL!));
+    const [user] = await db.select().from(faculty).where(eq(faculty.email, email));
+    
+    if (!user || !user.passwordHash) {
+      return null;
+    }
+    
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    return isValid ? user : null;
+  };
+
   // Configure session middleware for serverless
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
