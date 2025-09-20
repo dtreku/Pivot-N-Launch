@@ -19,7 +19,7 @@ const signinSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(1, "Password is required"),
   title: z.string().min(1, "Title is required"),
   department: z.string().min(1, "Department is required"),
   institution: z.string().min(1, "Institution is required"),

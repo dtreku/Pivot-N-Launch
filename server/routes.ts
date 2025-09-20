@@ -219,6 +219,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Password change endpoint (requires authentication)
+  app.post("/api/auth/change-password", requireAuth, async (req: any, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const faculty = req.user;
+
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Current and new passwords are required" });
+      }
+
+      // Verify current password
+      const isValidPassword = await bcrypt.compare(currentPassword, faculty.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 12);
+      
+      // Update password in database
+      await storage.updateFaculty(faculty.id, { passwordHash: newPasswordHash });
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Password change error:", error);
+      res.status(500).json({ message: "Password change failed", error: getErrorMessage(error) });
+    }
+  });
+
+  // Password reset endpoint (admin only - resets user password)
+  app.post("/api/auth/reset-password", requireAuth, async (req: any, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      const adminUser = req.user;
+
+      // Check if user is admin or super_admin
+      if (!["admin", "super_admin"].includes(adminUser.role)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      if (!email || !newPassword) {
+        return res.status(400).json({ message: "Email and new password are required" });
+      }
+
+      // Find target faculty
+      const targetFaculty = await storage.getFacultyByEmail(email);
+      if (!targetFaculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 12);
+      
+      // Update password in database
+      await storage.updateFaculty(targetFaculty.id, { passwordHash: newPasswordHash });
+
+      res.json({ 
+        message: `Password reset successfully for ${email}`,
+        faculty: {
+          id: targetFaculty.id,
+          name: targetFaculty.name,
+          email: targetFaculty.email
+        }
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Password reset failed", error: getErrorMessage(error) });
+    }
+  });
+
   app.post("/api/auth/logout", requireAuth, async (req: any, res) => {
     try {
       await storage.deleteSession(req.session.id);
