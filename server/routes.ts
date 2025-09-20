@@ -222,12 +222,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Password change endpoint (requires authentication)
   app.post("/api/auth/change-password", requireAuth, async (req: any, res) => {
     try {
-      const { currentPassword, newPassword } = req.body;
-      const faculty = req.user;
+      // Zod validation schema for password change
+      const changePasswordSchema = z.object({
+        currentPassword: z.string().min(1, "Current password is required"),
+        newPassword: z.string().min(1, "New password is required")
+      });
 
-      if (!currentPassword || !newPassword) {
-        return res.status(400).json({ message: "Current and new passwords are required" });
-      }
+      const validatedData = changePasswordSchema.parse(req.body);
+      const { currentPassword, newPassword } = validatedData;
+      const faculty = req.user;
 
       // Verify current password
       const isValidPassword = await bcrypt.compare(currentPassword, faculty.passwordHash);
@@ -257,16 +260,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Password reset endpoint (admin only - resets user password)
   app.post("/api/auth/reset-password", requireAuth, async (req: any, res) => {
     try {
-      const { email, newPassword } = req.body;
+      // Zod validation schema for password reset
+      const resetPasswordSchema = z.object({
+        email: z.string().email("Valid email is required"),
+        newPassword: z.string().min(1, "New password is required")
+      });
+
+      const validatedData = resetPasswordSchema.parse(req.body);
+      const { email, newPassword } = validatedData;
       const adminUser = req.user;
 
       // Check if user is admin or super_admin
       if (!["admin", "super_admin"].includes(adminUser.role)) {
         return res.status(403).json({ message: "Admin access required" });
-      }
-
-      if (!email || !newPassword) {
-        return res.status(400).json({ message: "Email and new password are required" });
       }
 
       // Find target faculty
