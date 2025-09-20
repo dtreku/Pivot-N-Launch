@@ -46,13 +46,13 @@ export default function FacultyProfile() {
           <p className="text-xs text-gray-400">{faculty.institution}</p>
         </div>
         <DropdownMenuItem asChild>
-          <Link href="/settings" className="flex items-center cursor-pointer">
+          <Link href="/profile" className="flex items-center cursor-pointer" data-testid="link-profile">
             <User className="w-4 h-4 mr-2" />
             Profile
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/settings" className="flex items-center cursor-pointer">
+          <Link href="/settings" className="flex items-center cursor-pointer" data-testid="link-settings">
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Link>
