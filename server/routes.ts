@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, 12);
 
       const facultyData = {
         name,
@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, 12);
 
       const facultyData = {
         name,
@@ -922,7 +922,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Hash password
-      const passwordHash = await bcrypt.hash(password, 10);
+      const passwordHash = await bcrypt.hash(password, 12);
 
       const facultyData = {
         name,
@@ -1007,7 +1007,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/seed", async (req, res) => {
     try {
       // Create admin accounts
-      const passwordHash = await bcrypt.hash("admin123", 10); // Default password for setup
+      const passwordHash = await bcrypt.hash("admin123", 12); // Default password for setup
       
       const adminAccounts = [
         {
