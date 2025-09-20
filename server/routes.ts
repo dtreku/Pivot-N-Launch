@@ -2318,6 +2318,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoints
+  app.get('/api/test/hello', (req, res) => {
+    res.json({ 
+      message: 'Hello from PBL Toolkit API!',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Database initialization endpoint (development only - for testing)
+  app.post('/api/init-db', async (req, res) => {
+    try {
+      console.log("Development: Database tables already managed by Drizzle migrations");
+      res.json({
+        success: true,
+        message: "Development database managed by Drizzle - tables auto-created"
+      });
+    } catch (error) {
+      console.error("Development init-db error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Development database error",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
 
