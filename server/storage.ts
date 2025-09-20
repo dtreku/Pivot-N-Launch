@@ -45,7 +45,7 @@ import {
   type InsertIntegrationParameter
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, like, sql } from "drizzle-orm";
+import { eq, desc, and, like, sql, inArray } from "drizzle-orm";
 
 export interface IStorage {
   // Faculty methods
@@ -325,58 +325,88 @@ export class DatabaseStorage implements IStorage {
     featuredOnly?: boolean;
     createdBy?: number;
   }): Promise<ProjectTemplate[]> {
-    const conditions = [eq(projectTemplates.isActive, true)];
+    console.log('searchProjectTemplates called with filters:', filters);
     
-    if (filters.status) {
-      conditions.push(eq(projectTemplates.status, filters.status));
-    } else {
-      conditions.push(eq(projectTemplates.status, 'approved'));
+    try {
+      const conditions = [eq(projectTemplates.isActive, true)];
+      
+      // Add status filter with safe defaults
+      if (filters.status && typeof filters.status === 'string') {
+        conditions.push(eq(projectTemplates.status, filters.status));
+      } else {
+        conditions.push(eq(projectTemplates.status, 'approved'));
+      }
+      
+      // Add discipline filter with validation
+      if (filters.discipline && typeof filters.discipline === 'string' && filters.discipline !== 'all') {
+        conditions.push(eq(projectTemplates.discipline, filters.discipline));
+      }
+      
+      // Add featured filter with validation
+      if (filters.featuredOnly === true) {
+        conditions.push(eq(projectTemplates.isFeatured, true));
+      }
+      
+      // Add createdBy filter with strict validation
+      if (filters.createdBy && typeof filters.createdBy === 'number' && !isNaN(filters.createdBy) && filters.createdBy > 0) {
+        conditions.push(eq(projectTemplates.createdBy, filters.createdBy));
+      }
+      
+      let query = db
+        .select()
+        .from(projectTemplates)
+        .where(and(...conditions));
+      
+      // Add search query with validation
+      if (filters.q && typeof filters.q === 'string' && filters.q.trim().length > 0) {
+        const searchTerm = `%${filters.q.toLowerCase().trim()}%`;
+        query = query.where(
+          and(
+            ...conditions,
+            sql`(
+              LOWER(${projectTemplates.name}) LIKE ${searchTerm} OR 
+              LOWER(${projectTemplates.description}) LIKE ${searchTerm}
+            )`
+          )
+        );
+      }
+      
+      const result = await query.orderBy(projectTemplates.name);
+      console.log('searchProjectTemplates result:', result.length, 'templates found');
+      return result;
+    } catch (error) {
+      console.error('searchProjectTemplates error:', error);
+      throw error;
     }
-    
-    if (filters.discipline && filters.discipline !== 'all') {
-      conditions.push(eq(projectTemplates.discipline, filters.discipline));
-    }
-    
-    if (filters.featuredOnly) {
-      conditions.push(eq(projectTemplates.isFeatured, true));
-    }
-    
-    if (filters.createdBy) {
-      conditions.push(eq(projectTemplates.createdBy, filters.createdBy));
-    }
-    
-    let query = db
-      .select()
-      .from(projectTemplates)
-      .where(and(...conditions));
-    
-    if (filters.q) {
-      const searchTerm = `%${filters.q.toLowerCase()}%`;
-      query = query.where(
-        and(
-          ...conditions,
-          sql`(
-            LOWER(${projectTemplates.name}) LIKE ${searchTerm} OR 
-            LOWER(${projectTemplates.description}) LIKE ${searchTerm}
-          )`
-        )
-      );
-    }
-    
-    return await query.orderBy(
-      projectTemplates.isFeatured ? desc(projectTemplates.isFeatured) : projectTemplates.name,
-      projectTemplates.name
-    );
   }
 
   async getProjectTemplatesByIds(ids: number[]): Promise<ProjectTemplate[]> {
     if (ids.length === 0) return [];
     
-    return await db
-      .select()
-      .from(projectTemplates)
-      .where(sql`${projectTemplates.id} = ANY(${ids})`)
-      .orderBy(projectTemplates.name);
+    console.log('getProjectTemplatesByIds called with ids:', ids);
+    
+    try {
+      // Use individual queries for each ID (simple but reliable)
+      const templates: ProjectTemplate[] = [];
+      
+      for (const id of ids) {
+        const template = await db
+          .select()
+          .from(projectTemplates)
+          .where(eq(projectTemplates.id, id))
+          .limit(1);
+        
+        if (template.length > 0) {
+          templates.push(template[0]);
+        }
+      }
+      
+      console.log('getProjectTemplatesByIds found', templates.length, 'templates');
+      return templates.sort((a, b) => a.name.localeCompare(b.name));
+    } catch (error) {
+      console.error('getProjectTemplatesByIds error:', error);
+      throw error;
+    }
   }
 
   async updateProjectTemplate(id: number, template: Partial<InsertProjectTemplate>): Promise<ProjectTemplate | undefined> {

@@ -534,22 +534,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/templates/:id", async (req, res) => {
+  // Get featured templates (workaround for routing issue)
+  app.get("/api/templates/featured", async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const template = await storage.getProjectTemplate(id);
-      
-      if (!template) {
-        return res.status(404).json({ message: "Template not found" });
-      }
-      
-      res.json(template);
+      const featuredTemplates = await storage.searchProjectTemplates({
+        status: 'approved',
+        featuredOnly: true
+      });
+      res.json(featuredTemplates);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch template", error: getErrorMessage(error) });
+      res.status(500).json({ message: "Failed to fetch featured templates", error: getErrorMessage(error) });
     }
   });
 
-  // Search templates with filters
+  // Search templates with filters (MUST come before /:id route)
   app.get("/api/templates/search", async (req, res) => {
     try {
       const { status, discipline, q, featuredOnly, createdBy } = req.query;
@@ -559,13 +557,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         discipline: discipline as string,
         q: q as string,
         featuredOnly: featuredOnly === 'true',
-        createdBy: createdBy ? parseInt(createdBy as string) : undefined
+        createdBy: createdBy && !isNaN(parseInt(createdBy as string)) ? parseInt(createdBy as string) : undefined
       };
       
       const templates = await storage.searchProjectTemplates(filters);
       res.json(templates);
     } catch (error) {
+      console.error('Search templates error:', error);
       res.status(500).json({ message: "Failed to search templates", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/templates/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id)) {
+        return res.status(400).json({ message: "Invalid template ID" });
+      }
+      
+      const template = await storage.getProjectTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get template by ID", error: getErrorMessage(error) });
     }
   });
 
