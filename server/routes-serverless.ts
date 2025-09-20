@@ -32,14 +32,18 @@ export async function registerRoutes(app: Express) {
   const originalValidateCredentials = storage.validateCredentials.bind(storage);
   storage.validateCredentials = async (email: string, password: string) => {
     try {
-      // Use the original method but catch any bcrypt import errors
+      console.log("Serverless validateCredentials called for:", email);
       const user = await storage.getFacultyByEmail(email);
+      console.log("User found:", !!user, "has password:", !!user?.passwordHash);
       
       if (!user || !user.passwordHash) {
+        console.log("No user or password hash found");
         return null;
       }
       
+      console.log("Comparing password with hash length:", user.passwordHash.length);
       const isValid = await bcrypt.compare(password, user.passwordHash);
+      console.log("Password comparison result:", isValid);
       return isValid ? user : null;
     } catch (error) {
       console.error("Serverless validateCredentials error:", error);
