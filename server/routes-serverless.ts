@@ -1,9 +1,24 @@
 // Serverless-compatible routes for Netlify Functions
 import type { Express } from "express";
 import { storage } from "./storage";
+import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import { 
+  insertFacultySchema,
+  insertProjectSchema,
+  insertStudentContributionSchema,
+  insertKnowledgeBaseSchema,
+  insertObjectiveConversionSchema,
+  insertSurveyResponseSchema,
+  insertAnalyticsEventSchema,
+  insertDocumentUploadSchema,
+  insertTeamSchema
+} from "@shared/schema";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import OpenAI from "openai";
+import { encryptApiKey, decryptApiKey, isApiKeyEncrypted } from "./crypto";
 import { getUserRepositories, parseGitHubUrl, GitHubDeploymentService, type GitHubUpdateFile } from "./github-service";
 
 // Helper function for error handling
@@ -23,8 +38,13 @@ export async function registerRoutes(app: Express) {
     tableName: "sessions",
   });
 
+  // Require SESSION_SECRET in production for security
+  if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET environment variable is required');
+  }
+
   app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-secret-key',
+    secret: process.env.SESSION_SECRET,
     store: sessionStore,
     resave: false,
     saveUninitialized: false,
@@ -36,22 +56,49 @@ export async function registerRoutes(app: Express) {
   }));
 
   // Middleware to check if user is authenticated
-  const requireAuth = (req: any, res: any, next: any) => {
-    if (req.session?.facultyId) {
-      return next();
+  const requireAuth = async (req: any, res: any, next: any) => {
+    if (!req.session?.facultyId) {
+      return res.status(401).json({ message: "Authentication required" });
     }
-    return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const faculty = await storage.getFaculty(req.session.facultyId);
+      if (!faculty || !faculty.isActive || faculty.status !== 'approved') {
+        return res.status(401).json({ message: "Faculty account inactive or not approved" });
+      }
+
+      req.user = faculty;
+      next();
+    } catch (error) {
+      return res.status(500).json({ message: "Authentication error" });
+    }
   };
 
-  // Middleware to require admin role
+  // Middleware to check admin access (super_admin or admin)
   const requireAdmin = (req: any, res: any, next: any) => {
-    if (req.session?.role === 'super_admin' || req.session?.role === 'admin') {
-      return next();
+    if (!req.user || !['super_admin', 'admin'].includes(req.user.role)) {
+      return res.status(403).json({ message: "Admin access required" });
     }
-    return res.status(403).json({ message: "Admin access required" });
+    next();
   };
-  // Seed endpoint for database initialization - ADMIN ONLY
-  app.post('/api/seed', requireAuth, requireAdmin, async (req, res) => {
+
+  // Middleware to check super admin access
+  const requireSuperAdmin = (req: any, res: any, next: any) => {
+    if (req.user?.role !== 'super_admin') {
+      return res.status(403).json({ message: "Super admin access required" });
+    }
+    next();
+  };
+
+  // Middleware to check if user is approved
+  const requireApproved = (req: any, res: any, next: any) => {
+    if (req.user?.status !== 'approved') {
+      return res.status(403).json({ message: "Account pending approval" });
+    }
+    next();
+  };
+  // Seed endpoint for database initialization - SUPER ADMIN ONLY
+  app.post('/api/seed', requireAuth, requireSuperAdmin, async (req, res) => {
     try {
       console.log("Seeding database with admin accounts...");
 
@@ -1115,12 +1162,589 @@ export async function registerRoutes(app: Express) {
     }
   });
 
+  // Faculty management routes
+  app.get("/api/faculty/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const faculty = await storage.getFaculty(id);
+      
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json(faculty);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  app.get("/api/faculty/email/:email", async (req, res) => {
+    try {
+      const faculty = await storage.getFacultyByEmail(req.params.email);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      res.json(faculty);
+    } catch (error) {
+      console.error("Error fetching faculty by email:", error);
+      res.status(500).json({ message: "Failed to fetch faculty" });
+    }
+  });
+
+  app.post("/api/faculty", async (req, res) => {
+    try {
+      const validatedData = insertFacultySchema.parse(req.body);
+      const faculty = await storage.createFaculty(validatedData);
+      res.status(201).json(faculty);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid faculty data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create faculty", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/faculty/:id", async (req, res) => {
+    try {
+      const faculty = await storage.updateFaculty(parseInt(req.params.id), req.body);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      res.json(faculty);
+    } catch (error) {
+      console.error("Error updating faculty:", error);
+      res.status(500).json({ message: "Failed to update faculty" });
+    }
+  });
+
+  // Team management routes
+  app.get("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teams = await storage.getTeamsForFaculty(req.session.facultyId);
+      res.json(teams);
+    } catch (error) {
+      console.error("Error fetching teams:", error);
+      res.status(500).json({ message: "Failed to fetch teams" });
+    }
+  });
+
+  app.post("/api/teams", requireAuth, async (req: any, res) => {
+    try {
+      const teamData = { ...req.body, facultyId: req.session.facultyId };
+      const team = await storage.createTeam(teamData);
+      res.status(201).json(team);
+    } catch (error) {
+      console.error("Error creating team:", error);
+      res.status(500).json({ message: "Failed to create team" });
+    }
+  });
+
+  app.get("/api/teams/:id/members", requireAuth, async (req, res) => {
+    try {
+      const members = await storage.getTeamMembers(parseInt(req.params.id));
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Project management routes
+  app.get("/api/projects/faculty/:facultyId", async (req, res) => {
+    try {
+      const projects = await storage.getProjectsForFaculty(parseInt(req.params.facultyId));
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ message: "Failed to fetch project" });
+    }
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const validatedData = insertProjectSchema.parse(req.body);
+      const project = await storage.createProject(validatedData);
+      res.status(201).json(project);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid project data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create project", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.updateProject(parseInt(req.params.id), req.body);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      res.status(500).json({ message: "Failed to update project" });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      await storage.deleteProject(parseInt(req.params.id));
+      res.json({ message: "Project deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
   // GitHub Integration Routes
+  // Contributions routes
+  app.get("/api/contributions/project/:projectId", async (req, res) => {
+    try {
+      const contributions = await storage.getContributionsForProject(parseInt(req.params.projectId));
+      res.json(contributions);
+    } catch (error) {
+      console.error("Error fetching contributions:", error);
+      res.status(500).json({ message: "Failed to fetch contributions" });
+    }
+  });
+
+  app.post("/api/contributions", async (req, res) => {
+    try {
+      const validatedData = insertStudentContributionSchema.parse(req.body);
+      const contribution = await storage.createStudentContribution(validatedData);
+      res.status(201).json(contribution);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid contribution data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create contribution", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/contributions/:id/status", async (req, res) => {
+    try {
+      const contribution = await storage.updateContributionStatus(
+        parseInt(req.params.id),
+        req.body.status,
+        req.body.reviewedBy
+      );
+      if (!contribution) {
+        return res.status(404).json({ message: "Contribution not found" });
+      }
+      res.json(contribution);
+    } catch (error) {
+      console.error("Error updating contribution status:", error);
+      res.status(500).json({ message: "Failed to update contribution status" });
+    }
+  });
+
+  // Knowledge base routes
+  app.get("/api/knowledge-base/faculty/:facultyId", async (req, res) => {
+    try {
+      const items = await storage.getKnowledgeBaseForFaculty(parseInt(req.params.facultyId));
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching knowledge base:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge base" });
+    }
+  });
+
+  app.post("/api/knowledge-base", async (req, res) => {
+    try {
+      const item = await storage.createKnowledgeBaseItem(req.body);
+      res.status(201).json(item);
+    } catch (error) {
+      console.error("Error creating knowledge base item:", error);
+      res.status(500).json({ message: "Failed to create knowledge base item" });
+    }
+  });
+
+  app.get("/api/knowledge-base/search/:facultyId", async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      const category = req.query.category as string;
+      const items = await storage.searchKnowledgeBase(
+        parseInt(req.params.facultyId),
+        query,
+        category
+      );
+      res.json(items);
+    } catch (error) {
+      console.error("Error searching knowledge base:", error);
+      res.status(500).json({ message: "Failed to search knowledge base" });
+    }
+  });
+
+  app.delete("/api/knowledge-base/:id", async (req, res) => {
+    try {
+      await storage.deleteKnowledgeBaseItem(parseInt(req.params.id));
+      res.json({ message: "Knowledge base item deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting knowledge base item:", error);
+      res.status(500).json({ message: "Failed to delete knowledge base item" });
+    }
+  });
+
+  // Analytics routes
+  app.get("/api/dashboard/stats/:facultyId", async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats(parseInt(req.params.facultyId));
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ message: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  app.post("/api/analytics", async (req, res) => {
+    try {
+      const event = await storage.logAnalyticsEvent(req.body);
+      res.status(201).json(event);
+    } catch (error) {
+      console.error("Error logging analytics:", error);
+      res.status(500).json({ message: "Failed to log analytics" });
+    }
+  });
+
+  app.get("/api/analytics/faculty/:facultyId", async (req, res) => {
+    try {
+      const events = await storage.getAnalyticsForFaculty(parseInt(req.params.facultyId));
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching analytics:", error);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Admin user management routes
+  app.get("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.get("/api/admin/users/pending", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const pendingUsers = await storage.getPendingUsers();
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error("Error fetching pending users:", error);
+      res.status(500).json({ message: "Failed to fetch pending users" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/approve", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.approveUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User approved successfully", user });
+    } catch (error) {
+      console.error("Error approving user:", error);
+      res.status(500).json({ message: "Failed to approve user" });
+    }
+  });
+
+  app.post("/api/admin/users/:id/reject", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.rejectUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User rejected successfully", user });
+    } catch (error) {
+      console.error("Error rejecting user:", error);
+      res.status(500).json({ message: "Failed to reject user" });
+    }
+  });
+
+  app.post("/api/admin/users", requireAuth, requireAdmin, async (req: any, res) => {
+    try {
+      const { name, email, password, title, department, institution, role = "instructor" } = req.body;
+
+      if (!name || !email || !password || !title || !department || !institution) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+
+      // Check if email already exists
+      const existingFaculty = await storage.getFacultyByEmail(email);
+      if (existingFaculty) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      const facultyData = {
+        name,
+        email,
+        passwordHash,
+        role,
+        title,
+        department,
+        institution,
+        isActive: true,
+        status: "approved"
+      };
+
+      const faculty = await storage.createFaculty(facultyData);
+      res.status(201).json({
+        id: faculty.id,
+        name: faculty.name,
+        email: faculty.email,
+        role: faculty.role,
+        status: faculty.status
+      });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  // Document management routes
+  app.get("/api/documents/faculty/:facultyId", async (req, res) => {
+    try {
+      const documents = await storage.getDocumentsForFaculty(parseInt(req.params.facultyId));
+      res.json(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.post("/api/documents/upload-url", async (req, res) => {
+    try {
+      const { fileName, fileType, fileSize } = req.body;
+      const uploadUrl = await storage.generateUploadUrl(fileName, fileType, fileSize);
+      res.json(uploadUrl);
+    } catch (error) {
+      console.error("Error generating upload URL:", error);
+      res.status(500).json({ message: "Failed to generate upload URL" });
+    }
+  });
+
+  app.post("/api/documents", async (req, res) => {
+    try {
+      const document = await storage.createDocument(req.body);
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating document:", error);
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Update download count in database if this is a tracked document
+      const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.path);
+      
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.deleteDocumentUpload(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json({ message: "Document deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document", error: getErrorMessage(error) });
+    }
+  });
+
+  // Faculty settings routes
+  app.get("/api/faculty/:id/settings", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      
+      // Strict authorization check - users can only access their own settings
+      if (req.user.id !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const faculty = await storage.getFaculty(facultyId);
+      if (!faculty) {
+        return res.status(404).json({ message: "Faculty not found" });
+      }
+      
+      res.json({
+        hasApiKey: !!(faculty.openaiApiKey && faculty.openaiApiKey.length > 0),
+        // Never return the actual API key for security
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch settings", error: getErrorMessage(error) });
+    }
+  });
+
+  app.put("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      
+      // Strict authorization check - users can only update their own API key
+      if (req.user.id !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Validate request body
+      const apiKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters").regex(/^sk-/, "API key must start with 'sk-'")
+      });
+      
+      const validatedData = apiKeySchema.parse(req.body);
+      
+      // Encrypt the API key before storing
+      const encryptedApiKey = encryptApiKey(validatedData.apiKey);
+      await storage.updateFaculty(facultyId, { openaiApiKey: encryptedApiKey });
+      
+      res.json({ message: "API key updated successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid API key", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update API key", error: getErrorMessage(error) });
+    }
+  });
+
+  app.delete("/api/faculty/:id/api-key", requireAuth, async (req, res) => {
+    try {
+      const facultyId = parseInt(req.params.id);
+      
+      // Strict authorization check - users can only delete their own API key
+      if (req.user.id !== facultyId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.updateFaculty(facultyId, { openaiApiKey: null });
+      
+      res.json({ message: "API key removed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // OpenAI integration routes
+  app.post("/api/openai/test", requireAuth, async (req, res) => {
+    try {
+      // Validate request body
+      const testKeySchema = z.object({
+        apiKey: z.string().min(20, "API key must be at least 20 characters")
+      });
+      
+      const validatedData = testKeySchema.parse(req.body);
+      
+      // Test the API key by making a simple request
+      const openai = new OpenAI({ apiKey: validatedData.apiKey });
+      
+      try {
+        // Use a very small, inexpensive request to test the key
+        await openai.models.list();
+        res.json({ valid: true, message: "API key is valid" });
+      } catch (openaiError: any) {
+        if (openaiError?.status === 401) {
+          return res.status(400).json({ valid: false, message: "Invalid API key" });
+        }
+        throw openaiError;
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to test API key", error: getErrorMessage(error) });
+    }
+  });
+
+  // Search routes
+  app.post("/api/search/documents", requireAuth, async (req, res) => {
+    try {
+      const { query, facultyId } = req.body;
+      const results = await storage.searchDocuments(query, facultyId);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching documents:", error);
+      res.status(500).json({ message: "Failed to search documents" });
+    }
+  });
+
+  // Integration management routes
+  app.get("/api/integrations", requireAuth, async (req, res) => {
+    try {
+      const integrations = await storage.getIntegrations();
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+      res.status(500).json({ message: "Failed to fetch integrations" });
+    }
+  });
+
+  app.post("/api/integrations/connect", requireAuth, async (req, res) => {
+    try {
+      const integration = await storage.connectIntegration(req.body);
+      res.status(201).json(integration);
+    } catch (error) {
+      console.error("Error connecting integration:", error);
+      res.status(500).json({ message: "Failed to connect integration" });
+    }
+  });
+
+  app.put("/api/integrations/:id/configure", requireAuth, async (req, res) => {
+    try {
+      const integration = await storage.configureIntegration(parseInt(req.params.id), req.body);
+      res.json(integration);
+    } catch (error) {
+      console.error("Error configuring integration:", error);
+      res.status(500).json({ message: "Failed to configure integration" });
+    }
+  });
+
+  app.delete("/api/integrations/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteIntegration(parseInt(req.params.id));
+      res.json({ message: "Integration deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting integration:", error);
+      res.status(500).json({ message: "Failed to delete integration" });
+    }
+  });
+
   app.get('/api/github/repositories', requireAuth, requireAdmin, async (req, res) => {
     try {
       const repositories = await getUserRepositories();
