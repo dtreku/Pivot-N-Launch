@@ -313,9 +313,125 @@ export class DatabaseStorage implements IStorage {
       .orderBy(projectTemplates.name);
   }
 
-  async getProjectTemplate(id: number): Promise<ProjectTemplate | undefined> {
-    const [result] = await db.select().from(projectTemplates).where(eq(projectTemplates.id, id));
-    return result || undefined;
+  async searchProjectTemplates(filters: {
+    status?: string;
+    discipline?: string;
+    q?: string;
+    featuredOnly?: boolean;
+    createdBy?: number;
+  }): Promise<ProjectTemplate[]> {
+    const conditions = [eq(projectTemplates.isActive, true)];
+    
+    if (filters.status) {
+      conditions.push(eq(projectTemplates.status, filters.status));
+    } else {
+      conditions.push(eq(projectTemplates.status, 'approved'));
+    }
+    
+    if (filters.discipline && filters.discipline !== 'all') {
+      conditions.push(eq(projectTemplates.discipline, filters.discipline));
+    }
+    
+    if (filters.featuredOnly) {
+      conditions.push(eq(projectTemplates.isFeatured, true));
+    }
+    
+    if (filters.createdBy) {
+      conditions.push(eq(projectTemplates.createdBy, filters.createdBy));
+    }
+    
+    let query = db
+      .select()
+      .from(projectTemplates)
+      .where(and(...conditions));
+    
+    if (filters.q) {
+      query = query.where(
+        and(
+          ...conditions,
+          sql`(
+            LOWER(${projectTemplates.name}) LIKE LOWER(${`%${filters.q}%`}) OR 
+            LOWER(${projectTemplates.description}) LIKE LOWER(${`%${filters.q}%`})
+          )`
+        )
+      );
+    }
+    
+    return await query.orderBy(
+      projectTemplates.isFeatured ? desc(projectTemplates.isFeatured) : projectTemplates.name,
+      projectTemplates.name
+    );
+  }
+
+  async getProjectTemplatesByIds(ids: number[]): Promise<ProjectTemplate[]> {
+    if (ids.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(projectTemplates)
+      .where(sql`${projectTemplates.id} = ANY(${ids})`)
+      .orderBy(projectTemplates.name);
+  }
+
+  async updateProjectTemplate(id: number, template: Partial<InsertProjectTemplate>): Promise<ProjectTemplate | undefined> {
+    const updated = await db
+      .update(projectTemplates)
+      .set(template)
+      .where(eq(projectTemplates.id, id))
+      .returning();
+    
+    return updated[0];
+  }
+
+  async deleteProjectTemplate(id: number): Promise<boolean> {
+    const result = await db
+      .delete(projectTemplates)
+      .where(eq(projectTemplates.id, id));
+    
+    return result.rowCount > 0;
+  }
+
+  async approveProjectTemplate(id: number, approvedBy: number, notes?: string): Promise<ProjectTemplate | undefined> {
+    const updated = await db
+      .update(projectTemplates)
+      .set({
+        status: 'approved',
+        approvedBy,
+        approvedAt: new Date(),
+        isActive: true
+      })
+      .where(eq(projectTemplates.id, id))
+      .returning();
+    
+    return updated[0];
+  }
+
+  async rejectProjectTemplate(id: number, approvedBy: number, notes?: string): Promise<ProjectTemplate | undefined> {
+    const updated = await db
+      .update(projectTemplates)
+      .set({
+        status: 'rejected',
+        approvedBy,
+        approvedAt: new Date(),
+        isActive: false
+      })
+      .where(eq(projectTemplates.id, id))
+      .returning();
+    
+    return updated[0];
+  }
+
+  async setTemplateStatus(id: number, status: string): Promise<ProjectTemplate | undefined> {
+    const updated = await db
+      .update(projectTemplates)
+      .set({
+        status,
+        isActive: status === 'approved'
+      })
+      .where(eq(projectTemplates.id, id))
+      .returning();
+    
+    return updated[0];
   }
 
   async createProjectTemplate(template: InsertProjectTemplate): Promise<ProjectTemplate> {
