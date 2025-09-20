@@ -15,7 +15,10 @@ import {
   Target, 
   Lightbulb,
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  Check,
+  X,
+  AlertCircle
 } from "lucide-react";
 import type { ProjectTemplate } from "@/types";
 
@@ -25,6 +28,9 @@ interface TemplateCardProps {
   onExportTemplate: () => void;
   isSelected?: boolean;
   onSelect?: () => void;
+  showApprovalActions?: boolean;
+  onApprove?: () => void;
+  onReject?: () => void;
 }
 
 export default function TemplateCard({
@@ -33,10 +39,13 @@ export default function TemplateCard({
   onExportTemplate,
   isSelected = false,
   onSelect,
+  showApprovalActions = false,
+  onApprove,
+  onReject,
 }: TemplateCardProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const getDifficultyColor = (level: string) => {
+  const getDifficultyColor = (level: string | null) => {
     switch (level) {
       case "beginner":
         return "bg-green-100 text-green-800";
@@ -46,6 +55,19 @@ export default function TemplateCard({
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
+    }
+  };
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "rejected":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
@@ -74,11 +96,11 @@ export default function TemplateCard({
     return "Time varies";
   };
 
-  // Parse template content for structured display
-  const templateContent = typeof template.template === 'object' ? template.template : {};
-  const phases = Array.isArray(templateContent.phases) ? templateContent.phases : [];
-  const deliverables = Array.isArray(templateContent.deliverables) ? templateContent.deliverables : [];
-  const tools = Array.isArray(templateContent.tools) ? templateContent.tools : [];
+  // Parse template content for structured display with null safety
+  const templateContent = typeof template.template === 'object' && template.template !== null ? template.template as any : {};
+  const phases = Array.isArray(templateContent?.phases) ? templateContent.phases : [];
+  const deliverables = Array.isArray(templateContent?.deliverables) ? templateContent.deliverables : [];
+  const tools = Array.isArray(templateContent?.tools) ? templateContent.tools : [];
 
   return (
     <>
@@ -99,13 +121,27 @@ export default function TemplateCard({
               </div>
               <div className="flex-1 min-w-0">
                 <CardTitle className="text-lg truncate">{template.name}</CardTitle>
-                <div className="flex items-center space-x-2 mt-1">
+                <div className="flex items-center space-x-2 mt-1 flex-wrap">
                   <Badge variant="outline" className="text-xs">
                     {template.discipline}
                   </Badge>
-                  <Badge className={`text-xs ${getDifficultyColor(template.difficultyLevel)}`}>
-                    {template.difficultyLevel}
-                  </Badge>
+                  {template.difficultyLevel && (
+                    <Badge className={`text-xs ${getDifficultyColor(template.difficultyLevel)}`}>
+                      {template.difficultyLevel}
+                    </Badge>
+                  )}
+                  {template.status && template.status !== 'approved' && (
+                    <Badge className={`text-xs ${getStatusColor(template.status)}`}>
+                      {template.status === 'pending' && <AlertCircle className="w-3 h-3 mr-1" />}
+                      {template.status}
+                    </Badge>
+                  )}
+                  {template.isFeatured && (
+                    <Badge className="text-xs bg-amber-100 text-amber-800">
+                      <Star className="w-3 h-3 mr-1" />
+                      Featured
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -158,30 +194,62 @@ export default function TemplateCard({
               </div>
             )}
 
-            <div className="flex gap-2 pt-3 border-t">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCreateProject();
-                }}
-                className="flex-1 pbl-button-primary text-xs"
-              >
-                <Play className="w-3 h-3 mr-1" />
-                Use Template
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onExportTemplate();
-                }}
-                className="text-xs"
-              >
-                <Download className="w-3 h-3" />
-              </Button>
-            </div>
+            {showApprovalActions && template.status === 'pending' ? (
+              <div className="flex gap-2 pt-3 border-t">
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onApprove?.();
+                  }}
+                  className="flex-1 bg-green-600 text-white hover:bg-green-700 text-xs"
+                  data-testid={`button-approve-${template.id}`}
+                >
+                  <Check className="w-3 h-3 mr-1" />
+                  Approve
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReject?.();
+                  }}
+                  className="flex-1 bg-red-600 text-white hover:bg-red-700 text-xs"
+                  data-testid={`button-reject-${template.id}`}
+                >
+                  <X className="w-3 h-3 mr-1" />
+                  Reject
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2 pt-3 border-t">
+                <Button
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCreateProject();
+                  }}
+                  className="flex-1 pbl-button-primary text-xs"
+                  disabled={template.status === 'pending' || template.status === 'rejected'}
+                  data-testid={`button-use-template-${template.id}`}
+                >
+                  <Play className="w-3 h-3 mr-1" />
+                  Use Template
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExportTemplate();
+                  }}
+                  className="text-xs"
+                  data-testid={`button-export-${template.id}`}
+                >
+                  <Download className="w-3 h-3" />
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
