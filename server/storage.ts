@@ -313,6 +313,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(projectTemplates.name);
   }
 
+  async getProjectTemplate(id: number): Promise<ProjectTemplate | undefined> {
+    const [result] = await db.select().from(projectTemplates).where(eq(projectTemplates.id, id));
+    return result || undefined;
+  }
+
   async searchProjectTemplates(filters: {
     status?: string;
     discipline?: string;
@@ -346,12 +351,13 @@ export class DatabaseStorage implements IStorage {
       .where(and(...conditions));
     
     if (filters.q) {
+      const searchTerm = `%${filters.q.toLowerCase()}%`;
       query = query.where(
         and(
           ...conditions,
           sql`(
-            LOWER(${projectTemplates.name}) LIKE LOWER(${`%${filters.q}%`}) OR 
-            LOWER(${projectTemplates.description}) LIKE LOWER(${`%${filters.q}%`})
+            LOWER(${projectTemplates.name}) LIKE ${searchTerm} OR 
+            LOWER(${projectTemplates.description}) LIKE ${searchTerm}
           )`
         )
       );
@@ -388,7 +394,7 @@ export class DatabaseStorage implements IStorage {
       .delete(projectTemplates)
       .where(eq(projectTemplates.id, id));
     
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async approveProjectTemplate(id: number, approvedBy: number, notes?: string): Promise<ProjectTemplate | undefined> {

@@ -549,6 +549,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Search templates with filters
+  app.get("/api/templates/search", async (req, res) => {
+    try {
+      const { status, discipline, q, featuredOnly, createdBy } = req.query;
+      
+      const filters = {
+        status: status as string,
+        discipline: discipline as string,
+        q: q as string,
+        featuredOnly: featuredOnly === 'true',
+        createdBy: createdBy ? parseInt(createdBy as string) : undefined
+      };
+      
+      const templates = await storage.searchProjectTemplates(filters);
+      res.json(templates);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to search templates", error: getErrorMessage(error) });
+    }
+  });
+
+  // Create new template (requires auth)
+  app.post("/api/templates", requireAuth, async (req, res) => {
+    try {
+      const template = {
+        ...req.body,
+        createdBy: req.user.id,
+        status: req.user.role === 'super_admin' || req.user.role === 'admin' ? 'approved' : 'pending',
+        isActive: req.user.role === 'super_admin' || req.user.role === 'admin',
+        isFeatured: false
+      };
+      
+      const created = await storage.createProjectTemplate(template);
+      res.status(201).json(created);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create template", error: getErrorMessage(error) });
+    }
+  });
+
+  // Update template (requires auth and ownership or admin)
+  app.patch("/api/templates/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getProjectTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // Check permissions
+      const isOwner = template.createdBy === req.user.id;
+      const isAdmin = ['super_admin', 'admin'].includes(req.user.role);
+      
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      
+      const updated = await storage.updateProjectTemplate(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update template", error: getErrorMessage(error) });
+    }
+  });
+
+  // Delete template (requires auth and ownership or admin)
+  app.delete("/api/templates/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getProjectTemplate(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      // Check permissions
+      const isOwner = template.createdBy === req.user.id;
+      const isAdmin = ['super_admin', 'admin'].includes(req.user.role);
+      
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      
+      const deleted = await storage.deleteProjectTemplate(id);
+      
+      if (deleted) {
+        res.json({ message: "Template deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Template not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete template", error: getErrorMessage(error) });
+    }
+  });
+
+  // Approve template (admin only)
+  app.post("/api/templates/:id/approve", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const template = await storage.approveProjectTemplate(id, req.user.id, notes);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve template", error: getErrorMessage(error) });
+    }
+  });
+
+  // Reject template (admin only)
+  app.post("/api/templates/:id/reject", requireAuth, requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { notes } = req.body;
+      
+      const template = await storage.rejectProjectTemplate(id, req.user.id, notes);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject template", error: getErrorMessage(error) });
+    }
+  });
+
+  // Export templates (bulk selection)
+  app.post("/api/templates/export", async (req, res) => {
+    try {
+      const { templateIds, format = 'json' } = req.body;
+      
+      if (!templateIds || !Array.isArray(templateIds)) {
+        return res.status(400).json({ message: "Template IDs array required" });
+      }
+      
+      const templates = await storage.getProjectTemplatesByIds(templateIds);
+      
+      if (format === 'csv') {
+        // Convert to CSV format
+        const csvHeaders = ['Name', 'Description', 'Discipline', 'Category', 'Status', 'Created By'];
+        const csvRows = templates.map(t => [
+          t.name,
+          t.description,
+          t.discipline,
+          t.category || '',
+          t.status,
+          t.createdBy
+        ]);
+        
+        const csvContent = [csvHeaders, ...csvRows]
+          .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+          .join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="templates.csv"');
+        res.send(csvContent);
+      } else {
+        // JSON format
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename="templates.json"');
+        res.json(templates);
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to export templates", error: getErrorMessage(error) });
+    }
+  });
+
   // Student contributions routes
   app.get("/api/contributions/project/:projectId", async (req, res) => {
     try {
