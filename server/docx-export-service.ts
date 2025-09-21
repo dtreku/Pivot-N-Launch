@@ -334,7 +334,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: "💡 Instructor Tip: ",
+            text: "[INSTRUCTOR TIP] ",
             bold: true,
             color: "0066CC"
           }),
@@ -482,7 +482,7 @@ export class DocxExportService {
         new Paragraph({
           children: [
             new TextRun({
-              text: "🎯 Key Activities: ",
+              text: "Key Activities: ",
               bold: true
             }),
             new TextRun({
@@ -496,7 +496,7 @@ export class DocxExportService {
         new Paragraph({
           children: [
             new TextRun({
-              text: "📋 Deliverables: ",
+              text: "Deliverables: ",
               bold: true
             }),
             new TextRun({
@@ -510,7 +510,7 @@ export class DocxExportService {
         new Paragraph({
           children: [
             new TextRun({
-              text: "⏱️ Estimated Duration: ",
+              text: "Estimated Duration: ",
               bold: true
             }),
             new TextRun({
@@ -798,7 +798,7 @@ export class DocxExportService {
         new Paragraph({
           children: [
             new TextRun({
-              text: `📄 ${deliverable}`,
+              text: `• ${deliverable}`,
               bold: true
             })
           ],
