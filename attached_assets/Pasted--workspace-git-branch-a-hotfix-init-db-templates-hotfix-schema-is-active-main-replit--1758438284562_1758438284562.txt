@@ -1,0 +1,85 @@
+~/workspace$ git branch -a
+  hotfix/init-db-templates
+  hotfix/schema-is-active
+* main
+  replit-agent
+  remotes/origin/HEAD -> origin/main
+  remotes/origin/hotfix/init-db-templates
+  remotes/origin/main
+~/workspace$ ^C
+~/workspace$ git branch --merged main
+* main
+~/workspace$ ^C
+~/workspace$ git log main..hotfix/init-db-templates --oneline
+b5ef1f4 (origin/hotfix/init-db-templates, hotfix/schema-is-active, hotfix/init-db-templates) Update project template structure to better support new features
+19203f0 Add an image asset to the project files
+2e8bc2f Add visual asset for platform illustration
+b0c3aa5 Add initial database setup for the project
+~/workspace$ git log main..hotfix/schema-is-active --oneline
+b5ef1f4 (origin/hotfix/init-db-templates, hotfix/schema-is-active, hotfix/init-db-templates) Update project template structure to better support new features
+19203f0 Add an image asset to the project files
+2e8bc2f Add visual asset for platform illustration
+b0c3aa5 Add initial database setup for the project
+~/workspace$ git log main..replit-agent --oneline
+b1f3d46 (replit-agent) Improve project template downloads with clearer guidance
+e9f816f Improve project template professionalism and add download option
+1cb6455 Improve template export options to include a professional document format
+ad013ff Add professional guide generation with DOCX download option
+1e0ee1c Improve project template structure for enhanced professional guidance
+00e259a Add ability to download project templates as Word documents
+15258fb Add functionality to export project templates in JSON or CSV format
+39c9dec Add ability to search and filter project templates by various criteria
+164300c Add essential project documentation and setup instructions
+741d12b Fix error when accessing template information by adding missing column
+5236eae Add endpoint to reset project templates with correct schema
+54afbe1 Add debugging endpoint to inspect project templates in production
+93bf182 Add unauthenticated endpoint to seed initial project templates
+bc0277a Add default project templates to initialize the platform
+ef1fa1e Update project templates to display correctly on the live site
+a1aa95c Make it possible to submit project statements and see their success
+5239896 Add endpoint to update the project template database schema
+b9200fe Update project template structure to better support new features
+b5ef1f4 (origin/hotfix/init-db-templates, hotfix/schema-is-active, hotfix/init-db-templates) Update project template structure to better support new features
+f09710d Add an image asset to the project files
+19203f0 Add an image asset to the project files
+9c2cbcb Add visual asset for platform illustration
+2e8bc2f Add visual asset for platform illustration
+94df9d3 Add initial database setup for the project
+b0c3aa5 Add initial database setup for the project
+383aaf2 Add new image to enhance project documentation
+3507b0e Improve the platform's ability to map knowledge across different subjects
+facb09e Add foundational database tables for project templates and student contributions
+19fea26 Add visual assets to enhance the platform's user interface
+4da779a Update project to include new visual assets for enhanced user experience
+6fa36d5 Add image file to project assets
+191f109 Add logo to the platform's visual identity
+a952f8f Add automated database branching for pull requests
+a9c59a9 Add visual asset to the project's attached assets folder
+6217028 Add visual aids to enhance platform understanding and user engagement
+528dde7 Fix missing project templates page in production environment
+f68797d Add ability to securely manage user account settings and preferences
+e8962d5 Expand admin capabilities and improve template fetching logic
+a63ee32 Add approval actions and status indicators to project templates
+910cf9b Add management capabilities for project templates
+a809039 Improve project template search and management functionalities
+fcad65f Add functionality to manage and search project templates
+7cb25bd Improve project templates page functionality and display
+997eeba Organize settings to separate account management from API key configurations
+8799b7b Update settings page to manage account security and API keys
+cf040ec Separate profile viewing from account settings management
+fc4e0c2 Update settings page for account and API key management
+03c0862 Fix profile and settings links in faculty display component
+a6840a4 Add an image to the project documentation
+6661a80 Improve session creation for serverless compatibility
+c0b90a3 Improve build command for production deployment
+65fe60c Update server build process to use CommonJS for route compilation
+f94b271 Update build process to support ES module output for serverless functions
+490429a Create the project's initial structure and configuration files
+9cfe4bf Improve image loading for a smoother visual experience on the platform
+a04fb36 Update login to use session IDs and include more faculty details
+bb41e16 Improve system reliability by fixing user login and data insertion issues
+ecd34d8 Update system to allow specific user accounts to use an older password
+257af5e Inform users that they must re-authenticate after a password change
+d66f693 Improve security by strengthening password encryption
+1d3532c Add validation to authentication endpoints for improved security
+:
