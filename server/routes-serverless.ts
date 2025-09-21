@@ -953,6 +953,66 @@ async function registerRoutes(app: Express) {
     }
   });
 
+  app.post('/api/templates/export', async (req, res) => {
+    try {
+      console.log("Exporting templates from serverless...", req.body);
+      const { templateIds, format = 'json' } = req.body;
+      
+      if (!templateIds || !Array.isArray(templateIds)) {
+        return res.status(400).json({ message: "Template IDs array required" });
+      }
+      
+      // Get templates by IDs using direct SQL query
+      const placeholders = templateIds.map((_, index) => `$${index + 1}`).join(',');
+      const query = `
+        SELECT id, name, description, discipline, category, template, 
+               icon, color, estimated_duration, difficulty_level, 
+               is_active, status, is_featured, created_at
+        FROM project_templates 
+        WHERE id IN (${placeholders}) AND is_active = true
+      `;
+      
+      console.log("Fetching templates for export with query:", query, "params:", templateIds);
+      const result = await pool.query(query, templateIds);
+      const templates = result.rows;
+      
+      if (format === 'csv') {
+        // Convert to CSV format
+        const csvHeaders = ['Name', 'Description', 'Discipline', 'Category', 'Status', 'Duration', 'Difficulty'];
+        const csvRows = templates.map(t => [
+          t.name,
+          t.description,
+          t.discipline,
+          t.category || '',
+          t.status,
+          t.estimated_duration || '',
+          t.difficulty_level || ''
+        ]);
+        
+        const csvContent = [csvHeaders, ...csvRows]
+          .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+          .join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="templates.csv"');
+        res.send(csvContent);
+      } else {
+        // JSON format
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename="templates.json"');
+        res.json(templates);
+      }
+      
+      console.log(`Successfully exported ${templates.length} templates in ${format} format`);
+    } catch (error) {
+      console.error("Export templates error:", error);
+      res.status(500).json({ 
+        message: "Failed to export templates", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // Export toolkit endpoint with multiple format support  
   app.get('/api/export/toolkit', async (req, res) => {
     try {
