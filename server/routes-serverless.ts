@@ -2080,6 +2080,54 @@ async function registerRoutes(app: Express) {
     }
   }); */
 
+  // TEMPORARY: Schema migration endpoint to add missing columns
+  app.post('/api/migrate-schema', async (req, res) => {
+    try {
+      console.log("Running schema migration to add missing columns...");
+
+      // Add missing columns to project_templates table
+      await pool.query(`
+        ALTER TABLE project_templates 
+        ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true;
+      `);
+
+      await pool.query(`
+        ALTER TABLE project_templates 
+        ADD COLUMN IF NOT EXISTS category varchar(100) NOT NULL DEFAULT 'general';
+      `);
+
+      await pool.query(`
+        ALTER TABLE project_templates 
+        ADD COLUMN IF NOT EXISTS template jsonb NOT NULL DEFAULT '{}'::jsonb;
+      `);
+
+      await pool.query(`
+        ALTER TABLE project_templates 
+        ADD COLUMN IF NOT EXISTS icon varchar(100);
+      `);
+
+      await pool.query(`
+        ALTER TABLE project_templates 
+        ADD COLUMN IF NOT EXISTS color varchar(50);
+      `);
+
+      console.log("Schema migration completed successfully");
+      
+      res.json({
+        success: true,
+        message: "Schema migration completed successfully - missing columns added"
+      });
+      
+    } catch (error) {
+      console.error("Schema migration error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Schema migration failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
 
