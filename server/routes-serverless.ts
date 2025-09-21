@@ -2270,6 +2270,215 @@ async function registerRoutes(app: Express) {
     }
   }); */
 
+  // TEMPORARY: Unauthenticated template seeding for initial setup
+  app.post('/api/seed-templates', async (req, res) => {
+    try {
+      console.log("Seeding templates without authentication...");
+
+      // Create default project templates
+      const templates = [
+        {
+          name: "Blockchain Applications",
+          description: "Smart contract development with real-world use cases",
+          discipline: "Blockchain",
+          category: "Development",
+          template: {
+            phases: ["Research", "Design", "Development", "Testing", "Deployment"],
+            deliverables: ["Smart Contract", "Documentation", "Test Cases"],
+            tools: ["Solidity", "Remix", "Web3"],
+          },
+          icon: "fas fa-cubes",
+          color: "#DC143C",
+          estimatedDuration: "8-12 weeks",
+          difficultyLevel: "intermediate",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Data Science",
+          description: "Real-world data analysis and machine learning projects",
+          discipline: "Data Science",
+          category: "Analysis",
+          template: {
+            phases: ["Data Collection", "Exploration", "Modeling", "Validation", "Presentation"],
+            deliverables: ["Dataset", "Analysis Report", "ML Model", "Visualizations"],
+            tools: ["Python", "Jupyter", "Pandas", "Scikit-learn"],
+          },
+          icon: "fas fa-chart-bar",
+          color: "#1E3A8A",
+          estimatedDuration: "6-10 weeks",
+          difficultyLevel: "intermediate",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Fintech Solutions",
+          description: "Financial technology innovation projects",
+          discipline: "Fintech",
+          category: "Innovation",
+          template: {
+            phases: ["Market Research", "Solution Design", "Prototype", "Testing", "Launch"],
+            deliverables: ["Business Plan", "Prototype", "Security Analysis", "User Testing"],
+            tools: ["APIs", "Mobile Dev", "Security Tools"],
+          },
+          icon: "fas fa-money-bill-wave",
+          color: "#F59E0B",
+          estimatedDuration: "10-14 weeks",
+          difficultyLevel: "advanced",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Business Strategy",
+          description: "Strategic planning and implementation projects",
+          discipline: "Business",
+          category: "Strategy",
+          template: {
+            phases: ["Analysis", "Strategy Development", "Planning", "Implementation", "Evaluation"],
+            deliverables: ["SWOT Analysis", "Strategic Plan", "Implementation Roadmap"],
+            tools: ["Analytics Tools", "Project Management", "Presentation Software"],
+          },
+          icon: "fas fa-briefcase",
+          color: "#10B981",
+          estimatedDuration: "4-8 weeks",
+          difficultyLevel: "beginner",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Biochemistry Lab Investigation",
+          description: "Protein analysis and enzyme kinetics research projects",
+          discipline: "Biochemistry",
+          category: "Laboratory",
+          template: {
+            phases: ["Literature Review", "Experimental Design", "Data Collection", "Analysis", "Research Report"],
+            deliverables: ["Research Proposal", "Lab Protocols", "Data Analysis", "Scientific Paper"],
+            tools: ["Spectrophotometry", "Chromatography", "Statistical Software", "Lab Notebooks"],
+          },
+          icon: "fas fa-flask",
+          color: "#059669",
+          estimatedDuration: "10-14 weeks",
+          difficultyLevel: "advanced",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Literary Analysis & Cultural Context",
+          description: "Comparative literature analysis with historical and cultural perspectives",
+          discipline: "Literature",
+          category: "Research",
+          template: {
+            phases: ["Text Selection", "Contextual Research", "Critical Analysis", "Comparative Study", "Thesis Writing"],
+            deliverables: ["Annotated Bibliography", "Critical Essays", "Comparative Analysis", "Research Thesis"],
+            tools: ["Digital Archives", "Citation Management", "Text Analysis Software", "Presentation Tools"],
+          },
+          icon: "fas fa-book-open",
+          color: "#7C3AED",
+          estimatedDuration: "8-12 weeks",
+          difficultyLevel: "intermediate",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Historical Research Project",
+          description: "Primary source investigation and historical narrative construction",
+          discipline: "History",
+          category: "Research",
+          template: {
+            phases: ["Topic Selection", "Source Collection", "Source Analysis", "Narrative Construction", "Presentation"],
+            deliverables: ["Research Proposal", "Primary Source Portfolio", "Historical Analysis", "Digital Exhibition"],
+            tools: ["Digital Archives", "Timeline Software", "GIS Mapping", "Multimedia Tools"],
+          },
+          icon: "fas fa-scroll",
+          color: "#B45309",
+          estimatedDuration: "6-10 weeks",
+          difficultyLevel: "intermediate",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Visual Arts & Design Thinking",
+          description: "Creative problem-solving through artistic expression and design principles",
+          discipline: "Visual Arts",
+          category: "Creative",
+          template: {
+            phases: ["Inspiration Gathering", "Concept Development", "Prototyping", "Refinement", "Exhibition"],
+            deliverables: ["Mood Board", "Concept Sketches", "Final Artwork", "Artist Statement", "Portfolio"],
+            tools: ["Digital Art Software", "3D Modeling", "Photography", "Presentation Platforms"],
+          },
+          icon: "fas fa-palette",
+          color: "#EC4899",
+          estimatedDuration: "6-8 weeks",
+          difficultyLevel: "beginner",
+          status: "approved",
+          isActive: true
+        },
+        {
+          name: "Mathematical Modeling & Real-World Applications",
+          description: "Applied mathematics projects solving practical problems",
+          discipline: "Mathematics",
+          category: "Analysis",
+          template: {
+            phases: ["Problem Identification", "Model Development", "Mathematical Analysis", "Validation", "Application"],
+            deliverables: ["Problem Statement", "Mathematical Model", "Analysis Report", "Software Implementation"],
+            tools: ["MATLAB", "Python", "Wolfram Alpha", "Graphing Software"],
+          },
+          icon: "fas fa-square-root-alt",
+          color: "#1F2937",
+          estimatedDuration: "8-10 weeks",
+          difficultyLevel: "advanced",
+          status: "approved",
+          isActive: true
+        }
+      ];
+
+      // Insert templates directly via SQL
+      let templatesCreated = 0;
+      for (const template of templates) {
+        try {
+          await pool.query(`
+            INSERT INTO project_templates (
+              name, description, discipline, category, template, icon, color,
+              estimated_duration, difficulty_level, status, is_active, created_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            ON CONFLICT (name) DO NOTHING
+          `, [
+            template.name,
+            template.description,
+            template.discipline,
+            template.category,
+            JSON.stringify(template.template),
+            template.icon,
+            template.color,
+            template.estimatedDuration,
+            template.difficultyLevel,
+            template.status,
+            template.isActive,
+            new Date()
+          ]);
+          templatesCreated++;
+          console.log(`Created template: ${template.name}`);
+        } catch (error) {
+          console.log(`Template ${template.name} might already exist, skipping...`);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: "Templates seeded successfully",
+        templatesCreated
+      });
+
+    } catch (error) {
+      console.error("Template seeding error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Template seeding failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // TEMPORARY: Schema migration endpoint to add missing columns
   app.post('/api/migrate-schema', async (req, res) => {
     try {
