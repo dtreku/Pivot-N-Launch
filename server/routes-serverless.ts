@@ -832,6 +832,77 @@ async function registerRoutes(app: Express) {
   });
 
   // Project template endpoints
+  // Search templates with filters (MUST come before /:id route)
+  app.get('/api/templates/search', async (req, res) => {
+    try {
+      console.log("Searching templates from serverless...", req.query);
+      const { status, discipline, q, featuredOnly, createdBy } = req.query;
+      
+      let query = `
+        SELECT id, name, description, discipline, category, template, 
+               icon, color, estimated_duration, difficulty_level, 
+               is_active, status, is_featured, created_at
+        FROM project_templates 
+        WHERE is_active = true
+      `;
+      
+      const params = [];
+      let paramIndex = 1;
+      
+      // Add status filter
+      if (status && status !== 'all') {
+        query += ` AND status = $${paramIndex}`;
+        params.push(status);
+        paramIndex++;
+      } else {
+        // Default to approved templates only
+        query += ` AND status = $${paramIndex}`;
+        params.push('approved');
+        paramIndex++;
+      }
+      
+      // Add discipline filter
+      if (discipline && discipline !== 'all') {
+        query += ` AND discipline = $${paramIndex}`;
+        params.push(discipline);
+        paramIndex++;
+      }
+      
+      // Add search query filter
+      if (q) {
+        query += ` AND (name ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`;
+        params.push(`%${q}%`);
+        paramIndex++;
+      }
+      
+      // Add featured filter
+      if (featuredOnly === 'true') {
+        query += ` AND is_featured = true`;
+      }
+      
+      // Add created by filter
+      if (createdBy && !isNaN(parseInt(createdBy as string))) {
+        query += ` AND created_by = $${paramIndex}`;
+        params.push(parseInt(createdBy as string));
+        paramIndex++;
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      console.log("Executing search query:", query, "with params:", params);
+      const result = await pool.query(query, params);
+      
+      console.log(`Found ${result.rows.length} templates matching search criteria`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error("Error searching templates:", error);
+      res.status(500).json({ 
+        message: "Failed to search templates", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   app.get('/api/templates', async (req, res) => {
     try {
       const { discipline } = req.query;
