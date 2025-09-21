@@ -133,7 +133,7 @@ export default function Templates() {
     });
   };
 
-  const handleExportSelected = async (format: 'json' | 'csv' = 'json') => {
+  const handleExportSelected = async (format: 'json' | 'csv' | 'docx' = 'json') => {
     try {
       const templateIds = Array.from(selectedTemplates);
       if (templateIds.length === 0) {
@@ -160,15 +160,24 @@ export default function Templates() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `templates-export.${format}`;
+      
+      // Set appropriate filename based on format
+      const filename = format === 'docx' 
+        ? 'PBL-Templates-Professional-Guide.docx'
+        : format === 'csv' 
+        ? 'PBL-Templates-Data.csv'
+        : 'PBL-Templates-Complete-Data.json';
+      
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
+      const formatDisplay = format === 'docx' ? 'Professional Word Document' : format.toUpperCase();
       toast({
         title: "Templates Exported",
-        description: `${templateIds.length} template(s) exported successfully as ${format.toUpperCase()}.`,
+        description: `${templateIds.length} template(s) exported successfully as ${formatDisplay}.`,
       });
       
       // Clear selection after export
@@ -448,6 +457,16 @@ export default function Templates() {
               </Button>
               {selectedTemplates.size > 0 && (
                 <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExportSelected('docx')}
+                    className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                    data-testid="button-export-docx"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export DOCX
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
