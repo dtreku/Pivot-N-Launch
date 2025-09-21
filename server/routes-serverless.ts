@@ -976,9 +976,22 @@ async function registerRoutes(app: Express) {
       const result = await pool.query(query, templateIds);
       const templates = result.rows;
       
-      if (format === 'csv') {
-        // Convert to CSV format
-        const csvHeaders = ['Name', 'Description', 'Discipline', 'Category', 'Status', 'Duration', 'Difficulty'];
+      if (format === 'docx') {
+        // Professional DOCX format using the DocxExportService
+        const { DocxExportService } = await import('./docx-export-service');
+        const docxService = new DocxExportService();
+        
+        const buffer = await docxService.generateProfessionalGuide(templates);
+        
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', 'attachment; filename="PBL-Templates-Professional-Guide.docx"');
+        res.send(buffer);
+      } else if (format === 'csv') {
+        // Enhanced CSV format with more comprehensive data
+        const csvHeaders = [
+          'Name', 'Description', 'Discipline', 'Category', 'Status', 'Duration', 'Difficulty',
+          'Phases', 'Deliverables', 'Tools', 'Featured', 'Created Date'
+        ];
         const csvRows = templates.map(t => [
           t.name,
           t.description,
@@ -986,7 +999,12 @@ async function registerRoutes(app: Express) {
           t.category || '',
           t.status,
           t.estimated_duration || '',
-          t.difficulty_level || ''
+          t.difficulty_level || '',
+          (t.template?.phases || []).join('; '),
+          (t.template?.deliverables || []).join('; '),
+          (t.template?.tools || []).join('; '),
+          t.is_featured ? 'Yes' : 'No',
+          new Date(t.created_at).toLocaleDateString()
         ]);
         
         const csvContent = [csvHeaders, ...csvRows]
@@ -994,13 +1012,32 @@ async function registerRoutes(app: Express) {
           .join('\n');
         
         res.setHeader('Content-Type', 'text/csv');
-        res.setHeader('Content-Disposition', 'attachment; filename="templates.csv"');
+        res.setHeader('Content-Disposition', 'attachment; filename="PBL-Templates-Data.csv"');
         res.send(csvContent);
       } else {
-        // JSON format
+        // Enhanced JSON format with metadata
+        const exportData = {
+          metadata: {
+            exportDate: new Date().toISOString(),
+            templateCount: templates.length,
+            exportFormat: 'json',
+            source: 'PNL Pedagogy Toolkit',
+            version: '1.0'
+          },
+          templates: templates.map(template => ({
+            ...template,
+            exportNotes: {
+              pedagogicalFramework: 'Pivot-and-Launch PBL Methodology',
+              cognitiveLoadApproach: 'Evidence-based design to prevent information overload',
+              transferLevels: 'Near, moderate, and far transfer activities included',
+              assessmentAlignment: 'Formative and summative assessment strategies provided'
+            }
+          }))
+        };
+        
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Disposition', 'attachment; filename="templates.json"');
-        res.json(templates);
+        res.setHeader('Content-Disposition', 'attachment; filename="PBL-Templates-Complete-Data.json"');
+        res.json(exportData);
       }
       
       console.log(`Successfully exported ${templates.length} templates in ${format} format`);
