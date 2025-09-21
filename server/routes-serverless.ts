@@ -2527,6 +2527,46 @@ async function registerRoutes(app: Express) {
     }
   });
 
+  // TEMPORARY: Debug endpoint to check production database
+  app.get('/api/debug/templates', async (req, res) => {
+    try {
+      console.log("Debugging templates in production database...");
+      
+      // Check table structure
+      const tableInfo = await pool.query(`
+        SELECT column_name, data_type, is_nullable, column_default 
+        FROM information_schema.columns 
+        WHERE table_name = 'project_templates'
+        ORDER BY ordinal_position;
+      `);
+      
+      // Check template count
+      const countResult = await pool.query(`SELECT COUNT(*) as count FROM project_templates;`);
+      
+      // Get a few templates
+      const templatesResult = await pool.query(`
+        SELECT id, name, description, discipline, category, is_active, status 
+        FROM project_templates 
+        LIMIT 5;
+      `);
+      
+      res.json({
+        success: true,
+        tableStructure: tableInfo.rows,
+        templateCount: countResult.rows[0].count,
+        sampleTemplates: templatesResult.rows
+      });
+      
+    } catch (error) {
+      console.error("Debug error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Debug failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Add 404 guard for unmatched /api/* paths AFTER all routes are registered
   app.use("/api/*", (_req, res) => res.status(404).json({ message: "API endpoint not found" }));
 
