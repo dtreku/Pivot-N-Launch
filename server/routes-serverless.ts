@@ -985,7 +985,8 @@ async function registerRoutes(app: Express) {
         
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         res.setHeader('Content-Disposition', 'attachment; filename="PBL-Templates-Professional-Guide.docx"');
-        res.send(buffer);
+        res.setHeader('Content-Length', buffer.length.toString());
+        res.end(buffer, 'binary');
       } else if (format === 'csv') {
         // Enhanced CSV format with more comprehensive data
         const csvHeaders = [
