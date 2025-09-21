@@ -184,28 +184,26 @@ async function registerRoutes(app: Express) {
         CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions" ("expire");
       `);
 
-      // Create project_templates table (CRITICAL for template system)
+      // Create project_templates table (CRITICAL for template system) - MATCH ACTUAL SCHEMA
       await pool.query(`
         CREATE TABLE IF NOT EXISTS "project_templates" (
           "id" serial PRIMARY KEY NOT NULL,
-          "title" varchar(255) NOT NULL,
+          "name" varchar(255) NOT NULL,
           "description" text NOT NULL,
           "discipline" varchar(100) NOT NULL,
-          "difficulty_level" varchar(50) DEFAULT 'intermediate' NOT NULL,
-          "estimated_duration" varchar(100) DEFAULT '2-3 weeks' NOT NULL,
-          "pivot_concept" text NOT NULL,
-          "launch_application" text NOT NULL,
-          "learning_objectives" jsonb DEFAULT '[]',
-          "key_topics" jsonb DEFAULT '[]',
-          "prerequisites" jsonb DEFAULT '[]',
-          "deliverables" jsonb DEFAULT '[]',
-          "assessment_criteria" jsonb DEFAULT '[]',
-          "resources" jsonb DEFAULT '[]',
-          "status" varchar(50) DEFAULT 'draft' NOT NULL,
-          "is_featured" boolean DEFAULT false NOT NULL,
+          "category" varchar(100) NOT NULL,
+          "template" jsonb NOT NULL,
+          "icon" varchar(100),
+          "color" varchar(50),
+          "estimated_duration" varchar(50),
+          "difficulty_level" varchar(50) DEFAULT 'intermediate',
+          "is_active" boolean DEFAULT true,
           "created_by" integer,
-          "created_at" timestamp DEFAULT now() NOT NULL,
-          "updated_at" timestamp DEFAULT now() NOT NULL
+          "status" varchar(50) DEFAULT 'pending' NOT NULL,
+          "approved_by" integer,
+          "approved_at" timestamp,
+          "is_featured" boolean DEFAULT false,
+          "created_at" timestamp DEFAULT now() NOT NULL
         );
       `);
 
