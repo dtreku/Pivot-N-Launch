@@ -184,7 +184,66 @@ async function registerRoutes(app: Express) {
         CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "sessions" ("expire");
       `);
 
-      console.log("Database tables created successfully");
+      // Create project_templates table (CRITICAL for template system)
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "project_templates" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "title" varchar(255) NOT NULL,
+          "description" text NOT NULL,
+          "discipline" varchar(100) NOT NULL,
+          "difficulty_level" varchar(50) DEFAULT 'intermediate' NOT NULL,
+          "estimated_duration" varchar(100) DEFAULT '2-3 weeks' NOT NULL,
+          "pivot_concept" text NOT NULL,
+          "launch_application" text NOT NULL,
+          "learning_objectives" jsonb DEFAULT '[]',
+          "key_topics" jsonb DEFAULT '[]',
+          "prerequisites" jsonb DEFAULT '[]',
+          "deliverables" jsonb DEFAULT '[]',
+          "assessment_criteria" jsonb DEFAULT '[]',
+          "resources" jsonb DEFAULT '[]',
+          "status" varchar(50) DEFAULT 'draft' NOT NULL,
+          "is_featured" boolean DEFAULT false NOT NULL,
+          "created_by" integer,
+          "created_at" timestamp DEFAULT now() NOT NULL,
+          "updated_at" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+
+      // Create other essential tables
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "projects" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "title" varchar(255) NOT NULL,
+          "description" text NOT NULL,
+          "faculty_id" integer NOT NULL,
+          "template_id" integer,
+          "pivot_concept" text NOT NULL,
+          "launch_application" text NOT NULL,
+          "learning_objectives" jsonb DEFAULT '[]',
+          "deliverables" jsonb DEFAULT '[]',
+          "status" varchar(50) DEFAULT 'active' NOT NULL,
+          "start_date" date,
+          "end_date" date,
+          "created_at" timestamp DEFAULT now() NOT NULL,
+          "updated_at" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS "student_contributions" (
+          "id" serial PRIMARY KEY NOT NULL,
+          "project_id" integer NOT NULL,
+          "student_name" varchar(255) NOT NULL,
+          "student_email" varchar(255) NOT NULL,
+          "contribution_type" varchar(100) NOT NULL,
+          "content" text NOT NULL,
+          "status" varchar(50) DEFAULT 'pending' NOT NULL,
+          "created_at" timestamp DEFAULT now() NOT NULL,
+          "updated_at" timestamp DEFAULT now() NOT NULL
+        );
+      `);
+
+      console.log("All database tables created successfully (including project_templates)");
       
       res.json({
         success: true,
