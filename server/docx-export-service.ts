@@ -25,13 +25,9 @@ export class DocxExportService {
     
     for (const template of templates) {
       const templateContent = this.createTemplateSection(template);
-      for (const item of templateContent) {
-        if (Array.isArray(item)) {
-          allContent.push(...item);
-        } else if (item) {
-          allContent.push(item);
-        }
-      }
+      // Flatten all content and filter out null/undefined values
+      const flatContent = templateContent.flat(2).filter(Boolean) as (Paragraph | Table)[];
+      allContent.push(...flatContent);
     }
     
     const doc = new Document({
@@ -184,7 +180,7 @@ export class DocxExportService {
   }
 
   private createPivotPhaseSection(pivotPhase?: ProfessionalTemplate['pivotPhase']) {
-    if (!pivotPhase) return null;
+    if (!pivotPhase) return [];
 
     return [
       new Paragraph({
@@ -348,7 +344,7 @@ export class DocxExportService {
   }
 
   private createLaunchPhaseSection(launchPhase?: ProfessionalTemplate['launchPhase']) {
-    if (!launchPhase) return null;
+    if (!launchPhase) return [];
 
     return [
       new Paragraph({
@@ -525,7 +521,7 @@ export class DocxExportService {
   }
 
   private createAssessmentSection(assessmentCriteria?: ProfessionalTemplate['pivotPhase']['assessmentCriteria']) {
-    if (!assessmentCriteria) return null;
+    if (!assessmentCriteria) return [];
 
     return [
       new Paragraph({
