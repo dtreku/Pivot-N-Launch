@@ -20,6 +20,14 @@ interface BasicTemplate {
 
 export class DocxExportService {
   
+  // Safe text extraction to prevent undefined values
+  private safeText(value: any, fallback: string = 'Not specified'): string {
+    if (value === null || value === undefined || value === '') {
+      return fallback;
+    }
+    return String(value);
+  }
+  
   async generateProfessionalGuide(templates: BasicTemplate[]): Promise<Buffer> {
     const allContent: (Paragraph | Table)[] = [];
     
@@ -92,7 +100,7 @@ export class DocxExportService {
             bold: true
           }),
           new TextRun({
-            text: template.discipline
+            text: template.discipline || 'Not specified'
           })
         ],
         spacing: { after: 120 }
@@ -105,7 +113,7 @@ export class DocxExportService {
             bold: true
           }),
           new TextRun({
-            text: template.category
+            text: template.category || 'Not specified'
           })
         ],
         spacing: { after: 120 }
@@ -144,7 +152,7 @@ export class DocxExportService {
             bold: true
           }),
           new TextRun({
-            text: template.description
+            text: template.description || 'No description available'
           })
         ],
         spacing: { after: 400 }
@@ -209,11 +217,11 @@ export class DocxExportService {
         spacing: { before: 300, after: 120 }
       }),
 
-      ...pivotPhase.learningObjectives.map(objective => 
+      ...(pivotPhase.learningObjectives || []).map(objective => 
         new Paragraph({
           children: [
             new TextRun({
-              text: `• ${objective}`
+              text: `• ${objective || 'Learning objective not specified'}`
             })
           ],
           spacing: { after: 80 },
@@ -237,7 +245,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: pivotPhase.coreConceptDefinition
+            text: pivotPhase.coreConceptDefinition || 'Core concept definition not available'
           })
         ],
         spacing: { after: 200 }
@@ -259,7 +267,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: pivotPhase.constraintsAndBoundaries
+            text: pivotPhase.constraintsAndBoundaries || 'Constraints and boundaries not specified'
           })
         ],
         spacing: { after: 200 }
@@ -381,7 +389,7 @@ export class DocxExportService {
             color: "0066CC"
           }),
           new TextRun({
-            text: launchPhase.transferActivities.nearTransfer.title
+            text: launchPhase.transferActivities?.nearTransfer?.title || 'Near transfer activity not specified'
           })
         ],
         spacing: { after: 120 }
@@ -390,7 +398,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: launchPhase.transferActivities.nearTransfer.description
+            text: launchPhase.transferActivities?.nearTransfer?.description || 'Description not available'
           })
         ],
         spacing: { after: 200 },
@@ -405,7 +413,7 @@ export class DocxExportService {
             color: "0066CC"
           }),
           new TextRun({
-            text: launchPhase.transferActivities.moderateTransfer.title
+            text: launchPhase.transferActivities?.moderateTransfer?.title || 'Moderate transfer activity not specified'
           })
         ],
         spacing: { after: 120 }
@@ -414,7 +422,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: launchPhase.transferActivities.moderateTransfer.description
+            text: launchPhase.transferActivities?.moderateTransfer?.description || 'Description not available'
           })
         ],
         spacing: { after: 200 },
@@ -429,7 +437,7 @@ export class DocxExportService {
             color: "0066CC"
           }),
           new TextRun({
-            text: launchPhase.transferActivities.farTransfer.title
+            text: launchPhase.transferActivities?.farTransfer?.title || 'Far transfer activity not specified'
           })
         ],
         spacing: { after: 120 }
@@ -438,7 +446,7 @@ export class DocxExportService {
       new Paragraph({
         children: [
           new TextRun({
-            text: launchPhase.transferActivities.farTransfer.description
+            text: launchPhase.transferActivities?.farTransfer?.description || 'Description not available'
           })
         ],
         spacing: { after: 300 },
@@ -466,7 +474,7 @@ export class DocxExportService {
         new Paragraph({
           children: [
             new TextRun({
-              text: `Phase ${index + 1}: ${phase}`,
+              text: `Phase ${index + 1}: ${this.safeText(phase, 'Project Phase')}`,
               bold: true,
               size: 14
             })
@@ -559,20 +567,20 @@ export class DocxExportService {
               })
             ]
           }),
-          ...assessmentCriteria.map(criterion => 
+          ...(assessmentCriteria || []).map(criterion => 
             new TableRow({
               children: [
                 new TableCell({
-                  children: [new Paragraph({ children: [new TextRun({ text: criterion.criterion })] })]
+                  children: [new Paragraph({ children: [new TextRun({ text: criterion?.criterion || 'Criterion not specified' })] })]
                 }),
                 new TableCell({
-                  children: [new Paragraph({ children: [new TextRun({ text: criterion.description })] })]
+                  children: [new Paragraph({ children: [new TextRun({ text: criterion?.description || 'Description not available' })] })]
                 }),
                 new TableCell({
-                  children: [new Paragraph({ children: [new TextRun({ text: criterion.lowPerformance })] })]
+                  children: [new Paragraph({ children: [new TextRun({ text: criterion?.lowPerformance || 'Not defined' })] })]
                 }),
                 new TableCell({
-                  children: [new Paragraph({ children: [new TextRun({ text: criterion.highPerformance })] })]
+                  children: [new Paragraph({ children: [new TextRun({ text: criterion?.highPerformance || 'Not defined' })] })]
                 })
               ]
             })
