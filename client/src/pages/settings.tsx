@@ -25,6 +25,9 @@ export default function Settings() {
   const { faculty, refreshUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [apiKeyStatus, setApiKeyStatus] = useState<"none" | "testing" | "valid" | "invalid">("none");
@@ -154,6 +157,44 @@ export default function Settings() {
     },
   });
 
+  const changePasswordMutation = useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) => {
+      return apiRequest("/api/auth/change-password", "POST", data);
+    },
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast({
+        title: "Password Updated",
+        description: "Your password has been changed successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update password",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleChangePassword = () => {
+    if (!currentPassword) {
+      toast({ title: "Error", description: "Please enter your current password", variant: "destructive" });
+      return;
+    }
+    if (!newPassword || newPassword.length < 6) {
+      toast({ title: "Error", description: "New password must be at least 6 characters", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({ title: "Error", description: "New passwords do not match", variant: "destructive" });
+      return;
+    }
+    changePasswordMutation.mutate({ currentPassword, newPassword });
+  };
+
   const testApiKeyMutation = useMutation({
     mutationFn: (testKey: string) => {
       return apiRequest("/api/openai/test", "POST", { apiKey: testKey });
@@ -261,29 +302,64 @@ export default function Settings() {
           {/* Password Change Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Change Password</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="current-password">Current Password</Label>
                 <Input
                   id="current-password"
                   type="password"
                   placeholder="Enter current password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
                   data-testid="input-current-password"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  placeholder="Enter new password"
-                  data-testid="input-new-password"
-                />
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Enter new password (min 6 characters)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    data-testid="input-new-password"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={confirmPassword && newPassword !== confirmPassword ? "border-red-500" : ""}
+                    data-testid="input-confirm-password"
+                  />
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      Passwords do not match
+                    </p>
+                  )}
+                  {confirmPassword && newPassword === confirmPassword && newPassword.length >= 6 && (
+                    <p className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-3 h-3" />
+                      Passwords match
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-            <Button className="w-fit" data-testid="button-change-password">
+            <Button
+              className="w-fit"
+              onClick={handleChangePassword}
+              disabled={changePasswordMutation.isPending || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+              data-testid="button-change-password"
+            >
               <Save className="w-4 h-4 mr-2" />
-              Update Password
+              {changePasswordMutation.isPending ? "Updating..." : "Update Password"}
             </Button>
           </div>
 
