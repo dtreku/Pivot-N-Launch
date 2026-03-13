@@ -623,6 +623,40 @@ async function registerRoutes(app: Express) {
     }
   });
 
+  // Password change endpoint
+  app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+    try {
+      const changePasswordSchema = z.object({
+        currentPassword: z.string().min(1, "Current password is required"),
+        newPassword: z.string().min(6, "New password must be at least 6 characters")
+      });
+
+      const validatedData = changePasswordSchema.parse(req.body);
+      const { currentPassword, newPassword } = validatedData;
+
+      const faculty = await storage.getFaculty((req.session as any).facultyId);
+      if (!faculty) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isValidPassword = await bcrypt.compare(currentPassword, faculty.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+
+      const newPasswordHash = await bcrypt.hash(newPassword, 12);
+      await storage.updateFaculty(faculty.id, { passwordHash: newPasswordHash });
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: error.errors[0].message });
+      }
+      console.error("Password change error:", error);
+      res.status(500).json({ message: "Password change failed" });
+    }
+  });
+
   // Registration endpoint
   app.post('/api/auth/register', async (req, res) => {
     try {
